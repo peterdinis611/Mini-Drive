@@ -1,23 +1,34 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute, notFound } from '@tanstack/react-router'
 
 import { FileExplorer } from '#/components/files/file-explorer'
+import { requireOnboardedSession } from '#/lib/route-guards'
+import { privateAppHead } from '#/lib/seo'
 import { getAppChrome } from '#/server/functions/drive'
 import { listFolderContents } from '#/server/functions/folders'
-import { getSession } from '#/server/session'
 
 export const Route = createFileRoute('/files/$folderId')({
-  beforeLoad: async () => {
-    const session = await getSession()
-    if (!session) throw redirect({ to: '/login' })
-    if (!session.user.onboardedAt) throw redirect({ to: '/onboarding' })
-    return { session }
-  },
+  beforeLoad: requireOnboardedSession,
   loader: async ({ params }) => {
-    const [chrome, contents] = await Promise.all([
-      getAppChrome(),
-      listFolderContents({ data: { folderId: params.folderId } }),
-    ])
-    return { chrome, contents }
+    try {
+      const [chrome, contents] = await Promise.all([
+        getAppChrome(),
+        listFolderContents({ data: { folderId: params.folderId } }),
+      ])
+      return { chrome, contents }
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'Priečinok neexistuje'
+      ) {
+        throw notFound()
+      }
+      throw error
+    }
+  },
+  head: ({ loaderData, params }) => {
+    const folderName =
+      loaderData?.contents.breadcrumbs.at(-1)?.name ?? 'Priečinok'
+    return privateAppHead(folderName, `/files/${params.folderId}`)
   },
   component: FilesFolderPage,
 })

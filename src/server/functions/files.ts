@@ -1,8 +1,9 @@
 import { createServerFn } from '@tanstack/react-start'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 
 import {
   deleteFileSchema,
+  imagePreviewUrlsSchema,
   moveFileSchema,
   renameFileSchema,
 } from '#/lib/validation'
@@ -154,4 +155,46 @@ export const getFileDownloadUrl = createServerFn({ method: 'GET' })
     })
 
     return { url: ufsUrl, name: existing.name }
+  })
+
+/** Short-lived signed URLs for image thumbnails (grid view). */
+export const getImagePreviewUrls = createServerFn({ method: 'POST' })
+  .validator(imagePreviewUrlsSchema)
+  .handler(async ({ data }) => {
+    const { requireSession } = await import('#/server/auth.server')
+    const { db } = await import('#/db')
+    const { files } = await import('#/db/schema')
+    const { utapi } = await import('#/server/utapi.server')
+
+    const session = await requireSession()
+    const userId = session.user.id
+
+    const empty: Record<string, string> = {}
+
+    if (data.fileIds.length === 0 || !process.env.UPLOADTHING_TOKEN) {
+      return empty
+    }
+
+    const rows = await db
+      .select({
+        id: files.id,
+        mimeType: files.mimeType,
+        uploadthingKey: files.uploadthingKey,
+      })
+      .from(files)
+      .where(and(eq(files.userId, userId), inArray(files.id, data.fileIds)))
+
+    const images = rows.filter((row) => row.mimeType.startsWith('image/'))
+    const result: Record<string, string> = {}
+
+    await Promise.all(
+      images.map(async (row) => {
+        const { ufsUrl } = await utapi.generateSignedURL(row.uploadthingKey, {
+          expiresIn: 60 * 10,
+        })
+        result[row.id] = ufsUrl
+      }),
+    )
+
+    return result
   })

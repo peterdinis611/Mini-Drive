@@ -2,6 +2,11 @@ import { createRouter as createTanStackRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
+import {
+  NotFoundPage,
+  RoutePending,
+  ServerErrorPage,
+} from '#/components/status/status-page'
 import { getContext } from './integrations/tanstack-query/root-provider'
 
 export function getRouter() {
@@ -12,7 +17,17 @@ export function getRouter() {
     context,
     scrollRestoration: true,
     defaultPreload: 'intent',
-    defaultPreloadStaleTime: 0,
+    defaultPreloadStaleTime: 30_000,
+    defaultPendingMs: 200,
+    defaultPendingMinMs: 300,
+    defaultPendingComponent: RoutePending,
+    defaultNotFoundComponent: NotFoundPage,
+    defaultErrorComponent: ({ error, reset }) => (
+      <ServerErrorPage
+        error={error instanceof Error ? error : new Error('Neznáma chyba')}
+        reset={reset}
+      />
+    ),
   })
 
   setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient })

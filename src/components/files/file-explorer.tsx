@@ -2,7 +2,6 @@ import { useMemo, useState, useTransition } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
 import {
   Download,
-  FileIcon,
   Folder,
   FolderPlus,
   Grid2X2,
@@ -15,6 +14,7 @@ import {
   FolderInput,
   Upload,
 } from 'lucide-react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { toast } from 'sonner'
 
 import { UploadZone } from '#/components/files/upload-zone'
@@ -22,6 +22,11 @@ import { NameDialog } from '#/components/files/name-dialog'
 import { MoveDialog } from '#/components/files/move-dialog'
 import { DeleteFolderDialog } from '#/components/files/delete-folder-dialog'
 import { ShareDialog } from '#/components/files/share-dialog'
+import { FileThumbnail } from '#/components/files/file-thumbnail'
+import { useImagePreviews } from '#/components/files/use-image-previews'
+import { FadeIn } from '#/components/motion/fade-in'
+import { Stagger, StaggerItem } from '#/components/motion/stagger'
+import { riseTransition } from '#/lib/motion'
 import { AppShell } from '#/components/layout/app-shell'
 import type { DriveStats } from '#/components/layout/app-sidebar'
 import {
@@ -102,11 +107,13 @@ export function FileExplorer({
   initial,
 }: Props) {
   const router = useRouter()
+  const reduce = useReducedMotion()
   const [view, setView] = useState<'grid' | 'list'>(initial.viewPreference)
   const [query, setQuery] = useState('')
   const [showUpload, setShowUpload] = useState(true)
   const [dialog, setDialog] = useState<DialogState>(null)
   const [pending, startTransition] = useTransition()
+  const previewUrls = useImagePreviews(initial.files, view === 'grid')
 
   const folders = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -225,44 +232,54 @@ export function FileExplorer({
           </div>
         </div>
 
-        <nav aria-label="Breadcrumb" className="animate-rise">
-          <Breadcrumb>
-            <BreadcrumbList>
-              {initial.breadcrumbs.map((crumb, index) => {
-                const isLast = index === initial.breadcrumbs.length - 1
-                return (
-                  <BreadcrumbItem key={crumb.id ?? 'root'}>
-                    {index > 0 ? <BreadcrumbSeparator /> : null}
-                    {isLast ? (
-                      <BreadcrumbPage>{crumb.name}</BreadcrumbPage>
-                    ) : crumb.id ? (
-                      <BreadcrumbLink asChild>
-                        <Link
-                          to="/files/$folderId"
-                          params={{ folderId: crumb.id }}
-                        >
-                          {crumb.name}
-                        </Link>
-                      </BreadcrumbLink>
-                    ) : (
-                      <BreadcrumbLink asChild>
-                        <Link to="/files">{crumb.name}</Link>
-                      </BreadcrumbLink>
-                    )}
-                  </BreadcrumbItem>
-                )
-              })}
-            </BreadcrumbList>
-          </Breadcrumb>
-        </nav>
+        <FadeIn>
+          <nav aria-label="Breadcrumb">
+            <Breadcrumb>
+              <BreadcrumbList>
+                {initial.breadcrumbs.map((crumb, index) => {
+                  const isLast = index === initial.breadcrumbs.length - 1
+                  return (
+                    <BreadcrumbItem key={crumb.id ?? 'root'}>
+                      {index > 0 ? <BreadcrumbSeparator /> : null}
+                      {isLast ? (
+                        <BreadcrumbPage>{crumb.name}</BreadcrumbPage>
+                      ) : crumb.id ? (
+                        <BreadcrumbLink asChild>
+                          <Link
+                            to="/files/$folderId"
+                            params={{ folderId: crumb.id }}
+                          >
+                            {crumb.name}
+                          </Link>
+                        </BreadcrumbLink>
+                      ) : (
+                        <BreadcrumbLink asChild>
+                          <Link to="/files">{crumb.name}</Link>
+                        </BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                  )
+                })}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </nav>
+        </FadeIn>
 
-        {showUpload ? (
-          <div className="animate-rise animate-rise-delay-1">
-            <UploadZone folderId={folderId} onUploaded={refresh} />
-          </div>
-        ) : null}
+        <AnimatePresence initial={false}>
+          {showUpload ? (
+            <motion.div
+              key="upload"
+              initial={reduce ? false : { opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={reduce ? undefined : { opacity: 0, height: 0 }}
+              transition={riseTransition}
+            >
+              <UploadZone folderId={folderId} onUploaded={refresh} />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
 
-        <section className="animate-rise animate-rise-delay-2">
+        <FadeIn delay={0.06}>
           {pending ? (
             <div className="space-y-3 py-2">
               <Skeleton className="h-10 w-full" />
@@ -270,7 +287,12 @@ export function FileExplorer({
               <Skeleton className="h-10 w-2/3" />
             </div>
           ) : empty ? (
-            <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
+            <motion.div
+              className="flex flex-col items-center gap-3 px-6 py-16 text-center"
+              initial={reduce ? false : { opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={riseTransition}
+            >
               <Folder className="size-9 text-muted-foreground" aria-hidden />
               <h3 className="text-lg font-medium">
                 {query ? 'Žiadne výsledky' : 'Zatiaľ prázdne'}
@@ -280,7 +302,7 @@ export function FileExplorer({
                   ? 'Skús iný výraz alebo vymaž filter.'
                   : 'Nahraj súbor alebo vytvor nový priečinok.'}
               </p>
-            </div>
+            </motion.div>
           ) : view === 'list' ? (
             <Table>
               <TableHeader>
@@ -329,7 +351,11 @@ export function FileExplorer({
                   <TableRow key={file.id}>
                     <TableCell>
                       <span className="inline-flex items-center gap-2 font-medium">
-                        <FileIcon className="size-4 text-muted-foreground" />
+                        <FileThumbnail
+                          name={file.name}
+                          mimeType={file.mimeType}
+                          size="sm"
+                        />
                         {file.name}
                       </span>
                     </TableCell>
@@ -372,82 +398,103 @@ export function FileExplorer({
               </TableBody>
             </Table>
           ) : (
-            <div className="grid gap-1 sm:grid-cols-2 xl:grid-cols-3">
+            <Stagger
+              key="grid"
+              className="grid gap-1 sm:grid-cols-2 xl:grid-cols-3"
+            >
               {folders.map((folder) => (
-                <div
-                  key={folder.id}
-                  className="group relative rounded-md px-3 py-3 transition hover:bg-muted/70"
-                >
-                  <Link
-                    to="/files/$folderId"
-                    params={{ folderId: folder.id }}
-                    className="flex items-start gap-3"
+                <StaggerItem key={folder.id}>
+                  <motion.div
+                    className="group relative rounded-md px-3 py-3 hover:bg-muted/70"
+                    whileHover={reduce ? undefined : { y: -1 }}
+                    transition={riseTransition}
                   >
-                    <Folder className="mt-0.5 size-5 text-primary" />
-                    <div>
-                      <p className="font-medium">{folder.name}</p>
-                      <p className="text-xs text-muted-foreground">priečinok</p>
+                    <Link
+                      to="/files/$folderId"
+                      params={{ folderId: folder.id }}
+                      className="flex items-start gap-3"
+                    >
+                      <Folder className="mt-0.5 size-5 text-primary" />
+                      <div>
+                        <p className="font-medium">{folder.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          priečinok
+                        </p>
+                      </div>
+                    </Link>
+                    <div className="absolute top-2 right-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
+                      <FolderActions
+                        onRename={() =>
+                          setDialog({ type: 'rename-folder', folder })
+                        }
+                        onMove={() =>
+                          setDialog({ type: 'move-folder', folder })
+                        }
+                        onDelete={() =>
+                          setDialog({ type: 'delete-folder', folder })
+                        }
+                      />
                     </div>
-                  </Link>
-                  <div className="absolute top-2 right-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
-                    <FolderActions
-                      onRename={() =>
-                        setDialog({ type: 'rename-folder', folder })
-                      }
-                      onMove={() => setDialog({ type: 'move-folder', folder })}
-                      onDelete={() =>
-                        setDialog({ type: 'delete-folder', folder })
-                      }
-                    />
-                  </div>
-                </div>
+                  </motion.div>
+                </StaggerItem>
               ))}
               {files.map((file) => (
-                <div
-                  key={file.id}
-                  className="group relative rounded-md px-3 py-3 transition hover:bg-muted/70"
-                >
-                  <div className="flex items-start gap-3">
-                    <FileIcon className="mt-0.5 size-5 text-muted-foreground" />
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatFileSize(file.size)} · {formatDate(file.createdAt)}
-                      </p>
+                <StaggerItem key={file.id}>
+                  <motion.div
+                    className="group relative rounded-md px-3 py-3 hover:bg-muted/70"
+                    whileHover={reduce ? undefined : { y: -1 }}
+                    transition={riseTransition}
+                  >
+                    <div className="flex items-start gap-3">
+                      <FileThumbnail
+                        name={file.name}
+                        mimeType={file.mimeType}
+                        previewUrl={previewUrls[file.id]}
+                        size="md"
+                      />
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{file.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatFileSize(file.size)} ·{' '}
+                          {formatDate(file.createdAt)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="absolute top-2 right-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
-                    <FileActions
-                      onRename={() => setDialog({ type: 'rename-file', file })}
-                      onMove={() => setDialog({ type: 'move-file', file })}
-                      onDownload={() =>
-                        run(async () => {
-                          const result = await getFileDownloadUrl({
-                            data: { fileId: file.id },
-                          })
-                          window.open(
-                            result.url,
-                            '_blank',
-                            'noopener,noreferrer',
+                    <div className="absolute top-2 right-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
+                      <FileActions
+                        onRename={() =>
+                          setDialog({ type: 'rename-file', file })
+                        }
+                        onMove={() => setDialog({ type: 'move-file', file })}
+                        onDownload={() =>
+                          run(async () => {
+                            const result = await getFileDownloadUrl({
+                              data: { fileId: file.id },
+                            })
+                            window.open(
+                              result.url,
+                              '_blank',
+                              'noopener,noreferrer',
+                            )
+                          }, 'Odkaz na stiahnutie pripravený')
+                        }
+                        onDelete={() =>
+                          run(
+                            () => deleteFile({ data: { fileId: file.id } }),
+                            'Súbor zmazaný',
                           )
-                        }, 'Odkaz na stiahnutie pripravený')
-                      }
-                      onDelete={() =>
-                        run(
-                          () => deleteFile({ data: { fileId: file.id } }),
-                          'Súbor zmazaný',
-                        )
-                      }
-                      onShare={() =>
-                        setDialog({ type: 'share-file', file })
-                      }
-                    />
-                  </div>
-                </div>
+                        }
+                        onShare={() =>
+                          setDialog({ type: 'share-file', file })
+                        }
+                      />
+                    </div>
+                  </motion.div>
+                </StaggerItem>
               ))}
-            </div>
+            </Stagger>
           )}
-        </section>
+        </FadeIn>
       </div>
 
       <NameDialog

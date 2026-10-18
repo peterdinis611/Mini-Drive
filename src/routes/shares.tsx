@@ -1,8 +1,9 @@
 import { useMemo, useTransition } from 'react'
-import { Link, createFileRoute, redirect, useRouter } from '@tanstack/react-router'
+import { Link, createFileRoute, useRouter } from '@tanstack/react-router'
 import { Copy, Link2, Link2Off } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { FadeIn } from '#/components/motion/fade-in'
 import { AppShell } from '#/components/layout/app-shell'
 import { Button } from '#/components/ui/button'
 import {
@@ -14,18 +15,14 @@ import {
   TableRow,
 } from '#/components/ui/table'
 import { formatFileSize } from '#/lib/format'
+import { requireOnboardedSession } from '#/lib/route-guards'
+import { privateAppHead } from '#/lib/seo'
+import { cn } from '#/lib/utils'
 import { getAppChrome } from '#/server/functions/drive'
 import { listShareLinks, revokeShareLink } from '#/server/functions/shares'
-import { getSession } from '#/server/session'
-import { cn } from '#/lib/utils'
 
 export const Route = createFileRoute('/shares')({
-  beforeLoad: async () => {
-    const session = await getSession()
-    if (!session) throw redirect({ to: '/login' })
-    if (!session.user.onboardedAt) throw redirect({ to: '/onboarding' })
-    return { session }
-  },
+  beforeLoad: requireOnboardedSession,
   loader: async () => {
     const [chrome, shares] = await Promise.all([
       getAppChrome(),
@@ -33,6 +30,7 @@ export const Route = createFileRoute('/shares')({
     ])
     return { chrome, shares }
   },
+  head: () => privateAppHead('Zdieľania', '/shares'),
   component: SharesPage,
 })
 
@@ -59,7 +57,8 @@ function SharesPage() {
       title="Zdieľania"
       subtitle={`${activeCount} aktívnych · ${shares.length} celkom`}
     >
-      <section className="animate-rise">
+      <FadeIn>
+      <section>
         {shares.length === 0 ? (
           <div className="flex flex-col items-center gap-4 py-20 text-center">
             <Link2 className="size-8 text-muted-foreground" />
@@ -159,6 +158,7 @@ function SharesPage() {
           </Table>
         )}
       </section>
+      </FadeIn>
     </AppShell>
   )
 }

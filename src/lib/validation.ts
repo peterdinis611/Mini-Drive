@@ -99,6 +99,10 @@ export const deleteFileSchema = z.object({
   fileId: idSchema,
 })
 
+export const imagePreviewUrlsSchema = z.object({
+  fileIds: z.array(idSchema).max(24),
+})
+
 export const listFolderContentsSchema = z.object({
   folderId: idSchema.nullable(),
 })

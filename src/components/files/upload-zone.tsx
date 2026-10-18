@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Loader2, Upload } from 'lucide-react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { toast } from 'sonner'
 
 import { Progress } from '#/components/ui/progress'
@@ -13,6 +14,7 @@ type Props = {
 }
 
 export function UploadZone({ folderId, onUploaded }: Props) {
+  const reduce = useReducedMotion()
   const [percent, setPercent] = useState(0)
   const [dragOver, setDragOver] = useState(false)
   const [fileLabels, setFileLabels] = useState<string[]>([])
@@ -23,7 +25,7 @@ export function UploadZone({ folderId, onUploaded }: Props) {
     onClientUploadComplete: (res) => {
       setPercent(0)
       setFileLabels([])
-      const count = res?.length ?? 0
+      const count = res.length
       toast.success(count === 1 ? 'Súbor nahraný' : `Nahraných ${count} súborov`)
       onUploaded()
     },
@@ -42,13 +44,29 @@ export function UploadZone({ folderId, onUploaded }: Props) {
   }
 
   return (
-    <div
+    <motion.div
       className={cn(
-        'rounded-lg border border-dashed transition',
+        'overflow-hidden rounded-lg border border-dashed',
         dragOver
           ? 'border-primary bg-accent/60'
-          : 'border-border bg-muted/40 hover:bg-muted/70',
+          : 'border-border bg-muted/40',
       )}
+      animate={
+        reduce
+          ? undefined
+          : {
+              scale: dragOver ? 1.012 : 1,
+              borderColor: dragOver
+                ? 'var(--primary)'
+                : 'var(--border)',
+            }
+      }
+      whileHover={
+        reduce || isUploading || dragOver
+          ? undefined
+          : { backgroundColor: 'color-mix(in oklab, var(--muted) 70%, transparent)' }
+      }
+      transition={{ type: 'spring', stiffness: 380, damping: 28 }}
       onDragOver={(event) => {
         event.preventDefault()
         setDragOver(true)
@@ -61,11 +79,23 @@ export function UploadZone({ folderId, onUploaded }: Props) {
       }}
     >
       <label className="flex cursor-pointer flex-col items-center justify-center gap-2 px-4 py-10 text-center">
-        {isUploading ? (
-          <Loader2 className="size-6 animate-spin text-primary" aria-hidden />
-        ) : (
-          <Upload className="size-6 text-muted-foreground" aria-hidden />
-        )}
+        <motion.span
+          className="inline-flex"
+          animate={
+            reduce
+              ? undefined
+              : dragOver
+                ? { y: -4, scale: 1.1 }
+                : { y: 0, scale: 1 }
+          }
+          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+        >
+          {isUploading ? (
+            <Loader2 className="size-6 animate-spin text-primary" aria-hidden />
+          ) : (
+            <Upload className="size-6 text-muted-foreground" aria-hidden />
+          )}
+        </motion.span>
         <div>
           <p className="text-sm font-medium">
             {isUploading ? 'Nahrávam cez UploadThing…' : 'Pretiahni súbory sem'}
@@ -87,20 +117,29 @@ export function UploadZone({ folderId, onUploaded }: Props) {
         />
       </label>
 
-      {isUploading ? (
-        <div className="space-y-2 border-t border-border px-4 py-3">
-          {fileLabels.length > 0 ? (
-            <p className="truncate text-xs text-muted-foreground">
-              {fileLabels.join(', ')}
-            </p>
-          ) : null}
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Progress</span>
-            <span>{Math.round(percent)}%</span>
-          </div>
-          <Progress value={percent} className="h-1.5" />
-        </div>
-      ) : null}
-    </div>
+      <AnimatePresence initial={false}>
+        {isUploading ? (
+          <motion.div
+            key="progress"
+            className="space-y-2 border-t border-border px-4 py-3"
+            initial={reduce ? false : { height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={reduce ? undefined : { height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {fileLabels.length > 0 ? (
+              <p className="truncate text-xs text-muted-foreground">
+                {fileLabels.join(', ')}
+              </p>
+            ) : null}
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Progress</span>
+              <span>{Math.round(percent)}%</span>
+            </div>
+            <Progress value={percent} className="h-1.5" />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </motion.div>
   )
 }

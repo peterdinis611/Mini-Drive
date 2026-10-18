@@ -1,25 +1,23 @@
 import { useState, useTransition } from 'react'
-import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { Save } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { FadeIn } from '#/components/motion/fade-in'
 import { AppShell } from '#/components/layout/app-shell'
 import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { formatFileSize } from '#/lib/format'
+import { requireOnboardedSession } from '#/lib/route-guards'
+import { privateAppHead } from '#/lib/seo'
 import { getAppChrome } from '#/server/functions/drive'
 import { updateSettings } from '#/server/functions/settings'
-import { getSession } from '#/server/session'
 
 export const Route = createFileRoute('/settings')({
-  beforeLoad: async () => {
-    const session = await getSession()
-    if (!session) throw redirect({ to: '/login' })
-    if (!session.user.onboardedAt) throw redirect({ to: '/onboarding' })
-    return { session }
-  },
+  beforeLoad: requireOnboardedSession,
   loader: async () => getAppChrome(),
+  head: () => privateAppHead('Nastavenia', '/settings'),
   component: SettingsPage,
 })
 
@@ -65,7 +63,7 @@ function SettingsPage() {
         </Button>
       }
     >
-      <div className="mx-auto max-w-xl space-y-10 animate-rise">
+      <FadeIn className="mx-auto max-w-xl space-y-10">
         <section className="space-y-4">
           <h2 className="text-base font-semibold">Profil</h2>
           <div className="space-y-4">
@@ -126,7 +124,7 @@ function SettingsPage() {
             priečinkov · {formatFileSize(chrome.stats.totalBytes)} použité
           </p>
         </section>
-      </div>
+      </FadeIn>
     </AppShell>
   )
 }

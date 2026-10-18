@@ -21,12 +21,26 @@ Osobné úložisko súborov inšpirované S3 / Google Drive. TanStack Start + Up
 ```bash
 pnpm install
 cp .env.example .env.local
-# nastav BETTER_AUTH_SECRET (min. 32 znakov) a UPLOADTHING_TOKEN
+# nastav BETTER_AUTH_SECRET (min. 32 znakov), APP_URL a UPLOADTHING_TOKEN
 pnpm db:push
 pnpm dev
 ```
 
 Otvor [http://localhost:3000](http://localhost:3000).
+
+## Production
+
+| Premenná | Účel |
+| --- | --- |
+| `APP_URL` | Canonical URL, sitemap, robots, CSRF origin |
+| `BETTER_AUTH_URL` | Auth callbacks (mal by byť rovnaký ako `APP_URL`) |
+| `BETTER_AUTH_SECRET` | Session signing (min. 32 znakov) |
+| `UPLOADTHING_TOKEN` | Upload + signed URL |
+| `DATABASE_URL` | SQLite (alebo neskôr Postgres DSN) |
+
+SEO endpointy: `/sitemap.xml`, `/robots.txt`, `/site.webmanifest`, `/og.svg`.
+Súkromné routy majú `noindex`; verejné sú `/login` a `/register`.
+Security headers + CSRF middleware sú v `src/start.ts`.
 
 ## Skripty
 

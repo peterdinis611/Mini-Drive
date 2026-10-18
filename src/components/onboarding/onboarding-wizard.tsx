@@ -1,15 +1,20 @@
 import { useEffect, useId, useState, useTransition } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { CheckCircle2, HardDrive, Shield, Upload } from 'lucide-react'
+import { motion, useReducedMotion } from 'motion/react'
 import { toast } from 'sonner'
 
 import { UploadZone } from '#/components/files/upload-zone'
+import { SwapPresence } from '#/components/motion/animated-presence'
+import { FadeIn } from '#/components/motion/fade-in'
+import { Stagger, StaggerItem } from '#/components/motion/stagger'
 import { ThemeToggle } from '#/components/theme-toggle'
 import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { Progress } from '#/components/ui/progress'
 import { APP_NAME, ONBOARDING_STEPS } from '#/lib/constants'
+import { riseTransition } from '#/lib/motion'
 import { viewPreferenceSchema } from '#/lib/validation'
 import {
   completeOnboarding,
@@ -141,66 +146,77 @@ export function OnboardingWizard({ initial }: Props) {
   }
 
   const progressValue = (step / ONBOARDING_STEPS) * 100
+  const reduce = useReducedMotion()
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-lg flex-col gap-8 px-4 py-10">
-      <header className="flex items-center justify-between gap-4 animate-rise">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">{APP_NAME}</p>
-          <h1 className="font-display text-3xl">Vitaj</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={skip}
-            disabled={pending}
-          >
-            Preskočiť
-          </Button>
-        </div>
-      </header>
+      <FadeIn>
+        <header className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">
+              {APP_NAME}
+            </p>
+            <h1 className="font-display text-3xl">Vitaj</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={skip}
+              disabled={pending}
+            >
+              Preskočiť
+            </Button>
+          </div>
+        </header>
+      </FadeIn>
 
-      <div className="space-y-2 animate-rise animate-rise-delay-1">
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            Krok {step} / {ONBOARDING_STEPS}
-          </span>
-          <span>{Math.round(progressValue)}%</span>
+      <FadeIn delay={0.05}>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>
+              Krok {step} / {ONBOARDING_STEPS}
+            </span>
+            <span>{Math.round(progressValue)}%</span>
+          </div>
+          <Progress value={progressValue} aria-label="Postup onboarding-u" />
         </div>
-        <Progress value={progressValue} aria-label="Postup onboarding-u" />
-      </div>
+      </FadeIn>
 
-      <section className="animate-rise animate-rise-delay-2" aria-live="polite">
-        {step === 1 ? (
-          <WelcomeStep onContinue={goNextFromWelcome} pending={pending} />
-        ) : null}
-        {step === 2 ? (
-          <PreferencesStep
-            nameId={nameId}
-            name={name}
-            viewPreference={viewPreference}
-            pending={pending}
-            onNameChange={setName}
-            onViewChange={setViewPreference}
-            onBack={() => persistStep(1)}
-            onContinue={savePreferences}
-          />
-        ) : null}
-        {step === 3 ? (
-          <UploadStep
-            uploadDone={uploadDone}
-            pending={pending}
-            onUploaded={() => {
-              setUploadDone(true)
-              finishUploadStep()
-            }}
-            onBack={() => persistStep(2)}
-            onContinue={finishUploadStep}
-          />
-        ) : null}
-        {step === 4 ? <DoneStep pending={pending} onFinish={finish} /> : null}
+      <section aria-live="polite">
+        <SwapPresence id={step}>
+          {step === 1 ? (
+            <WelcomeStep onContinue={goNextFromWelcome} pending={pending} />
+          ) : null}
+          {step === 2 ? (
+            <PreferencesStep
+              nameId={nameId}
+              name={name}
+              viewPreference={viewPreference}
+              pending={pending}
+              onNameChange={setName}
+              onViewChange={setViewPreference}
+              onBack={() => persistStep(1)}
+              onContinue={savePreferences}
+            />
+          ) : null}
+          {step === 3 ? (
+            <UploadStep
+              uploadDone={uploadDone}
+              pending={pending}
+              onUploaded={() => {
+                setUploadDone(true)
+                finishUploadStep()
+              }}
+              onBack={() => persistStep(2)}
+              onContinue={finishUploadStep}
+            />
+          ) : null}
+          {step === 4 ? (
+            <DoneStep pending={pending} onFinish={finish} reduce={reduce} />
+          ) : null}
+        </SwapPresence>
       </section>
     </div>
   )
@@ -221,7 +237,7 @@ function WelcomeStep({
           Súkromné úložisko so súbormi, priečinkami a UploadThing uploadom.
         </p>
       </div>
-      <ul className="space-y-3">
+      <Stagger className="space-y-3">
         {[
           {
             icon: HardDrive,
@@ -239,15 +255,20 @@ function WelcomeStep({
             body: 'Safe-url s expiráciou a revoke.',
           },
         ].map((item) => (
-          <li key={item.title} className="flex gap-3 rounded-md bg-muted/50 p-3">
-            <item.icon className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
-            <div>
-              <p className="text-sm font-medium">{item.title}</p>
-              <p className="text-sm text-muted-foreground">{item.body}</p>
-            </div>
-          </li>
+          <StaggerItem key={item.title}>
+            <li className="flex list-none gap-3 rounded-md bg-muted/50 p-3">
+              <item.icon
+                className="mt-0.5 size-4 shrink-0 text-primary"
+                aria-hidden
+              />
+              <div>
+                <p className="text-sm font-medium">{item.title}</p>
+                <p className="text-sm text-muted-foreground">{item.body}</p>
+              </div>
+            </li>
+          </StaggerItem>
         ))}
-      </ul>
+      </Stagger>
       <Button type="button" onClick={onContinue} disabled={pending}>
         Pokračovať
       </Button>
@@ -379,14 +400,22 @@ function UploadStep({
 function DoneStep({
   pending,
   onFinish,
+  reduce,
 }: {
   pending: boolean
   onFinish: () => void
+  reduce: boolean | null
 }) {
   return (
     <div className="space-y-6">
       <div className="flex items-start gap-3">
-        <CheckCircle2 className="mt-1 size-7 text-primary" aria-hidden />
+        <motion.span
+          initial={reduce ? false : { scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={riseTransition}
+        >
+          <CheckCircle2 className="mt-1 size-7 text-primary" aria-hidden />
+        </motion.span>
         <div className="space-y-2">
           <h2 className="text-xl font-semibold">Hotovo</h2>
           <p className="text-sm text-muted-foreground">

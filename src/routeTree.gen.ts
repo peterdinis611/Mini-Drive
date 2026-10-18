@@ -14,8 +14,10 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as RecentRouteImport } from './routes/recent'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SharesRouteImport } from './routes/shares'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiUploadthingRouteImport } from './routes/api/uploadthing'
 import { Route as FilesIndexRouteImport } from './routes/files/index'
 import { Route as FilesFolderIdRouteImport } from './routes/files/$folderId'
@@ -47,6 +49,11 @@ const RegisterRoute = RegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -55,6 +62,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const SharesRoute = SharesRouteImport.update({
   id: '/shares',
   path: '/shares',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiUploadthingRoute = ApiUploadthingRouteImport.update({
@@ -89,8 +101,10 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/recent': typeof RecentRoute
   '/register': typeof RegisterRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/settings': typeof SettingsRoute
   '/shares': typeof SharesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/files/$folderId': typeof FilesFolderIdRoute
   '/s/$token': typeof STokenRoute
@@ -103,8 +117,10 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/recent': typeof RecentRoute
   '/register': typeof RegisterRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/settings': typeof SettingsRoute
   '/shares': typeof SharesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/files/$folderId': typeof FilesFolderIdRoute
   '/s/$token': typeof STokenRoute
@@ -118,8 +134,10 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/recent': typeof RecentRoute
   '/register': typeof RegisterRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/settings': typeof SettingsRoute
   '/shares': typeof SharesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/files/$folderId': typeof FilesFolderIdRoute
   '/s/$token': typeof STokenRoute
@@ -134,8 +152,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/recent'
     | '/register'
+    | '/robots.txt'
     | '/settings'
     | '/shares'
+    | '/sitemap.xml'
     | '/api/uploadthing'
     | '/files/$folderId'
     | '/s/$token'
@@ -148,8 +168,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/recent'
     | '/register'
+    | '/robots.txt'
     | '/settings'
     | '/shares'
+    | '/sitemap.xml'
     | '/api/uploadthing'
     | '/files/$folderId'
     | '/s/$token'
@@ -162,8 +184,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/recent'
     | '/register'
+    | '/robots.txt'
     | '/settings'
     | '/shares'
+    | '/sitemap.xml'
     | '/api/uploadthing'
     | '/files/$folderId'
     | '/s/$token'
@@ -177,8 +201,10 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   RecentRoute: typeof RecentRoute
   RegisterRoute: typeof RegisterRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SettingsRoute: typeof SettingsRoute
   SharesRoute: typeof SharesRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiUploadthingRoute: typeof ApiUploadthingRoute
   FilesFolderIdRoute: typeof FilesFolderIdRoute
   STokenRoute: typeof STokenRoute
@@ -223,6 +249,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -235,6 +268,13 @@ declare module '@tanstack/react-router' {
       path: '/shares'
       fullPath: '/shares'
       preLoaderRoute: typeof SharesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/uploadthing': {
@@ -281,8 +321,10 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   RecentRoute: RecentRoute,
   RegisterRoute: RegisterRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   SettingsRoute: SettingsRoute,
   SharesRoute: SharesRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiUploadthingRoute: ApiUploadthingRoute,
   FilesFolderIdRoute: FilesFolderIdRoute,
   STokenRoute: STokenRoute,

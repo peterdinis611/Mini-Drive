@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Menu, PanelLeft } from 'lucide-react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
 import { AppSidebar } from '#/components/layout/app-sidebar'
 import type { DriveStats } from '#/components/layout/app-sidebar'
@@ -13,6 +14,7 @@ import {
 } from '#/components/ui/sheet'
 import { TooltipProvider } from '#/components/ui/tooltip'
 import { APP_NAME } from '#/lib/constants'
+import { riseTransition } from '#/lib/motion'
 
 type Props = {
   userName: string
@@ -37,26 +39,36 @@ export function AppShell({
   actions,
   children,
 }: Props) {
+  const reduce = useReducedMotion()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [desktopCollapsed, setDesktopCollapsed] = useState(false)
 
   return (
     <TooltipProvider delayDuration={200}>
       <div className="flex min-h-svh bg-background">
-        {!desktopCollapsed ? (
-          <div className="hidden lg:block">
-            <div className="sticky top-0 h-svh">
-              <AppSidebar
-                userName={userName}
-                userEmail={userEmail}
-                folders={folders}
-                activeFolderId={activeFolderId}
-                stats={stats}
-                onCollapse={() => setDesktopCollapsed(true)}
-              />
-            </div>
-          </div>
-        ) : null}
+        <AnimatePresence initial={false}>
+          {!desktopCollapsed ? (
+            <motion.div
+              key="sidebar"
+              className="hidden lg:block"
+              initial={reduce ? false : { width: 0, opacity: 0 }}
+              animate={{ width: 'auto', opacity: 1 }}
+              exit={reduce ? undefined : { width: 0, opacity: 0 }}
+              transition={riseTransition}
+            >
+              <div className="sticky top-0 h-svh">
+                <AppSidebar
+                  userName={userName}
+                  userEmail={userEmail}
+                  folders={folders}
+                  activeFolderId={activeFolderId}
+                  stats={stats}
+                  onCollapse={() => setDesktopCollapsed(true)}
+                />
+              </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
 
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetContent
@@ -104,26 +116,48 @@ export function AppShell({
                     <PanelLeft />
                   </Button>
                 ) : null}
-                <div className="min-w-0">
-                  <h1 className="font-display truncate text-[28px] leading-tight text-foreground sm:text-[32px]">
-                    {title}
-                  </h1>
-                  {subtitle ? (
-                    <p className="truncate text-sm text-muted-foreground">
-                      {subtitle}
-                    </p>
-                  ) : null}
+                <div className="min-w-0 overflow-hidden">
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                      key={title}
+                      initial={reduce ? false : { opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={reduce ? undefined : { opacity: 0, y: -6 }}
+                      transition={riseTransition}
+                    >
+                      <h1 className="font-display truncate text-[28px] leading-tight text-foreground sm:text-[32px]">
+                        {title}
+                      </h1>
+                      {subtitle ? (
+                        <p className="truncate text-sm text-muted-foreground">
+                          {subtitle}
+                        </p>
+                      ) : null}
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               </div>
               {actions ? (
-                <div className="flex flex-wrap items-center gap-2">{actions}</div>
+                <motion.div
+                  className="flex flex-wrap items-center gap-2"
+                  initial={reduce ? false : { opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...riseTransition, delay: 0.05 }}
+                >
+                  {actions}
+                </motion.div>
               ) : null}
             </div>
           </header>
 
-          <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-8">
+          <motion.main
+            className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-8"
+            initial={reduce ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...riseTransition, delay: 0.04 }}
+          >
             {children}
-          </main>
+          </motion.main>
         </div>
       </div>
     </TooltipProvider>

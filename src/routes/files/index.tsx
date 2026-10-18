@@ -1,17 +1,13 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
 import { FileExplorer } from '#/components/files/file-explorer'
+import { requireOnboardedSession } from '#/lib/route-guards'
+import { privateAppHead } from '#/lib/seo'
 import { getAppChrome } from '#/server/functions/drive'
 import { listFolderContents } from '#/server/functions/folders'
-import { getSession } from '#/server/session'
 
 export const Route = createFileRoute('/files/')({
-  beforeLoad: async () => {
-    const session = await getSession()
-    if (!session) throw redirect({ to: '/login' })
-    if (!session.user.onboardedAt) throw redirect({ to: '/onboarding' })
-    return { session }
-  },
+  beforeLoad: requireOnboardedSession,
   loader: async () => {
     const [chrome, contents] = await Promise.all([
       getAppChrome(),
@@ -19,6 +15,7 @@ export const Route = createFileRoute('/files/')({
     ])
     return { chrome, contents }
   },
+  head: () => privateAppHead('Súbory'),
   component: FilesRootPage,
 })
 

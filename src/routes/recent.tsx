@@ -1,6 +1,7 @@
-import { Link, createFileRoute, redirect } from '@tanstack/react-router'
+import { Link, createFileRoute } from '@tanstack/react-router'
 import { FileIcon, FolderOpen } from 'lucide-react'
 
+import { FadeIn } from '#/components/motion/fade-in'
 import { AppShell } from '#/components/layout/app-shell'
 import {
   Table,
@@ -11,16 +12,12 @@ import {
   TableRow,
 } from '#/components/ui/table'
 import { formatFileSize } from '#/lib/format'
+import { requireOnboardedSession } from '#/lib/route-guards'
+import { privateAppHead } from '#/lib/seo'
 import { getAppChrome, listRecentFiles } from '#/server/functions/drive'
-import { getSession } from '#/server/session'
 
 export const Route = createFileRoute('/recent')({
-  beforeLoad: async () => {
-    const session = await getSession()
-    if (!session) throw redirect({ to: '/login' })
-    if (!session.user.onboardedAt) throw redirect({ to: '/onboarding' })
-    return { session }
-  },
+  beforeLoad: requireOnboardedSession,
   loader: async () => {
     const [chrome, recent] = await Promise.all([
       getAppChrome(),
@@ -28,6 +25,7 @@ export const Route = createFileRoute('/recent')({
     ])
     return { chrome, recent }
   },
+  head: () => privateAppHead('Nedávne', '/recent'),
   component: RecentPage,
 })
 
@@ -43,7 +41,8 @@ function RecentPage() {
       title="Nedávne"
       subtitle="Posledných 40 nahratých súborov"
     >
-      <section className="animate-rise">
+      <FadeIn>
+      <section>
         {recent.length === 0 ? (
           <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
             <FolderOpen className="size-8 text-muted-foreground" />
@@ -106,6 +105,7 @@ function RecentPage() {
           </Table>
         )}
       </section>
+      </FadeIn>
     </AppShell>
   )
 }

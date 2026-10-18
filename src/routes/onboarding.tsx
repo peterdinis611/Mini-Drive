@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 import { OnboardingWizard } from '#/components/onboarding/onboarding-wizard'
+import { privateAppHead } from '#/lib/seo'
 import { getOnboardingState } from '#/server/functions/onboarding'
 import { getSession } from '#/server/session'
 
@@ -16,6 +17,7 @@ export const Route = createFileRoute('/onboarding')({
     return { session }
   },
   loader: async () => getOnboardingState(),
+  head: () => privateAppHead('Onboarding', '/onboarding'),
   component: OnboardingPage,
 })
 

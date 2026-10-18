@@ -1,15 +1,18 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
 import { AuthForm } from '#/components/auth/auth-form'
-import { getSession } from '#/server/session'
+import { requireGuestSession } from '#/lib/route-guards'
+import { buildSeoHead } from '#/lib/seo'
 
 export const Route = createFileRoute('/login')({
-  beforeLoad: async () => {
-    const session = await getSession()
-    if (session) {
-      throw redirect({ to: '/' })
-    }
-  },
+  beforeLoad: requireGuestSession,
+  head: () =>
+    buildSeoHead({
+      title: 'Prihlásenie',
+      description:
+        'Prihlás sa do Mini Drive a spravuj svoje súbory, priečinky a safe-url zdieľania.',
+      path: '/login',
+    }),
   component: LoginPage,
 })
 

@@ -1,45 +1,45 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useEffect } from 'react'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Clock3, Link2Off, ShieldAlert } from 'lucide-react'
 
 import { ThemeToggle } from '#/components/theme-toggle'
 import { APP_NAME } from '#/lib/constants'
+import { buildSeoHead } from '#/lib/seo'
 import { resolvePublicShare } from '#/server/functions/shares'
 
 export const Route = createFileRoute('/s/$token')({
-  loader: async ({ params }) =>
-    resolvePublicShare({ data: { token: params.token } }),
+  loader: async ({ params }) => {
+    const data = await resolvePublicShare({ data: { token: params.token } })
+    if (data.status === 'ok') {
+      throw redirect({
+        href: data.url,
+        statusCode: 302,
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+      })
+    }
+    return data
+  },
+  head: ({ loaderData, params }) => {
+    const fileName =
+      loaderData && 'fileName' in loaderData ? loaderData.fileName : undefined
+    const title = fileName
+      ? `Zdieľaný súbor: ${fileName}`
+      : 'Zdieľaný odkaz'
+    return buildSeoHead({
+      title,
+      description: fileName
+        ? `Safe-url odkaz na súbor „${fileName}“ v ${APP_NAME}.`
+        : `Dočasný safe-url odkaz v ${APP_NAME}.`,
+      path: `/s/${params.token}`,
+      noIndex: true,
+    })
+  },
   component: PublicSharePage,
 })
 
 function PublicSharePage() {
   const data = Route.useLoaderData()
-
-  useEffect(() => {
-    if (data.status === 'ok') {
-      window.location.replace(data.url)
-    }
-  }, [data])
-
-  if (data.status === 'ok') {
-    return (
-      <ShareShell>
-        <Link2Off className="size-8 text-muted-foreground" aria-hidden />
-        <h1 className="text-xl font-semibold">Sťahujem súbor…</h1>
-        <p className="text-sm text-muted-foreground">
-          {data.fileName}
-          <br />
-          Presmerovanie na krátkodobý signed URL.
-        </p>
-        <a
-          href={data.url}
-          className="text-sm text-primary underline-offset-4 hover:underline"
-        >
-          Klikni sem, ak sa nič nedeje
-        </a>
-      </ShareShell>
-    )
-  }
 
   if (data.status === 'rate_limited') {
     return (
@@ -61,15 +61,19 @@ function PublicSharePage() {
         ? 'Odkaz vypršal'
         : 'Odkaz neexistuje'
 
+  const goneFileName =
+    data.reason === 'not_found' ? null : data.fileName
+
   return (
     <ShareShell>
       <Clock3 className="size-8 text-muted-foreground" aria-hidden />
       <h1 className="text-xl font-semibold">{reasonLabel}</h1>
       <p className="text-sm text-muted-foreground">
-        {data.reason === 'not_found'
-          ? 'Tento safe-url nie je platný (HTTP 410).'
-          : `Súbor „${data.fileName ?? '—'}“ už nie je dostupný cez tento odkaz (HTTP 410).`}
+        {goneFileName
+          ? `Súbor „${goneFileName}“ už nie je dostupný cez tento odkaz (HTTP 410).`
+          : 'Tento safe-url nie je platný (HTTP 410).'}
       </p>
+      <Link2Off className="mt-2 size-5 text-muted-foreground/60" aria-hidden />
     </ShareShell>
   )
 }
