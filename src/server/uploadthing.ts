@@ -19,35 +19,32 @@ const uploadInputSchema = z.object({
 export const uploadRouter = {
   driveUploader: f(
     {
+      // ACL must match the app default on the UploadThing dashboard.
+      // Per-route `acl` overrides require "Allow ACL overrides" to be enabled
+      // (otherwise ingest returns 400).
       image: {
         maxFileSize: '32MB',
         maxFileCount: UPLOAD_LIMITS.maxFileCount,
-        acl: 'private',
       },
       video: {
         maxFileSize: '32MB',
         maxFileCount: UPLOAD_LIMITS.maxFileCount,
-        acl: 'private',
       },
       audio: {
         maxFileSize: '32MB',
         maxFileCount: UPLOAD_LIMITS.maxFileCount,
-        acl: 'private',
       },
       pdf: {
         maxFileSize: '32MB',
         maxFileCount: UPLOAD_LIMITS.maxFileCount,
-        acl: 'private',
       },
       text: {
         maxFileSize: '32MB',
         maxFileCount: UPLOAD_LIMITS.maxFileCount,
-        acl: 'private',
       },
       blob: {
         maxFileSize: '32MB',
         maxFileCount: UPLOAD_LIMITS.maxFileCount,
-        acl: 'private',
       },
     },
     { awaitServerData: true },

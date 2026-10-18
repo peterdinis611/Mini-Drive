@@ -2,7 +2,7 @@ import { useMemo, useTransition } from 'react'
 import { Link, createFileRoute, useRouter } from '@tanstack/react-router'
 import { Copy, Link2, Link2Off } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
-import { toast } from 'sonner'
+import { toast } from '#/lib/toast'
 
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
@@ -66,10 +66,11 @@ function SharesPage() {
           {shares.length === 0 ? (
             <EmptyState
               icon={Link2}
+              scene="shares"
               title="Zatiaľ žiadne odkazy"
               description="V súboroch zvolíš „Zdieľať“ a vytvoríš safe-url s expiráciou."
               action={
-                <Button asChild variant="outline">
+                <Button asChild>
                   <Link to="/files">Prejsť do súborov</Link>
                 </Button>
               }

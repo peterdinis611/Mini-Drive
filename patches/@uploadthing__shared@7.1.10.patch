@@ -1,0 +1,32 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 610063ec2a420ec5b622adccf3f0f4fa6db5efab..64442ad2e33a6679df66218726b7665bc527228a 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -573,8 +573,9 @@ const generateSignedURL = (url, secretKey, opts) => effect_Micro.gen(function* (
+ 	parsedURL.searchParams.append("expires", expirationTime.toString());
+ 	if (opts.data) Object.entries(opts.data).forEach(([key, value]) => {
+ 		if (value == null) return;
+-		const encoded = encodeURIComponent(value);
+-		parsedURL.searchParams.append(key, encoded);
++		// URLSearchParams.append already percent-encodes; do not pre-encode
++		// or MIME types like application/pdf become application%252Fpdf (400).
++		parsedURL.searchParams.append(key, String(value));
+ 	});
+ 	const signature = yield* signPayload(parsedURL.toString(), secretKey);
+ 	parsedURL.searchParams.append("signature", signature);
+diff --git a/dist/index.js b/dist/index.js
+index 81b18245f975bbc1dd2d98ebc5b622adccf3f0f4fa6db5efab..fc141d004fcaf8c96a93fe16fb8c693f36e9b405 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -550,8 +550,9 @@ const generateSignedURL = (url, secretKey, opts) => Micro.gen(function* () {
+ 	parsedURL.searchParams.append("expires", expirationTime.toString());
+ 	if (opts.data) Object.entries(opts.data).forEach(([key, value]) => {
+ 		if (value == null) return;
+-		const encoded = encodeURIComponent(value);
+-		parsedURL.searchParams.append(key, encoded);
++		// URLSearchParams.append already percent-encodes; do not pre-encode
++		// or MIME types like application/pdf become application%252Fpdf (400).
++		parsedURL.searchParams.append(key, String(value));
+ 	});
+ 	const signature = yield* signPayload(parsedURL.toString(), secretKey);
+ 	parsedURL.searchParams.append("signature", signature);

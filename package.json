@@ -54,7 +54,6 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.2.0",
-    "sonner": "^2.0.8",
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.1.18",
     "three": "^0.186.1",
@@ -91,6 +90,9 @@
       "lightningcss",
       "better-sqlite3",
       "unrs-resolver"
-    ]
+    ],
+    "patchedDependencies": {
+      "@uploadthing/shared@7.1.10": "patches/@uploadthing__shared@7.1.10.patch"
+    }
   }
 }

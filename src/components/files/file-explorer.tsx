@@ -14,7 +14,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { toast } from 'sonner'
+import { toast } from '#/lib/toast'
 
 import { UploadZone } from '#/components/files/upload-zone'
 import { NameDialog } from '#/components/files/name-dialog'
@@ -244,7 +244,11 @@ export function FileExplorer({
               exit={reduce ? undefined : { opacity: 0, height: 0 }}
               transition={riseTransition}
             >
-              <UploadZone folderId={folderId} onUploaded={refresh} />
+              <UploadZone
+                folderId={folderId}
+                folders={initial.allFolders}
+                onUploaded={refresh}
+              />
             </motion.div>
           ) : null}
         </AnimatePresence>
@@ -259,6 +263,7 @@ export function FileExplorer({
           ) : empty ? (
             <EmptyState
               icon={Folder}
+              scene="files"
               title="Zatiaľ prázdne"
               description="Nahraj súbor alebo vytvor nový priečinok. Hľadaj cez ⌘K."
               className="rounded-2xl border border-dashed border-border/80 bg-muted/20"

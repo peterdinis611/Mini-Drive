@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Float } from '@react-three/drei'
-import * as THREE from 'three'
+import type { Mesh } from 'three'
 
 type OrbitFieldProps = {
   /** Softer / denser look variants */
@@ -32,7 +32,7 @@ function FileSlab({
   scale: [number, number, number]
   speed: number
 }) {
-  const ref = useRef<THREE.Mesh>(null)
+  const ref = useRef<Mesh>(null)
 
   useFrame((state) => {
     if (!ref.current) return
@@ -67,7 +67,7 @@ function Scene({ intensity }: { intensity: 'soft' | 'bold' }) {
       const angle = (i / count) * Math.PI * 2
       const radius = 1.5 + (i % 3) * 0.35
       return {
-        key: i,
+        id: i,
         position: [
           Math.cos(angle) * radius,
           (i % 5) * 0.22 - 0.5,
@@ -89,8 +89,8 @@ function Scene({ intensity }: { intensity: 'soft' | 'bold' }) {
       <ambientLight intensity={0.55} />
       <directionalLight position={[4, 6, 2]} intensity={1.1} />
       <pointLight position={[-3, 2, -2]} intensity={0.45} color={colors.accent} />
-      {slabs.map((slab) => (
-        <FileSlab key={slab.key} {...slab} />
+      {slabs.map(({ id, ...slab }) => (
+        <FileSlab key={id} {...slab} />
       ))}
     </>
   )

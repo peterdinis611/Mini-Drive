@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
-import { toast } from 'sonner'
+import { toast } from '#/lib/toast'
 
 import { AtmosphereShell } from '#/components/layout/atmosphere-shell'
 import { Button } from '#/components/ui/button'

@@ -50,10 +50,11 @@ function RecentPage() {
           {recent.length === 0 ? (
             <EmptyState
               icon={FolderOpen}
+              scene="files"
               title="Zatiaľ prázdne"
               description="Po prvom uploade sa tu zobrazia najnovšie súbory."
               action={
-                <Button asChild variant="outline">
+                <Button asChild>
                   <Link to="/files">Prejsť do súborov</Link>
                 </Button>
               }

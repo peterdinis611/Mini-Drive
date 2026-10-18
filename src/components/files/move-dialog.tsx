@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '#/components/ui/dialog'
+import { formatFolderPath } from '#/lib/folder-ops'
 import type { FolderTreeNode } from './types'
 
 type Props = {
@@ -38,7 +39,7 @@ export function MoveDialog({
     ]
     for (const folder of folders) {
       if (excluded.has(folder.id)) continue
-      opts.push({ id: folder.id, label: folderLabel(folder, folders) })
+      opts.push({ id: folder.id, label: formatFolderPath(folder, folders) })
     }
     return opts
   }, [folders, excludeFolderIds])
@@ -100,17 +101,4 @@ export function MoveDialog({
       </DialogContent>
     </Dialog>
   )
-}
-
-function folderLabel(folder: FolderTreeNode, all: FolderTreeNode[]): string {
-  const byId = new Map(all.map((item) => [item.id, item]))
-  const parts: string[] = [folder.name]
-  let parentId = folder.parentId
-  while (parentId) {
-    const parent = byId.get(parentId)
-    if (!parent) break
-    parts.unshift(parent.name)
-    parentId = parent.parentId
-  }
-  return parts.join(' / ')
 }

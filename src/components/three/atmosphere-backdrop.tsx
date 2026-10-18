@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useReducedMotion } from 'motion/react'
 
+import { supportsWebGL } from '#/lib/webgl'
 import { cn } from '#/lib/utils'
 
 const OrbitField = lazy(() =>
@@ -26,19 +27,7 @@ export function AtmosphereBackdrop({
     setMounted(true)
   }, [])
 
-  const webglOk =
-    mounted &&
-    !reduce &&
-    (() => {
-      try {
-        const canvas = document.createElement('canvas')
-        return Boolean(
-          canvas.getContext('webgl') || canvas.getContext('experimental-webgl'),
-        )
-      } catch {
-        return false
-      }
-    })()
+  const webglOk = mounted && !reduce && supportsWebGL()
 
   return (
     <div

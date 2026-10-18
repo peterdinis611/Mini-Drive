@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@uploadthing/shared@7.1.10': 3bf33a54f072358507116394f52de890d9ce4a379451cb9ded38ded9c16fa770
+
 importers:
 
   .:
@@ -98,9 +101,6 @@ importers:
       react-dom:
         specifier: ^19.2.0
         version: 19.3.1(react@19.3.1)
-      sonner:
-        specifier: ^2.0.8
-        version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       tailwind-merge:
         specifier: ^3.0.2
         version: 3.7.0
@@ -4237,16 +4237,6 @@ packages:
     peerDependencies:
       solid-js: ^1.6.12
 
-  sonner@2.0.8:
-    resolution: {integrity: sha512-UM/ByIoFra8yzV75n1o0Puu0bw5U/9UNnDacrJNspekBewIfsQ3D6ez1nvlWpt7aTsO6rujQtifBpycwIivqlg==}
-    peerDependencies:
-      '@types/react': ^18.0.0 || ^19.0.0
-      react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
-      react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-
   source-map-js@1.2.2:
     resolution: {integrity: sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw==}
     engines: {node: '>=0.10.0'}
@@ -7154,12 +7144,12 @@ snapshots:
 
   '@uploadthing/react@7.3.3(react@19.3.1)(uploadthing@7.7.4(tailwindcss@4.3.3))':
     dependencies:
-      '@uploadthing/shared': 7.1.10
+      '@uploadthing/shared': 7.1.10(patch_hash=3bf33a54f072358507116394f52de890d9ce4a379451cb9ded38ded9c16fa770)
       file-selector: 0.6.0
       react: 19.3.1
       uploadthing: 7.7.4(tailwindcss@4.3.3)
 
-  '@uploadthing/shared@7.1.10':
+  '@uploadthing/shared@7.1.10(patch_hash=3bf33a54f072358507116394f52de890d9ce4a379451cb9ded38ded9c16fa770)':
     dependencies:
       '@uploadthing/mime-types': 0.3.6
       effect: 3.17.7
@@ -8539,13 +8529,6 @@ snapshots:
       '@solid-primitives/transition-group': 1.1.2(solid-js@1.9.17)
       solid-js: 1.9.17
 
-  sonner@2.0.8(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
-    dependencies:
-      react: 19.3.1
-      react-dom: 19.3.1(react@19.3.1)
-    optionalDependencies:
-      '@types/react': 19.3.0
-
   source-map-js@1.2.2: {}
 
   source-map-support@0.5.21:
@@ -8774,7 +8757,7 @@ snapshots:
       '@effect/platform': 0.90.3(effect@3.17.7)
       '@standard-schema/spec': 1.0.0-beta.4
       '@uploadthing/mime-types': 0.3.6
-      '@uploadthing/shared': 7.1.10
+      '@uploadthing/shared': 7.1.10(patch_hash=3bf33a54f072358507116394f52de890d9ce4a379451cb9ded38ded9c16fa770)
       effect: 3.17.7
     optionalDependencies:
       tailwindcss: 4.3.3

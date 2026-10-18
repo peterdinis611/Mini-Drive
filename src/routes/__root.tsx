@@ -13,7 +13,7 @@ import {
   RoutePending,
   ServerErrorPage,
 } from '#/components/status/status-page'
-import { Toaster } from '#/components/ui/sonner'
+import { Toaster } from '#/components/toast/toaster'
 import { APP_NAME } from '#/lib/constants'
 import { SITE } from '#/lib/site'
 import { appJsonLd, buildSeoHead } from '#/lib/seo'
@@ -112,7 +112,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="min-h-svh antialiased">
         <ThemeProvider>
           {children}
-          <Toaster richColors closeButton position="top-right" />
+          <Toaster />
         </ThemeProvider>
         {import.meta.env.DEV ? (
           <TanStackDevtools

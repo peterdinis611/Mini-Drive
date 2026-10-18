@@ -23,7 +23,7 @@ export function checkRateLimit(
   bucket.timestamps = bucket.timestamps.filter((ts) => now - ts < windowMs)
 
   if (bucket.timestamps.length >= limit) {
-    const oldest = bucket.timestamps[0]!
+    const oldest = bucket.timestamps[0] ?? now
     buckets.set(key, bucket)
     return { ok: false, retryAfterMs: Math.max(0, windowMs - (now - oldest)) }
   }

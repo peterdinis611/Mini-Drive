@@ -27,11 +27,13 @@ vi.mock('next-themes', () => ({
   useTheme: () => ({ resolvedTheme: 'dark', setTheme: vi.fn() }),
 }))
 
-vi.mock('sonner', () => ({
+vi.mock('#/lib/toast', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
     message: vi.fn(),
+    info: vi.fn(),
+    dismiss: vi.fn(),
   },
 }))
 

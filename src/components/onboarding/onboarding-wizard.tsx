@@ -2,7 +2,7 @@ import { useEffect, useId, useState, useTransition } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { CheckCircle2, HardDrive, Shield, Upload } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
-import { toast } from 'sonner'
+import { toast } from '#/lib/toast'
 
 import { UploadZone } from '#/components/files/upload-zone'
 import { AtmosphereShell } from '#/components/layout/atmosphere-shell'
@@ -390,7 +390,7 @@ function UploadStep({
         </p>
       </div>
 
-      <UploadZone folderId={null} onUploaded={onUploaded} />
+      <UploadZone folderId={null} folders={[]} onUploaded={onUploaded} />
 
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" onClick={onBack} disabled={pending}>

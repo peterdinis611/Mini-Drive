@@ -68,3 +68,20 @@ export function buildBreadcrumbs(
 
   return crumbs
 }
+
+/** Human path like "Projekty / Q1" for folder pickers. */
+export function formatFolderPath(
+  folder: FolderNode,
+  all: FolderNode[],
+): string {
+  const byId = new Map(all.map((item) => [item.id, item]))
+  const parts: string[] = [folder.name]
+  let parentId = folder.parentId
+  while (parentId) {
+    const parent = byId.get(parentId)
+    if (!parent) break
+    parts.unshift(parent.name)
+    parentId = parent.parentId
+  }
+  return parts.join(' / ')
+}

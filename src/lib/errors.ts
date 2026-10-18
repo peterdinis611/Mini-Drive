@@ -17,6 +17,11 @@ const MESSAGE_MAP: Array<[RegExp | string, string]> = [
   [/network/i, 'Sieťová chyba. Skús to znova.'],
   [/timeout/i, 'Požiadavka vypršala. Skús to znova.'],
   [/UPLOADTHING_TOKEN/i, 'Úložisko nie je nakonfigurované (chýba token).'],
+  [
+    /ACL overrides are not allowed/i,
+    'UploadThing nepovoľuje ACL override. Odstráň acl z route alebo to zapni v dashboarde.',
+  ],
+  [/XHR failed 400/i, 'Upload zlyhal (400). Skontroluj UploadThing nastavenia.'],
 ]
 
 function mapKnownMessage(message: string): string {
@@ -44,6 +49,9 @@ export function getErrorMessage(
   }
 
   if (error instanceof Error) {
+    const fromData = uploadThingDataMessage(error)
+    if (fromData) return mapKnownMessage(fromData)
+
     const raw = error.message.trim()
     if (!raw) return fallback
     return mapKnownMessage(raw)
@@ -61,6 +69,14 @@ export function getErrorMessage(
   }
 
   return fallback
+}
+
+/** UploadThing often puts the real reason on `error.data.error`. */
+function uploadThingDataMessage(error: Error): string | null {
+  const data = Reflect.get(error, 'data')
+  if (!data || typeof data !== 'object') return null
+  const nested = Reflect.get(data, 'error')
+  return typeof nested === 'string' && nested.trim() ? nested.trim() : null
 }
 
 export function formatZodError(error: ZodError): string {
