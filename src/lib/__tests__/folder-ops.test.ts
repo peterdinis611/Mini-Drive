@@ -4,7 +4,7 @@ import {
   buildBreadcrumbs,
   canMoveFolder,
   collectDescendantIds,
-} from './folder-ops'
+} from '../folder-ops'
 
 const nodes = [
   { id: 'a', parentId: null, name: 'A' },

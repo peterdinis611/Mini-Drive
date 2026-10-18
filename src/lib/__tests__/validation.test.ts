@@ -10,7 +10,7 @@ import {
   updateSettingsSchema,
   validateFilesForUpload,
   wouldCreateFolderCycle,
-} from './validation'
+} from '../validation'
 
 describe('fileNameSchema', () => {
   it('accepts valid names', () => {

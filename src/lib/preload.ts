@@ -1,3 +1,5 @@
+import { isImageMimeType as isImageMime } from '#/lib/mime'
+
 const preloaded = new Set<string>()
 
 /** Warm the browser cache for image URLs (thumbnails / hero assets). */
@@ -14,6 +16,6 @@ export function preloadImages(urls: Array<string | null | undefined>): void {
   }
 }
 
-export function isImageMimeType(mimeType: string): boolean {
-  return mimeType.startsWith('image/')
+export function isImageMimeType(mimeType: string, name = ''): boolean {
+  return isImageMime(mimeType, name)
 }

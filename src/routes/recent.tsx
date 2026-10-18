@@ -1,19 +1,14 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { FileIcon, FolderOpen } from 'lucide-react'
-import { motion, useReducedMotion } from 'motion/react'
 
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Button } from '#/components/ui/button'
-import { EmptyState } from '#/components/ui/empty-state'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '#/components/ui/table'
+  createDataTableColumnHelper,
+  DataTable,
+} from '#/components/ui/data-table'
+import { EmptyState } from '#/components/ui/empty-state'
 import { formatFileSize } from '#/lib/format'
 import { requireOnboardedSession } from '#/lib/route-guards'
 import { privateAppHead } from '#/lib/seo'
@@ -32,9 +27,67 @@ export const Route = createFileRoute('/recent')({
   component: RecentPage,
 })
 
+type RecentFile = Awaited<ReturnType<typeof listRecentFiles>>[number]
+
+const columnHelper = createDataTableColumnHelper<RecentFile>()
+
+const columns = columnHelper.columns([
+  columnHelper.accessor('name', {
+    header: 'Názov',
+    cell: ({ getValue }) => (
+      <span className="inline-flex items-center gap-2 font-medium">
+        <FileIcon className="size-4 shrink-0 text-muted-foreground" />
+        <span className="truncate">{getValue()}</span>
+      </span>
+    ),
+    meta: { primary: true },
+  }),
+  columnHelper.accessor('mimeType', {
+    header: 'Typ',
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground">{getValue()}</span>
+    ),
+    meta: { hideBelow: 'lg', mobileLabel: 'Typ' },
+  }),
+  columnHelper.accessor('size', {
+    header: 'Veľkosť',
+    cell: ({ getValue }) => formatFileSize(getValue()),
+    meta: { hideBelow: 'sm', mobileLabel: 'Veľkosť' },
+  }),
+  columnHelper.accessor('createdAt', {
+    header: 'Dátum',
+    cell: ({ getValue }) =>
+      new Date(getValue()).toLocaleString('sk-SK'),
+    meta: { hideBelow: 'md', mobileLabel: 'Dátum' },
+  }),
+  columnHelper.accessor('folderId', {
+    id: 'location',
+    header: 'Umiestnenie',
+    cell: ({ getValue }) => {
+      const folderId = getValue()
+      return folderId ? (
+        <Link
+          to="/files/$folderId"
+          params={{ folderId }}
+          className="text-primary underline-offset-4 hover:underline"
+        >
+          Otvoriť priečinok
+        </Link>
+      ) : (
+        <Link
+          to="/files"
+          className="text-primary underline-offset-4 hover:underline"
+        >
+          Súbory
+        </Link>
+      )
+    },
+    meta: { hideBelow: 'md', mobileLabel: 'Umiestnenie' },
+  }),
+])
+
 function RecentPage() {
   const { chrome, recent } = Route.useLoaderData()
-  const reduce = useReducedMotion()
 
   return (
     <AppShell
@@ -60,65 +113,11 @@ function RecentPage() {
               }
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Názov</TableHead>
-                  <TableHead>Typ</TableHead>
-                  <TableHead>Veľkosť</TableHead>
-                  <TableHead>Dátum</TableHead>
-                  <TableHead>Umiestnenie</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recent.map((file, index) => (
-                  <motion.tr
-                    key={file.id}
-                    initial={reduce ? false : { opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.32,
-                      ease: [0.22, 1, 0.36, 1],
-                      delay: reduce ? 0 : index * 0.045,
-                    }}
-                    className="border-b transition-colors hover:bg-muted/40 data-[state=selected]:bg-muted"
-                    whileHover={reduce ? undefined : { x: 2 }}
-                  >
-                    <TableCell>
-                      <span className="inline-flex items-center gap-2 font-medium">
-                        <FileIcon className="size-4 text-muted-foreground" />
-                        {file.name}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {file.mimeType}
-                    </TableCell>
-                    <TableCell>{formatFileSize(file.size)}</TableCell>
-                    <TableCell>
-                      {new Date(file.createdAt).toLocaleString('sk-SK')}
-                    </TableCell>
-                    <TableCell>
-                      {file.folderId ? (
-                        <Link
-                          to="/files/$folderId"
-                          params={{ folderId: file.folderId }}
-                          className="text-primary underline-offset-4 hover:underline"
-                        >
-                          Otvoriť priečinok
-                        </Link>
-                      ) : (
-                        <Link
-                          to="/files"
-                          className="text-primary underline-offset-4 hover:underline"
-                        >
-                          Súbory
-                        </Link>
-                      )}
-                    </TableCell>
-                  </motion.tr>
-                ))}
-              </TableBody>
-            </Table>
+            <DataTable
+              columns={columns}
+              data={recent}
+              getRowId={(row) => row.id}
+            />
           )}
         </section>
       </FadeIn>

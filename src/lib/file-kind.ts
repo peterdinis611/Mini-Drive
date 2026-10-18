@@ -1,31 +1,73 @@
 import {
+  FileArchive,
   FileAudio,
+  FileCode2,
   FileIcon,
   FileImage,
+  FileSpreadsheet,
   FileText,
   FileVideo,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
-export type FileKind = 'image' | 'video' | 'audio' | 'pdf' | 'text' | 'file'
+export type FileKind =
+  | 'image'
+  | 'video'
+  | 'audio'
+  | 'pdf'
+  | 'text'
+  | 'code'
+  | 'spreadsheet'
+  | 'archive'
+  | 'file'
+
+const CODE_EXT =
+  /\.(ts|tsx|js|jsx|mjs|cjs|css|scss|less|html?|json|xml|yml|yaml|toml|py|rs|go|java|kt|swift|c|cpp|h|hpp|cs|php|rb|sh|bash|zsh|sql|graphql|vue|svelte)$/i
+
+const SPREADSHEET_EXT = /\.(csv|tsv|xlsx?|ods)$/i
+const ARCHIVE_EXT = /\.(zip|rar|7z|tar|gz|tgz|bz2)$/i
+const TEXT_EXT = /\.(txt|md|markdown|log|rtf)$/i
 
 export function getFileKind(mimeType: string, name = ''): FileKind {
-  if (mimeType.startsWith('image/') || /\.(png|jpe?g|gif|webp|svg)$/i.test(name)) {
+  if (mimeType.startsWith('image/') || /\.(png|jpe?g|gif|webp|svg|avif|bmp)$/i.test(name)) {
     return 'image'
   }
   if (mimeType.startsWith('video/') || /\.(mp4|mov|webm|mkv)$/i.test(name)) {
     return 'video'
   }
-  if (mimeType.startsWith('audio/') || /\.(mp3|wav|ogg|m4a)$/i.test(name)) {
+  if (mimeType.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(name)) {
     return 'audio'
   }
   if (mimeType === 'application/pdf' || /\.pdf$/i.test(name)) {
     return 'pdf'
   }
   if (
-    mimeType.startsWith('text/') ||
-    /\.(txt|md|csv|json|ts|tsx|js|jsx)$/i.test(name)
+    mimeType === 'text/csv' ||
+    mimeType.includes('spreadsheet') ||
+    mimeType.includes('excel') ||
+    SPREADSHEET_EXT.test(name)
   ) {
+    return 'spreadsheet'
+  }
+  if (
+    mimeType.includes('zip') ||
+    mimeType.includes('rar') ||
+    mimeType.includes('compressed') ||
+    mimeType.includes('tar') ||
+    ARCHIVE_EXT.test(name)
+  ) {
+    return 'archive'
+  }
+  if (
+    mimeType.includes('javascript') ||
+    mimeType.includes('typescript') ||
+    mimeType === 'application/json' ||
+    mimeType === 'application/xml' ||
+    CODE_EXT.test(name)
+  ) {
+    return 'code'
+  }
+  if (mimeType.startsWith('text/') || TEXT_EXT.test(name)) {
     return 'text'
   }
   return 'file'
@@ -40,8 +82,15 @@ export function fileKindIcon(kind: FileKind): LucideIcon {
     case 'audio':
       return FileAudio
     case 'pdf':
+      return FileText
     case 'text':
       return FileText
+    case 'code':
+      return FileCode2
+    case 'spreadsheet':
+      return FileSpreadsheet
+    case 'archive':
+      return FileArchive
     default:
       return FileIcon
   }
@@ -59,7 +108,54 @@ export function fileKindLabel(kind: FileKind): string {
       return 'PDF'
     case 'text':
       return 'Text'
+    case 'code':
+      return 'Kód'
+    case 'spreadsheet':
+      return 'Tabuľka'
+    case 'archive':
+      return 'Archív'
     default:
       return 'Súbor'
   }
+}
+
+export function canInlinePreview(kind: FileKind): boolean {
+  return (
+    kind === 'image' ||
+    kind === 'pdf' ||
+    kind === 'video' ||
+    kind === 'audio' ||
+    kind === 'text' ||
+    kind === 'code' ||
+    kind === 'spreadsheet'
+  )
+}
+
+export function codeLanguageFromName(name: string): string {
+  const ext = name.split('.').pop()?.toLowerCase() ?? ''
+  const map: Record<string, string> = {
+    ts: 'TypeScript',
+    tsx: 'TSX',
+    js: 'JavaScript',
+    jsx: 'JSX',
+    mjs: 'JavaScript',
+    cjs: 'JavaScript',
+    json: 'JSON',
+    css: 'CSS',
+    scss: 'SCSS',
+    html: 'HTML',
+    htm: 'HTML',
+    md: 'Markdown',
+    py: 'Python',
+    rs: 'Rust',
+    go: 'Go',
+    java: 'Java',
+    sql: 'SQL',
+    sh: 'Shell',
+    yml: 'YAML',
+    yaml: 'YAML',
+    xml: 'XML',
+    toml: 'TOML',
+  }
+  return map[ext] ?? (ext.toUpperCase() || 'Code')
 }

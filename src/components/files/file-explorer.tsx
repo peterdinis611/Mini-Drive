@@ -1,7 +1,8 @@
-import { useMemo, useState, useTransition } from 'react'
-import { Link, useRouter } from '@tanstack/react-router'
+import { useCallback, useMemo, useState, useTransition } from 'react'
+import { Link, useNavigate, useRouter } from '@tanstack/react-router'
 import {
   Download,
+  Eye,
   Folder,
   FolderPlus,
   Grid2X2,
@@ -14,6 +15,8 @@ import {
   Upload,
 } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import { toast } from '#/lib/toast'
 
 import { UploadZone } from '#/components/files/upload-zone'
@@ -23,7 +26,11 @@ import { DeleteFolderDialog } from '#/components/files/delete-folder-dialog'
 import { ShareDialog } from '#/components/files/share-dialog'
 import { DriveSearchDialog } from '#/components/files/drive-search-dialog'
 import { FileThumbnail } from '#/components/files/file-thumbnail'
+import { FilePreviewDialog } from '#/components/files/file-preview-dialog'
+import { FolderDropTarget } from '#/components/files/folder-drop-target'
+import { useDriveUpload } from '#/components/files/use-drive-upload'
 import { useImagePreviews } from '#/components/files/use-image-previews'
+import { canInlinePreview } from '#/lib/mime'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
 import { riseTransition } from '#/lib/motion'
@@ -46,15 +53,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
-import { Skeleton } from '#/components/ui/skeleton'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '#/components/ui/table'
+  createDataTableColumnHelper,
+  DataTable,
+} from '#/components/ui/data-table'
+import { Skeleton } from '#/components/ui/skeleton'
 import { getErrorMessage } from '#/lib/errors'
 import { formatFileSize } from '#/lib/format'
 import {
@@ -98,7 +101,14 @@ type DialogState =
   | { type: 'move-folder'; folder: DriveFolder }
   | { type: 'delete-folder'; folder: DriveFolder }
   | { type: 'share-file'; file: DriveFile }
+  | { type: 'preview-file'; file: DriveFile }
   | null
+
+type DriveListItem =
+  | { kind: 'folder'; id: string; folder: DriveFolder }
+  | { kind: 'file'; id: string; file: DriveFile }
+
+const listColumnHelper = createDataTableColumnHelper<DriveListItem>()
 
 export function FileExplorer({
   folderId,
@@ -108,16 +118,37 @@ export function FileExplorer({
   initial,
 }: Props) {
   const router = useRouter()
+  const navigate = useNavigate()
   const reduce = useReducedMotion()
   const [view, setView] = useState<'grid' | 'list'>(initial.viewPreference)
   const [showUpload, setShowUpload] = useState(true)
   const [dialog, setDialog] = useState<DialogState>(null)
   const [pending, startTransition] = useTransition()
-  const previewUrls = useImagePreviews(initial.files, view === 'grid')
+  const previewUrls = useImagePreviews(initial.files, true)
 
   const folders = initial.folders
   const files = initial.files
   const empty = folders.length === 0 && files.length === 0
+
+  const listItems = useMemo<DriveListItem[]>(
+    () => [
+      ...folders.map(
+        (folder): DriveListItem => ({
+          kind: 'folder',
+          id: `folder-${folder.id}`,
+          folder,
+        }),
+      ),
+      ...files.map(
+        (file): DriveListItem => ({
+          kind: 'file',
+          id: `file-${file.id}`,
+          file,
+        }),
+      ),
+    ],
+    [folders, files],
+  )
 
   const excludeForFolderMove = useMemo(() => {
     if (dialog?.type !== 'move-folder') return []
@@ -128,23 +159,184 @@ export function FileExplorer({
     void router.invalidate()
   }
 
-  function run(action: () => Promise<unknown>, success: string) {
-    startTransition(async () => {
-      try {
-        await action()
-        toast.success(success)
-        setDialog(null)
-        refresh()
-      } catch (error) {
-        toast.error(getErrorMessage(error, 'Operácia zlyhala'))
+  const { uploadFiles, isUploading, percent, queue } = useDriveUpload({
+    onComplete: (destFolderId) => {
+      refresh()
+      if (destFolderId === folderId) return
+      if (destFolderId) {
+        void navigate({
+          to: '/files/$folderId',
+          params: { folderId: destFolderId },
+        })
+      } else {
+        void navigate({ to: '/files' })
       }
-    })
-  }
+    },
+  })
+
+  const handleUpload = useCallback(
+    (incoming: File[] | FileList | null, dest: string | null) => {
+      setShowUpload(true)
+      void uploadFiles(incoming, dest)
+    },
+    [uploadFiles],
+  )
+
+  const run = useCallback(
+    (action: () => Promise<unknown>, success: string) => {
+      return new Promise<void>((resolve, reject) => {
+        startTransition(async () => {
+          try {
+            await action()
+            toast.success(success)
+            setDialog(null)
+            refresh()
+            resolve()
+          } catch (error) {
+            toast.error(getErrorMessage(error, 'Operácia zlyhala'))
+            reject(error)
+          }
+        })
+      })
+    },
+    [router],
+  )
+
+  const listColumns = useMemo(
+    () =>
+      listColumnHelper.columns([
+        listColumnHelper.display({
+          id: 'name',
+          header: 'Názov',
+          cell: ({ row }) => {
+            const item = row.original
+            if (item.kind === 'folder') {
+              const folder = item.folder
+              return (
+                <FolderDropTarget
+                  folderId={folder.id}
+                  folderName={folder.name}
+                  disabled={isUploading}
+                  onDropFiles={(dropped, dest) => handleUpload(dropped, dest)}
+                >
+                  <Link
+                    to="/files/$folderId"
+                    params={{ folderId: folder.id }}
+                    className="inline-flex items-center gap-2 font-medium hover:text-primary"
+                  >
+                    <Folder className="size-4 text-primary" />
+                    {folder.name}
+                  </Link>
+                </FolderDropTarget>
+              )
+            }
+
+            const file = item.file
+            return (
+              <button
+                type="button"
+                className="inline-flex max-w-full items-center gap-2 text-left font-medium hover:text-primary"
+                onClick={() => setDialog({ type: 'preview-file', file })}
+              >
+                <FileThumbnail
+                  name={file.name}
+                  mimeType={file.mimeType}
+                  previewUrl={previewUrls[file.id]}
+                  size="sm"
+                />
+                <span className="truncate">{file.name}</span>
+              </button>
+            )
+          },
+          meta: { primary: true },
+        }),
+        listColumnHelper.display({
+          id: 'type',
+          header: 'Typ',
+          cell: ({ row }) => (
+            <span className="text-muted-foreground">
+              {row.original.kind === 'folder'
+                ? 'priečinok'
+                : row.original.file.mimeType || '—'}
+            </span>
+          ),
+          meta: { hideBelow: 'lg', mobileLabel: 'Typ' },
+        }),
+        listColumnHelper.display({
+          id: 'size',
+          header: 'Veľkosť',
+          cell: ({ row }) =>
+            row.original.kind === 'folder'
+              ? '—'
+              : formatFileSize(row.original.file.size),
+          meta: { hideBelow: 'sm', mobileLabel: 'Veľkosť' },
+        }),
+        listColumnHelper.display({
+          id: 'date',
+          header: 'Dátum',
+          cell: ({ row }) =>
+            formatDate(
+              row.original.kind === 'folder'
+                ? row.original.folder.createdAt
+                : row.original.file.createdAt,
+            ),
+          meta: { hideBelow: 'md', mobileLabel: 'Dátum' },
+        }),
+        listColumnHelper.display({
+          id: 'actions',
+          header: 'Akcie',
+          cell: ({ row }) => {
+            if (row.original.kind === 'folder') {
+              const folder = row.original.folder
+              return (
+                <FolderActions
+                  onRename={() => setDialog({ type: 'rename-folder', folder })}
+                  onMove={() => setDialog({ type: 'move-folder', folder })}
+                  onDelete={() => setDialog({ type: 'delete-folder', folder })}
+                />
+              )
+            }
+
+            const file = row.original.file
+            return (
+              <FileActions
+                canPreview={canInlinePreview(file.mimeType, file.name)}
+                onPreview={() => setDialog({ type: 'preview-file', file })}
+                onRename={() => setDialog({ type: 'rename-file', file })}
+                onMove={() => setDialog({ type: 'move-file', file })}
+                onDownload={() =>
+                  run(async () => {
+                    const result = await getFileDownloadUrl({
+                      data: { fileId: file.id },
+                    })
+                    window.open(result.url, '_blank', 'noopener,noreferrer')
+                  }, 'Odkaz na stiahnutie pripravený')
+                }
+                onDelete={() =>
+                  run(
+                    () => deleteFile({ data: { fileId: file.id } }),
+                    'Súbor zmazaný',
+                  )
+                }
+                onShare={() => setDialog({ type: 'share-file', file })}
+              />
+            )
+          },
+          meta: {
+            actions: true,
+            headerClassName: 'w-12 text-right',
+            cellClassName: 'text-right',
+          },
+        }),
+      ]),
+    [handleUpload, isUploading, previewUrls, run],
+  )
 
   const currentName =
     initial.breadcrumbs[initial.breadcrumbs.length - 1]?.name ?? 'Súbory'
 
   return (
+    <DndProvider backend={HTML5Backend}>
     <AppShell
       userName={userName}
       userEmail={userEmail}
@@ -247,7 +439,10 @@ export function FileExplorer({
               <UploadZone
                 folderId={folderId}
                 folders={initial.allFolders}
-                onUploaded={refresh}
+                isUploading={isUploading}
+                percent={percent}
+                queue={queue}
+                onUpload={handleUpload}
               />
             </motion.div>
           ) : null}
@@ -269,99 +464,13 @@ export function FileExplorer({
               className="rounded-2xl border border-dashed border-border/80 bg-muted/20"
             />
           ) : view === 'list' ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Názov</TableHead>
-                  <TableHead>Typ</TableHead>
-                  <TableHead>Veľkosť</TableHead>
-                  <TableHead>Dátum</TableHead>
-                  <TableHead className="w-12 text-right">Akcie</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {folders.map((folder) => (
-                  <TableRow key={folder.id}>
-                    <TableCell>
-                      <Link
-                        to="/files/$folderId"
-                        params={{ folderId: folder.id }}
-                        className="inline-flex items-center gap-2 font-medium hover:text-primary"
-                      >
-                        <Folder className="size-4 text-primary" />
-                        {folder.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      priečinok
-                    </TableCell>
-                    <TableCell>—</TableCell>
-                    <TableCell>{formatDate(folder.createdAt)}</TableCell>
-                    <TableCell className="text-right">
-                      <FolderActions
-                        onRename={() =>
-                          setDialog({ type: 'rename-folder', folder })
-                        }
-                        onMove={() =>
-                          setDialog({ type: 'move-folder', folder })
-                        }
-                        onDelete={() =>
-                          setDialog({ type: 'delete-folder', folder })
-                        }
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {files.map((file) => (
-                  <TableRow key={file.id}>
-                    <TableCell>
-                      <span className="inline-flex items-center gap-2 font-medium">
-                        <FileThumbnail
-                          name={file.name}
-                          mimeType={file.mimeType}
-                          size="sm"
-                        />
-                        {file.name}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {file.mimeType || '—'}
-                    </TableCell>
-                    <TableCell>{formatFileSize(file.size)}</TableCell>
-                    <TableCell>{formatDate(file.createdAt)}</TableCell>
-                    <TableCell className="text-right">
-                      <FileActions
-                        onRename={() =>
-                          setDialog({ type: 'rename-file', file })
-                        }
-                        onMove={() => setDialog({ type: 'move-file', file })}
-                        onDownload={() =>
-                          run(async () => {
-                            const result = await getFileDownloadUrl({
-                              data: { fileId: file.id },
-                            })
-                            window.open(
-                              result.url,
-                              '_blank',
-                              'noopener,noreferrer',
-                            )
-                          }, 'Odkaz na stiahnutie pripravený')
-                        }
-                        onDelete={() =>
-                          run(
-                            () => deleteFile({ data: { fileId: file.id } }),
-                            'Súbor zmazaný',
-                          )
-                        }
-                        onShare={() =>
-                          setDialog({ type: 'share-file', file })
-                        }
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/40">
+              <DataTable
+                columns={listColumns}
+                data={listItems}
+                getRowId={(row) => row.id}
+              />
+            </div>
           ) : (
             <Stagger
               key="grid"
@@ -369,38 +478,47 @@ export function FileExplorer({
             >
               {folders.map((folder) => (
                 <StaggerItem key={folder.id}>
-                  <motion.div
-                    className="group relative rounded-md px-3 py-3 hover:bg-muted/70"
-                    whileHover={reduce ? undefined : { y: -1 }}
-                    transition={riseTransition}
+                  <FolderDropTarget
+                    folderId={folder.id}
+                    folderName={folder.name}
+                    disabled={isUploading}
+                    onDropFiles={(dropped, dest) =>
+                      handleUpload(dropped, dest)
+                    }
                   >
-                    <Link
-                      to="/files/$folderId"
-                      params={{ folderId: folder.id }}
-                      className="flex items-start gap-3"
+                    <motion.div
+                      className="group relative rounded-md px-3 py-3 hover:bg-muted/70"
+                      whileHover={reduce ? undefined : { y: -1 }}
+                      transition={riseTransition}
                     >
-                      <Folder className="mt-0.5 size-5 text-primary" />
-                      <div>
-                        <p className="font-medium">{folder.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          priečinok
-                        </p>
+                      <Link
+                        to="/files/$folderId"
+                        params={{ folderId: folder.id }}
+                        className="flex items-start gap-3"
+                      >
+                        <Folder className="mt-0.5 size-5 text-primary" />
+                        <div>
+                          <p className="font-medium">{folder.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            priečinok · pusti sem súbory
+                          </p>
+                        </div>
+                      </Link>
+                      <div className="absolute top-2 right-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
+                        <FolderActions
+                          onRename={() =>
+                            setDialog({ type: 'rename-folder', folder })
+                          }
+                          onMove={() =>
+                            setDialog({ type: 'move-folder', folder })
+                          }
+                          onDelete={() =>
+                            setDialog({ type: 'delete-folder', folder })
+                          }
+                        />
                       </div>
-                    </Link>
-                    <div className="absolute top-2 right-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
-                      <FolderActions
-                        onRename={() =>
-                          setDialog({ type: 'rename-folder', folder })
-                        }
-                        onMove={() =>
-                          setDialog({ type: 'move-folder', folder })
-                        }
-                        onDelete={() =>
-                          setDialog({ type: 'delete-folder', folder })
-                        }
-                      />
-                    </div>
-                  </motion.div>
+                    </motion.div>
+                  </FolderDropTarget>
                 </StaggerItem>
               ))}
               {files.map((file) => (
@@ -410,7 +528,13 @@ export function FileExplorer({
                     whileHover={reduce ? undefined : { y: -1 }}
                     transition={riseTransition}
                   >
-                    <div className="flex items-start gap-3">
+                    <button
+                      type="button"
+                      className="flex w-full items-start gap-3 text-left"
+                      onClick={() =>
+                        setDialog({ type: 'preview-file', file })
+                      }
+                    >
                       <FileThumbnail
                         name={file.name}
                         mimeType={file.mimeType}
@@ -424,9 +548,13 @@ export function FileExplorer({
                           {formatDate(file.createdAt)}
                         </p>
                       </div>
-                    </div>
+                    </button>
                     <div className="absolute top-2 right-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
                       <FileActions
+                        canPreview={canInlinePreview(file.mimeType, file.name)}
+                        onPreview={() =>
+                          setDialog({ type: 'preview-file', file })
+                        }
                         onRename={() =>
                           setDialog({ type: 'rename-file', file })
                         }
@@ -512,6 +640,9 @@ export function FileExplorer({
         open={dialog?.type === 'move-file'}
         title="Presunúť súbor"
         folders={initial.allFolders}
+        initialFolderId={
+          dialog?.type === 'move-file' ? dialog.file.folderId : null
+        }
         onOpenChange={(open) => !open && setDialog(null)}
         onSubmit={(targetFolderId) => {
           if (dialog?.type !== 'move-file') return
@@ -530,6 +661,9 @@ export function FileExplorer({
         title="Presunúť priečinok"
         folders={initial.allFolders}
         excludeFolderIds={excludeForFolderMove}
+        initialFolderId={
+          dialog?.type === 'move-folder' ? dialog.folder.parentId : null
+        }
         onOpenChange={(open) => !open && setDialog(null)}
         onSubmit={(newParentId) => {
           if (dialog?.type !== 'move-folder') return
@@ -565,7 +699,14 @@ export function FileExplorer({
         fileName={dialog?.type === 'share-file' ? dialog.file.name : ''}
         onOpenChange={(open) => !open && setDialog(null)}
       />
+
+      <FilePreviewDialog
+        open={dialog?.type === 'preview-file'}
+        file={dialog?.type === 'preview-file' ? dialog.file : null}
+        onOpenChange={(open) => !open && setDialog(null)}
+      />
     </AppShell>
+    </DndProvider>
   )
 }
 
@@ -607,12 +748,16 @@ function FolderActions({
 }
 
 function FileActions({
+  canPreview = false,
+  onPreview,
   onRename,
   onMove,
   onDownload,
   onDelete,
   onShare,
 }: {
+  canPreview?: boolean
+  onPreview?: () => void
   onRename: () => void
   onMove: () => void
   onDownload: () => void
@@ -632,6 +777,11 @@ function FileActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        {canPreview && onPreview ? (
+          <DropdownMenuItem onClick={onPreview}>
+            <Eye /> Náhľad
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuItem onClick={onRename}>
           <Pencil /> Premenovať
         </DropdownMenuItem>

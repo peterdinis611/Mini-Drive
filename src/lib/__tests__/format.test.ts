@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatFileSize } from './format'
+import { formatFileSize } from '../format'
 
 describe('formatFileSize', () => {
   it('formats zero and invalid values', () => {

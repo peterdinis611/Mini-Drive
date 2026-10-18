@@ -7,13 +7,18 @@ import { db } from '#/db'
 import { files, folders } from '#/db/schema'
 import { auth } from '#/lib/auth'
 import { UPLOAD_LIMITS } from '#/lib/constants'
+import { resolveStoredMimeType } from '#/lib/mime'
 import { fileNameSchema } from '#/lib/validation'
 import { firstOrThrow } from '#/server/db-helpers.server'
 
 const f = createUploadthing()
 
 const uploadInputSchema = z.object({
-  folderId: z.string().uuid().nullable(),
+  // nullish: client may send null, omit the field, or a UUID
+  folderId: z
+    .union([z.string().uuid(), z.null()])
+    .optional()
+    .transform((value) => value ?? null),
 })
 
 export const uploadRouter = {
@@ -99,15 +104,20 @@ export const uploadRouter = {
         )
       }
 
+      const mimeType = resolveStoredMimeType(
+        file.type || '',
+        parsedName.data,
+      )
+
       const created = firstOrThrow(
         await db
           .insert(files)
           .values({
             userId: metadata.userId,
-            folderId: metadata.folderId,
+            folderId: metadata.folderId ?? null,
             name: parsedName.data,
             size: file.size,
-            mimeType: file.type || 'application/octet-stream',
+            mimeType,
             uploadthingKey: file.key,
           })
           .returning({

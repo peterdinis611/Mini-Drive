@@ -5,7 +5,10 @@ import { motion, useReducedMotion } from 'motion/react'
 import { toast } from '#/lib/toast'
 
 import { UploadZone } from '#/components/files/upload-zone'
+import { useDriveUpload } from '#/components/files/use-drive-upload'
 import { AtmosphereShell } from '#/components/layout/atmosphere-shell'
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import { SwapPresence } from '#/components/motion/animated-presence'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
@@ -368,6 +371,25 @@ function PreferencesStep({
   )
 }
 
+function OnboardingUpload({ onUploaded }: { onUploaded: () => void }) {
+  const { uploadFiles, isUploading, percent, queue } = useDriveUpload({
+    onComplete: () => onUploaded(),
+  })
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <UploadZone
+        folderId={null}
+        folders={[]}
+        isUploading={isUploading}
+        percent={percent}
+        queue={queue}
+        onUpload={(files, dest) => void uploadFiles(files, dest)}
+      />
+    </DndProvider>
+  )
+}
+
 function UploadStep({
   uploadDone,
   pending,
@@ -390,7 +412,7 @@ function UploadStep({
         </p>
       </div>
 
-      <UploadZone folderId={null} folders={[]} onUploaded={onUploaded} />
+      <OnboardingUpload onUploaded={onUploaded} />
 
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" onClick={onBack} disabled={pending}>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 
 import type { DriveFile } from '#/components/files/types'
-import { isImageMimeType, preloadImages } from '#/lib/preload'
+import { isImageMimeType } from '#/lib/mime'
+import { preloadImages } from '#/lib/preload'
 import { getImagePreviewUrls } from '#/server/functions/files'
 
 export function useImagePreviews(
@@ -11,7 +12,7 @@ export function useImagePreviews(
   const [urls, setUrls] = useState<Record<string, string>>({})
 
   const imageIds = files
-    .filter((file) => isImageMimeType(file.mimeType))
+    .filter((file) => isImageMimeType(file.mimeType, file.name))
     .map((file) => file.id)
     .slice(0, 24)
     .join('|')

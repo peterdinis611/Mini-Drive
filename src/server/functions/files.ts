@@ -211,20 +211,25 @@ export const getImagePreviewUrls = createServerFn({ method: 'POST' })
       return empty
     }
 
-    const rows = await db
+    const { isImageMimeType } = await import('#/lib/mime')
+
+    const named = await db
       .select({
         id: files.id,
+        name: files.name,
         mimeType: files.mimeType,
         uploadthingKey: files.uploadthingKey,
       })
       .from(files)
       .where(and(eq(files.userId, userId), inArray(files.id, data.fileIds)))
 
-    const images = rows.filter((row) => row.mimeType.startsWith('image/'))
+    const previewable = named.filter((row) =>
+      isImageMimeType(row.mimeType, row.name),
+    )
     const result: Record<string, string> = {}
 
     await Promise.all(
-      images.map(async (row) => {
+      previewable.map(async (row) => {
         try {
           const { ufsUrl } = await utapi.generateSignedURL(row.uploadthingKey, {
             expiresIn: 60 * 10,

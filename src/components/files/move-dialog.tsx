@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '#/components/ui/button'
 import {
@@ -17,6 +17,8 @@ type Props = {
   title: string
   folders: FolderTreeNode[]
   excludeFolderIds?: string[]
+  /** Preselect current location when opening. */
+  initialFolderId?: string | null
   onOpenChange: (open: boolean) => void
   onSubmit: (folderId: string | null) => Promise<void> | void
 }
@@ -26,11 +28,17 @@ export function MoveDialog({
   title,
   folders,
   excludeFolderIds = [],
+  initialFolderId = null,
   onOpenChange,
   onSubmit,
 }: Props) {
-  const [target, setTarget] = useState<string | null>(null)
+  const [target, setTarget] = useState<string | null | undefined>(undefined)
   const [pending, setPending] = useState(false)
+
+  useEffect(() => {
+    if (open) setTarget(initialFolderId)
+    else setTarget(undefined)
+  }, [initialFolderId, open])
 
   const options = useMemo(() => {
     const excluded = new Set(excludeFolderIds)
@@ -44,18 +52,22 @@ export function MoveDialog({
     return opts
   }, [folders, excludeFolderIds])
 
+  const canSubmit = target !== undefined && !pending
+
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        if (!next) setTarget(null)
+        if (!next) setTarget(undefined)
         onOpenChange(next)
       }}
     >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>Vyber cieľový priečinok.</DialogDescription>
+          <DialogDescription>
+            Vyber cieľový priečinok a potvrď.
+          </DialogDescription>
         </DialogHeader>
         <div className="max-h-64 space-y-1 overflow-y-auto rounded-md border border-border p-1">
           {options.map((option) => {
@@ -87,8 +99,9 @@ export function MoveDialog({
           </Button>
           <Button
             type="button"
-            disabled={pending}
+            disabled={!canSubmit}
             onClick={() => {
+              if (target === undefined) return
               setPending(true)
               void Promise.resolve(onSubmit(target))
                 .catch(() => undefined)

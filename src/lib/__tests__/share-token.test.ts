@@ -4,7 +4,7 @@ import {
   buildSharePath,
   generateShareToken,
   resolveShareStatus,
-} from './share-token'
+} from '../share-token'
 
 describe('generateShareToken', () => {
   it('returns unique url-safe tokens', () => {

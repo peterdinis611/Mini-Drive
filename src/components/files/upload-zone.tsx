@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import {
   CheckCircle2,
   CloudUpload,
@@ -7,38 +7,31 @@ import {
   Loader2,
 } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { DndProvider, useDrop } from 'react-dnd'
-import { HTML5Backend, NativeTypes } from 'react-dnd-html5-backend'
+import { useDrop } from 'react-dnd'
+import { NativeTypes } from 'react-dnd-html5-backend'
 
 import { Button } from '#/components/ui/button'
 import { Label } from '#/components/ui/label'
 import { Progress } from '#/components/ui/progress'
 import { UPLOAD_LIMITS } from '#/lib/constants'
-import { getErrorMessage } from '#/lib/errors'
 import {
   fileKindIcon,
   fileKindLabel,
-  getFileKind,
 } from '#/lib/file-kind'
 import { formatFileSize } from '#/lib/format'
 import { formatFolderPath } from '#/lib/folder-ops'
 import { riseTransition } from '#/lib/motion'
-import { toast } from '#/lib/toast'
-import { useUploadThing } from '#/lib/uploadthing'
 import { cn } from '#/lib/utils'
-import { validateFilesForUpload } from '#/lib/validation'
+import type { UploadQueueItem } from './use-drive-upload'
 import type { FolderTreeNode } from './types'
 
 type Props = {
   folderId: string | null
   folders: FolderTreeNode[]
-  onUploaded: () => void
-}
-
-type QueuedFile = {
-  id: string
-  file: File
-  kind: ReturnType<typeof getFileKind>
+  isUploading: boolean
+  percent: number
+  queue: UploadQueueItem[]
+  onUpload: (files: File[] | FileList | null, folderId: string | null) => void
 }
 
 type NativeFileDrop = {
@@ -47,22 +40,19 @@ type NativeFileDrop = {
 
 const TYPE_CHIPS = ['Obrázky', 'PDF', 'Video', 'Audio', 'Text'] as const
 
-export function UploadZone(props: Props) {
-  return (
-    <DndProvider backend={HTML5Backend}>
-      <UploadDock {...props} />
-    </DndProvider>
-  )
-}
-
-function UploadDock({ folderId, folders, onUploaded }: Props) {
+export function UploadZone({
+  folderId,
+  folders,
+  isUploading,
+  percent,
+  queue,
+  onUpload,
+}: Props) {
   const reduce = useReducedMotion()
   const inputId = useId()
   const targetId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
   const dropRef = useRef<HTMLDivElement>(null)
-  const [percent, setPercent] = useState(0)
-  const [queue, setQueue] = useState<QueuedFile[]>([])
   const [targetFolderId, setTargetFolderId] = useState<string | null>(folderId)
 
   useEffect(() => {
@@ -86,75 +76,18 @@ function UploadDock({ folderId, folders, onUploaded }: Props) {
     destinationOptions.find((o) => o.id === targetFolderId)?.label ??
     'Súbory (koreň)'
 
-  const { startUpload, isUploading } = useUploadThing('driveUploader', {
-    uploadProgressGranularity: 'fine',
-    onUploadProgress: (p) => setPercent(p),
-    onClientUploadComplete: (res) => {
-      setPercent(0)
-      setQueue([])
-      const count = res.length
-      toast.success(
-        count === 1 ? 'Súbor nahraný' : `Nahraných ${count} súborov`,
-        { description: `Cieľ: ${destinationLabel}` },
-      )
-      onUploaded()
-    },
-    onUploadError: (error) => {
-      setPercent(0)
-      setQueue([])
-      toast.error(getErrorMessage(error, 'Upload zlyhal'))
-    },
-  })
-
-  const handleFiles = useCallback(
-    async (incoming: File[] | FileList | null | undefined) => {
-      const validated = validateFilesForUpload(incoming)
-      if (!validated.ok) {
-        toast.error(validated.message)
-        return
-      }
-
-      const { files } = validated
-      if (
-        incoming &&
-        Array.from(incoming).length > UPLOAD_LIMITS.maxFileCount
-      ) {
-        toast.message(
-          `Nahrám prvých ${UPLOAD_LIMITS.maxFileCount} súborov (limit).`,
-        )
-      }
-
-      setQueue(
-        files.map((file, index) => ({
-          id: `${file.name}-${file.size}-${index}`,
-          file,
-          kind: getFileKind(file.type, file.name),
-        })),
-      )
-
-      try {
-        await startUpload(files, { folderId: targetFolderId })
-      } catch (error) {
-        setPercent(0)
-        setQueue([])
-        toast.error(getErrorMessage(error, 'Upload zlyhal'))
-      }
-    },
-    [startUpload, targetFolderId],
-  )
-
   const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
       accept: [NativeTypes.FILE],
       drop: (item: NativeFileDrop) => {
-        void handleFiles(item.files)
+        onUpload(item.files, targetFolderId)
       },
       collect: (monitor) => ({
         isOver: monitor.isOver({ shallow: true }),
         canDrop: monitor.canDrop(),
       }),
     }),
-    [handleFiles],
+    [onUpload, targetFolderId],
   )
 
   useEffect(() => {
@@ -228,7 +161,7 @@ function UploadDock({ folderId, folders, onUploaded }: Props) {
                   ? `Do „${destinationLabel}“`
                   : active
                     ? `Uvoľni — uloží sa do „${destinationLabel}“`
-                    : `Pretiahni alebo vyber. Max ${UPLOAD_LIMITS.maxFileCount} × ${UPLOAD_LIMITS.maxFileSize}.`}
+                    : `Pretiahni, vyber, alebo pusť súbor na priečinok v zozname. Max ${UPLOAD_LIMITS.maxFileCount} × ${UPLOAD_LIMITS.maxFileSize}.`}
               </p>
             </div>
           </div>
@@ -276,8 +209,8 @@ function UploadDock({ folderId, folders, onUploaded }: Props) {
               </select>
             </div>
           </div>
-          <p className="pb-2 text-xs text-muted-foreground sm:max-w-[220px]">
-            Otvor priečinok v strome, alebo ho vyber tu pred uploadom.
+          <p className="pb-2 text-xs text-muted-foreground sm:max-w-[240px]">
+            Tip: súbor môžeš pustiť aj priamo na riadok priečinka.
           </p>
         </div>
 
@@ -302,7 +235,7 @@ function UploadDock({ folderId, folders, onUploaded }: Props) {
           multiple
           disabled={isUploading}
           onChange={(event) => {
-            void handleFiles(event.target.files)
+            onUpload(event.target.files, targetFolderId)
             event.target.value = ''
           }}
         />
@@ -384,7 +317,7 @@ function UploadDock({ folderId, folders, onUploaded }: Props) {
                     Teraz pusti — uloží sa do „{destinationLabel}“
                   </span>
                 ) : (
-                  'Pretiahni súbory sem z Finderu alebo prieskumníka'
+                  'Pretiahni súbory sem, alebo na priečinok nižšie'
                 )}
               </p>
             </motion.div>

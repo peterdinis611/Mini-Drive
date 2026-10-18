@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { dismiss, getToasts, subscribe, toast } from './toast'
+import { dismiss, getToasts, subscribe, toast } from '../toast'
 
 describe('toast', () => {
   afterEach(() => {

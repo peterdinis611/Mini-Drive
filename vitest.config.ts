@@ -13,11 +13,12 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    include: ['src/**/__tests__/**/*.{test,spec}.{ts,tsx}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
       include: ['src/lib/**/*.ts', 'src/components/onboarding/**/*.tsx'],
+      exclude: ['src/**/__tests__/**'],
       thresholds: {
         lines: 60,
         functions: 60,

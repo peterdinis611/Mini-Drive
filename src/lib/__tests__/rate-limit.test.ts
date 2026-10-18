@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from 'vitest'
 
-import { checkRateLimit, resetRateLimitStore } from './rate-limit'
+import { checkRateLimit, resetRateLimitStore } from '../rate-limit'
 
 describe('checkRateLimit', () => {
   beforeEach(() => {

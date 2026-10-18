@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { FileIcon, ImageIcon } from 'lucide-react'
 
-import { isImageMimeType } from '#/lib/preload'
+import { fileKindIcon, getFileKind } from '#/lib/file-kind'
 import { cn } from '#/lib/utils'
 
 type Props = {
@@ -20,17 +19,15 @@ export function FileThumbnail({
   size = 'md',
 }: Props) {
   const [failed, setFailed] = useState(false)
-  const isImage = isImageMimeType(mimeType)
-  const showPreview = Boolean(previewUrl) && isImage && !failed
+  const kind = getFileKind(mimeType, name)
+  const showPreview = Boolean(previewUrl) && kind === 'image' && !failed
 
   useEffect(() => {
     setFailed(false)
   }, [previewUrl])
 
-  const box =
-    size === 'sm'
-      ? 'size-8 rounded'
-      : 'size-11 rounded-md'
+  const box = size === 'sm' ? 'size-8 rounded' : 'size-11 rounded-md'
+  const iconClass = size === 'sm' ? 'size-3.5' : 'size-4'
 
   if (showPreview && previewUrl) {
     return (
@@ -53,21 +50,17 @@ export function FileThumbnail({
     )
   }
 
+  const Icon = fileKindIcon(kind)
+
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center justify-center bg-muted/80 text-muted-foreground',
+        'inline-flex shrink-0 items-center justify-center bg-muted text-muted-foreground ring-1 ring-border/80',
         box,
         className,
       )}
-      aria-hidden
-      title={name}
     >
-      {isImage ? (
-        <ImageIcon className={size === 'sm' ? 'size-3.5' : 'size-4'} />
-      ) : (
-        <FileIcon className={size === 'sm' ? 'size-3.5' : 'size-4'} />
-      )}
+      <Icon className={iconClass} />
     </span>
   )
 }

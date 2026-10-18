@@ -1,21 +1,16 @@
 import { useMemo, useTransition } from 'react'
 import { Link, createFileRoute, useRouter } from '@tanstack/react-router'
 import { Copy, Link2, Link2Off } from 'lucide-react'
-import { motion, useReducedMotion } from 'motion/react'
 import { toast } from '#/lib/toast'
 
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Button } from '#/components/ui/button'
-import { EmptyState } from '#/components/ui/empty-state'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '#/components/ui/table'
+  createDataTableColumnHelper,
+  DataTable,
+} from '#/components/ui/data-table'
+import { EmptyState } from '#/components/ui/empty-state'
 import { getErrorMessage } from '#/lib/errors'
 import { formatFileSize } from '#/lib/format'
 import { requireOnboardedSession } from '#/lib/route-guards'
@@ -37,11 +32,14 @@ export const Route = createFileRoute('/shares')({
   component: SharesPage,
 })
 
+type ShareRow = Awaited<ReturnType<typeof listShareLinks>>[number]
+
+const columnHelper = createDataTableColumnHelper<ShareRow>()
+
 function SharesPage() {
   const { chrome, shares } = Route.useLoaderData()
   const router = useRouter()
   const [pending, startTransition] = useTransition()
-  const reduce = useReducedMotion()
 
   const activeCount = useMemo(
     () => shares.filter((s) => s.status === 'active').length,
@@ -51,6 +49,107 @@ function SharesPage() {
   function refresh() {
     void router.invalidate()
   }
+
+  const columns = useMemo(
+    () =>
+      columnHelper.columns([
+        columnHelper.accessor('fileName', {
+          header: 'Súbor',
+          cell: ({ row }) => (
+            <div className="min-w-0">
+              <p className="truncate font-medium">{row.original.fileName}</p>
+              <p className="text-xs text-muted-foreground">
+                {formatFileSize(row.original.fileSize)}
+              </p>
+            </div>
+          ),
+          meta: { primary: true },
+        }),
+        columnHelper.accessor('status', {
+          header: 'Stav',
+          cell: ({ getValue }) => <StatusBadge status={getValue()} />,
+          meta: { hideBelow: 'sm', mobileLabel: 'Stav' },
+        }),
+        columnHelper.accessor('expiresAt', {
+          header: 'Platnosť',
+          cell: ({ getValue }) => (
+            <span className="text-sm text-muted-foreground">
+              {formatDate(getValue())}
+            </span>
+          ),
+          meta: { hideBelow: 'md', mobileLabel: 'Platnosť' },
+        }),
+        columnHelper.accessor('createdAt', {
+          header: 'Vytvorené',
+          cell: ({ getValue }) => (
+            <span className="text-sm text-muted-foreground">
+              {formatDate(getValue())}
+            </span>
+          ),
+          meta: { hideBelow: 'lg', mobileLabel: 'Vytvorené' },
+        }),
+        columnHelper.display({
+          id: 'actions',
+          header: 'Akcie',
+          cell: ({ row }) => {
+            const share = row.original
+            return (
+              <div className="inline-flex gap-1">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Kopírovať"
+                  disabled={share.status !== 'active'}
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(
+                        `${window.location.origin}${share.path}`,
+                      )
+                      toast.success('Skopírované')
+                    } catch {
+                      toast.error('Kopírovanie zlyhalo')
+                    }
+                  }}
+                >
+                  <Copy className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={pending || share.status !== 'active'}
+                  onClick={() => {
+                    startTransition(async () => {
+                      try {
+                        await revokeShareLink({
+                          data: { shareId: share.id },
+                        })
+                        toast.success('Odkaz zrušený')
+                        refresh()
+                      } catch (error) {
+                        toast.error(
+                          getErrorMessage(error, 'Revoke zlyhal'),
+                        )
+                      }
+                    })
+                  }}
+                >
+                  <Link2Off className="size-4" />
+                  Revoke
+                </Button>
+              </div>
+            )
+          },
+          meta: {
+            actions: true,
+            headerClassName: 'w-40 text-right',
+            cellClassName: 'text-right',
+          },
+        }),
+      ]),
+    [pending],
+  )
 
   return (
     <AppShell
@@ -76,98 +175,11 @@ function SharesPage() {
               }
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Súbor</TableHead>
-                  <TableHead>Stav</TableHead>
-                  <TableHead>Platnosť</TableHead>
-                  <TableHead>Vytvorené</TableHead>
-                  <TableHead className="w-40 text-right">Akcie</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {shares.map((share, index) => (
-                  <motion.tr
-                    key={share.id}
-                    initial={reduce ? false : { opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.32,
-                      ease: [0.22, 1, 0.36, 1],
-                      delay: reduce ? 0 : index * 0.045,
-                    }}
-                    className="border-b transition-colors hover:bg-muted/40"
-                    whileHover={reduce ? undefined : { x: 2 }}
-                  >
-                    <TableCell>
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{share.fileName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatFileSize(share.fileSize)}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={share.status} />
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(share.expiresAt)}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(share.createdAt)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="inline-flex gap-1">
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          aria-label="Kopírovať"
-                          disabled={share.status !== 'active'}
-                          onClick={async () => {
-                            try {
-                              await navigator.clipboard.writeText(
-                                `${window.location.origin}${share.path}`,
-                              )
-                              toast.success('Skopírované')
-                            } catch {
-                              toast.error('Kopírovanie zlyhalo')
-                            }
-                          }}
-                        >
-                          <Copy className="size-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          disabled={pending || share.status !== 'active'}
-                          onClick={() => {
-                            startTransition(async () => {
-                              try {
-                                await revokeShareLink({
-                                  data: { shareId: share.id },
-                                })
-                                toast.success('Odkaz zrušený')
-                                refresh()
-                              } catch (error) {
-                                toast.error(
-                                  getErrorMessage(error, 'Revoke zlyhal'),
-                                )
-                              }
-                            })
-                          }}
-                        >
-                          <Link2Off className="size-4" />
-                          Revoke
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </motion.tr>
-                ))}
-              </TableBody>
-            </Table>
+            <DataTable
+              columns={columns}
+              data={shares}
+              getRowId={(row) => row.id}
+            />
           )}
         </section>
       </FadeIn>
