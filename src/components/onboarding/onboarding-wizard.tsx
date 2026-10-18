@@ -5,17 +5,18 @@ import { motion, useReducedMotion } from 'motion/react'
 import { toast } from 'sonner'
 
 import { UploadZone } from '#/components/files/upload-zone'
+import { AtmosphereShell } from '#/components/layout/atmosphere-shell'
 import { SwapPresence } from '#/components/motion/animated-presence'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
-import { ThemeToggle } from '#/components/theme-toggle'
 import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { Progress } from '#/components/ui/progress'
 import { APP_NAME, ONBOARDING_STEPS } from '#/lib/constants'
+import { getErrorMessage } from '#/lib/errors'
 import { riseTransition } from '#/lib/motion'
-import { viewPreferenceSchema } from '#/lib/validation'
+import { onboardingPreferencesSchema } from '#/lib/validation'
 import {
   completeOnboarding,
   markOnboardingUploadDone,
@@ -83,27 +84,26 @@ export function OnboardingWizard({ initial }: Props) {
   }
 
   function savePreferences() {
-    const parsed = viewPreferenceSchema.safeParse(viewPreference)
-    if (!name.trim()) {
-      toast.error('Zadaj meno')
-      return
-    }
+    const parsed = onboardingPreferencesSchema.safeParse({
+      name,
+      viewPreference,
+    })
     if (!parsed.success) {
-      toast.error('Neplatná preferencia zobrazenia')
+      toast.error(
+        parsed.error.issues[0]?.message ?? 'Neplatné preferencie',
+      )
       return
     }
 
     startTransition(async () => {
       try {
         await saveOnboardingPreferences({
-          data: { name: name.trim(), viewPreference: parsed.data },
+          data: parsed.data,
         })
         setStep(3)
         toast.success('Preferencie uložené')
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : 'Uloženie zlyhalo',
-        )
+        toast.error(getErrorMessage(error, 'Uloženie zlyhalo'))
       }
     })
   }
@@ -149,76 +149,84 @@ export function OnboardingWizard({ initial }: Props) {
   const reduce = useReducedMotion()
 
   return (
-    <div className="mx-auto flex min-h-svh w-full max-w-lg flex-col gap-8 px-4 py-10">
-      <FadeIn>
-        <header className="flex items-center justify-between gap-4">
+    <AtmosphereShell
+      wide
+      intensity="soft"
+      headerRight={
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={skip}
+          disabled={pending}
+        >
+          Preskočiť
+        </Button>
+      }
+    >
+      <div className="flex flex-1 flex-col gap-8 py-4">
+        <FadeIn>
           <div>
             <p className="text-sm font-medium text-muted-foreground">
               {APP_NAME}
             </p>
-            <h1 className="font-display text-3xl">Vitaj</h1>
+            <h1 className="font-display text-4xl">Vitaj</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Pripravíme tvoje úložisko za pár krokov.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={skip}
-              disabled={pending}
-            >
-              Preskočiť
-            </Button>
-          </div>
-        </header>
-      </FadeIn>
+        </FadeIn>
 
-      <FadeIn delay={0.05}>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>
-              Krok {step} / {ONBOARDING_STEPS}
-            </span>
-            <span>{Math.round(progressValue)}%</span>
+        <FadeIn delay={0.05}>
+          <div className="space-y-2 rounded-xl border border-border/70 bg-background/70 p-4 backdrop-blur-md">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>
+                Krok {step} / {ONBOARDING_STEPS}
+              </span>
+              <span>{Math.round(progressValue)}%</span>
+            </div>
+            <Progress value={progressValue} aria-label="Postup onboarding-u" />
           </div>
-          <Progress value={progressValue} aria-label="Postup onboarding-u" />
-        </div>
-      </FadeIn>
+        </FadeIn>
 
-      <section aria-live="polite">
-        <SwapPresence id={step}>
-          {step === 1 ? (
-            <WelcomeStep onContinue={goNextFromWelcome} pending={pending} />
-          ) : null}
-          {step === 2 ? (
-            <PreferencesStep
-              nameId={nameId}
-              name={name}
-              viewPreference={viewPreference}
-              pending={pending}
-              onNameChange={setName}
-              onViewChange={setViewPreference}
-              onBack={() => persistStep(1)}
-              onContinue={savePreferences}
-            />
-          ) : null}
-          {step === 3 ? (
-            <UploadStep
-              uploadDone={uploadDone}
-              pending={pending}
-              onUploaded={() => {
-                setUploadDone(true)
-                finishUploadStep()
-              }}
-              onBack={() => persistStep(2)}
-              onContinue={finishUploadStep}
-            />
-          ) : null}
-          {step === 4 ? (
-            <DoneStep pending={pending} onFinish={finish} reduce={reduce} />
-          ) : null}
-        </SwapPresence>
-      </section>
-    </div>
+        <section
+          aria-live="polite"
+          className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm backdrop-blur-md sm:p-6"
+        >
+          <SwapPresence id={step}>
+            {step === 1 ? (
+              <WelcomeStep onContinue={goNextFromWelcome} pending={pending} />
+            ) : null}
+            {step === 2 ? (
+              <PreferencesStep
+                nameId={nameId}
+                name={name}
+                viewPreference={viewPreference}
+                pending={pending}
+                onNameChange={setName}
+                onViewChange={setViewPreference}
+                onBack={() => persistStep(1)}
+                onContinue={savePreferences}
+              />
+            ) : null}
+            {step === 3 ? (
+              <UploadStep
+                uploadDone={uploadDone}
+                pending={pending}
+                onUploaded={() => {
+                  setUploadDone(true)
+                  finishUploadStep()
+                }}
+                onBack={() => persistStep(2)}
+                onContinue={finishUploadStep}
+              />
+            ) : null}
+            {step === 4 ? (
+              <DoneStep pending={pending} onFinish={finish} reduce={reduce} />
+            ) : null}
+          </SwapPresence>
+        </section>
+      </div>
+    </AtmosphereShell>
   )
 }
 
@@ -256,7 +264,11 @@ function WelcomeStep({
           },
         ].map((item) => (
           <StaggerItem key={item.title}>
-            <li className="flex list-none gap-3 rounded-md bg-muted/50 p-3">
+            <motion.li
+              className="flex list-none gap-3 rounded-xl border border-border/60 bg-muted/40 p-3 transition-colors hover:bg-accent"
+              whileHover={{ y: -2 }}
+              transition={riseTransition}
+            >
               <item.icon
                 className="mt-0.5 size-4 shrink-0 text-primary"
                 aria-hidden
@@ -265,7 +277,7 @@ function WelcomeStep({
                 <p className="text-sm font-medium">{item.title}</p>
                 <p className="text-sm text-muted-foreground">{item.body}</p>
               </div>
-            </li>
+            </motion.li>
           </StaggerItem>
         ))}
       </Stagger>

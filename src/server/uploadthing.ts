@@ -7,6 +7,7 @@ import { db } from '#/db'
 import { files, folders } from '#/db/schema'
 import { auth } from '#/lib/auth'
 import { UPLOAD_LIMITS } from '#/lib/constants'
+import { fileNameSchema } from '#/lib/validation'
 import { firstOrThrow } from '#/server/db-helpers.server'
 
 const f = createUploadthing()
@@ -84,13 +85,30 @@ export const uploadRouter = {
       }
     })
     .onUploadComplete(async ({ metadata, file }) => {
+      const parsedName = fileNameSchema.safeParse(file.name)
+      if (!parsedName.success) {
+        throw new UploadThingError(
+          parsedName.error.issues[0]?.message ?? 'Neplatný názov súboru',
+        )
+      }
+
+      if (file.size <= 0) {
+        throw new UploadThingError('Súbor je prázdny')
+      }
+
+      if (file.size > UPLOAD_LIMITS.maxFileSizeBytes) {
+        throw new UploadThingError(
+          `Súbor prekračuje limit ${UPLOAD_LIMITS.maxFileSize}`,
+        )
+      }
+
       const created = firstOrThrow(
         await db
           .insert(files)
           .values({
             userId: metadata.userId,
             folderId: metadata.folderId,
-            name: file.name,
+            name: parsedName.data,
             size: file.size,
             mimeType: file.type || 'application/octet-stream',
             uploadthingKey: file.key,

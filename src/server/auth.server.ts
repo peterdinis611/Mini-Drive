@@ -12,7 +12,7 @@ export async function requireSession() {
   const session = await getSessionFromRequest()
 
   if (!session) {
-    throw new Error('Unauthorized')
+    throw new Error('Musíš byť prihlásený')
   }
 
   return session

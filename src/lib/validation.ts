@@ -1,13 +1,69 @@
 import { z } from 'zod'
 
 import {
+  AUTH_LIMITS,
   FORBIDDEN_NAME_CHARS,
   NAME_MAX_LENGTH,
   ONBOARDING_STEPS,
   SHARE_EXPIRY_PRESETS,
+  UPLOAD_LIMITS,
 } from './constants'
+import { formatZodError } from './errors'
+
+const RESERVED_NAMES = new Set([
+  'con',
+  'prn',
+  'aux',
+  'nul',
+  'com1',
+  'com2',
+  'com3',
+  'com4',
+  'lpt1',
+  'lpt2',
+  'lpt3',
+])
 
 export const viewPreferenceSchema = z.enum(['grid', 'list'])
+
+export const displayNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Meno je povinné')
+  .max(AUTH_LIMITS.nameMax, `Max. ${AUTH_LIMITS.nameMax} znakov`)
+
+export const emailSchema = z
+  .string()
+  .trim()
+  .min(1, 'Email je povinný')
+  .email('Neplatný email')
+  .max(254, 'Email je príliš dlhý')
+
+export const passwordSchema = z
+  .string()
+  .min(
+    AUTH_LIMITS.passwordMin,
+    `Heslo musí mať aspoň ${AUTH_LIMITS.passwordMin} znakov`,
+  )
+  .max(
+    AUTH_LIMITS.passwordMax,
+    `Heslo môže mať najviac ${AUTH_LIMITS.passwordMax} znakov`,
+  )
+
+export const loginSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+})
+
+export const registerSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .max(AUTH_LIMITS.nameMax, `Max. ${AUTH_LIMITS.nameMax} znakov`)
+    .default(''),
+  email: emailSchema,
+  password: passwordSchema,
+})
 
 export const fileNameSchema = z
   .string()
@@ -15,10 +71,16 @@ export const fileNameSchema = z
   .min(1, 'Názov je povinný')
   .max(NAME_MAX_LENGTH, `Max. ${NAME_MAX_LENGTH} znakov`)
   .refine((name) => !FORBIDDEN_NAME_CHARS.test(name), {
-    message: 'Názov obsahuje zakázané znaky',
+    message: 'Názov obsahuje zakázané znaky (<>:"/\\|?*)',
   })
   .refine((name) => name !== '.' && name !== '..', {
     message: 'Neplatný názov',
+  })
+  .refine((name) => !name.endsWith('.') && !name.endsWith(' '), {
+    message: 'Názov nesmie končiť bodkou ani medzerou',
+  })
+  .refine((name) => !RESERVED_NAMES.has(name.toLowerCase()), {
+    message: 'Tento názov je rezervovaný',
   })
 
 export const folderNameSchema = fileNameSchema
@@ -30,27 +92,35 @@ export const onboardingStepSchema = z
   .max(ONBOARDING_STEPS)
 
 export const onboardingPreferencesSchema = z.object({
-  name: z.string().trim().min(1, 'Meno je povinné').max(100),
+  name: displayNameSchema,
   viewPreference: viewPreferenceSchema,
 })
+
+export const updateSettingsSchema = z
+  .object({
+    name: displayNameSchema.optional(),
+    viewPreference: viewPreferenceSchema.optional(),
+  })
+  .refine((data) => data.name !== undefined || data.viewPreference !== undefined, {
+    message: 'Nie je čo uložiť',
+  })
 
 export const expiresInSchema = z
   .number()
   .int()
   .positive()
   .refine(
-    (value) =>
-      SHARE_EXPIRY_PRESETS.some((preset) => preset.value === value),
+    (value) => SHARE_EXPIRY_PRESETS.some((preset) => preset.value === value),
     { message: 'Neplatná platnosť odkazu' },
   )
 
 export const createShareLinkSchema = z.object({
-  fileId: z.string().uuid(),
+  fileId: z.string().uuid('Neplatné ID súboru'),
   expiresIn: expiresInSchema,
 })
 
 export const revokeShareLinkSchema = z.object({
-  shareId: z.string().uuid(),
+  shareId: z.string().uuid('Neplatné ID odkazu'),
 })
 
 export const shareTokenSchema = z
@@ -64,7 +134,7 @@ export const resolveShareTokenSchema = z.object({
   token: shareTokenSchema,
 })
 
-export const idSchema = z.string().uuid()
+export const idSchema = z.string().uuid('Neplatné ID')
 
 export const createFolderSchema = z.object({
   name: folderNameSchema,
@@ -100,13 +170,70 @@ export const deleteFileSchema = z.object({
 })
 
 export const imagePreviewUrlsSchema = z.object({
-  fileIds: z.array(idSchema).max(24),
+  fileIds: z.array(idSchema).max(24, 'Príliš veľa súborov naraz'),
 })
 
 export const listFolderContentsSchema = z.object({
   folderId: idSchema.nullable(),
 })
 
+export type UploadValidationResult =
+  | { ok: true; files: File[] }
+  | { ok: false; message: string }
+
+/** Client-side upload gate before calling UploadThing. */
+export function validateFilesForUpload(
+  incoming: File[] | FileList | null | undefined,
+): UploadValidationResult {
+  if (!incoming) {
+    return { ok: false, message: 'Nevybral si žiadny súbor' }
+  }
+
+  const list = Array.from(incoming)
+  if (list.length === 0) {
+    return { ok: false, message: 'Nevybral si žiadny súbor' }
+  }
+
+  const truncated = list.length > UPLOAD_LIMITS.maxFileCount
+  const files = list.slice(0, UPLOAD_LIMITS.maxFileCount)
+
+  for (const file of files) {
+    if (!file.name.trim()) {
+      return { ok: false, message: 'Súbor nemá platný názov' }
+    }
+
+    const nameResult = fileNameSchema.safeParse(file.name)
+    if (!nameResult.success) {
+      return {
+        ok: false,
+        message: `„${file.name}“: ${formatZodError(nameResult.error)}`,
+      }
+    }
+
+    if (file.size <= 0) {
+      return {
+        ok: false,
+        message: `Súbor „${file.name}“ je prázdny`,
+      }
+    }
+
+    if (file.size > UPLOAD_LIMITS.maxFileSizeBytes) {
+      return {
+        ok: false,
+        message: `Súbor „${file.name}“ prekračuje limit ${UPLOAD_LIMITS.maxFileSize}`,
+      }
+    }
+  }
+
+  if (truncated) {
+    return {
+      ok: true,
+      files,
+    }
+  }
+
+  return { ok: true, files }
+}
 
 export function wouldCreateFolderCycle(
   folderId: string,

@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, isNull, ne } from 'drizzle-orm'
 
 import {
   deleteFileSchema,
@@ -7,7 +7,7 @@ import {
   moveFileSchema,
   renameFileSchema,
 } from '#/lib/validation'
-import { firstOrThrow } from '#/server/db-helpers.server'
+import { firstOrNull, firstOrThrow } from '#/server/db-helpers.server'
 
 export const renameFile = createServerFn({ method: 'POST' })
   .validator(renameFileSchema)
@@ -19,14 +19,38 @@ export const renameFile = createServerFn({ method: 'POST' })
     const session = await requireSession()
     const userId = session.user.id
 
-    firstOrThrow(
+    const existing = firstOrThrow(
       await db
-        .select({ id: files.id })
+        .select({ id: files.id, folderId: files.folderId })
         .from(files)
         .where(and(eq(files.id, data.fileId), eq(files.userId, userId)))
         .limit(1),
       'Súbor neexistuje',
     )
+
+    const folderFilter =
+      existing.folderId === null
+        ? isNull(files.folderId)
+        : eq(files.folderId, existing.folderId)
+
+    const duplicate = firstOrNull(
+      await db
+        .select({ id: files.id })
+        .from(files)
+        .where(
+          and(
+            eq(files.userId, userId),
+            folderFilter,
+            eq(files.name, data.name),
+            ne(files.id, data.fileId),
+          ),
+        )
+        .limit(1),
+    )
+
+    if (duplicate) {
+      throw new Error('V tomto priečinku už existuje súbor s týmto názvom')
+    }
 
     return firstOrThrow(
       await db
@@ -113,7 +137,13 @@ export const deleteFile = createServerFn({ method: 'POST' })
     )
 
     if (process.env.UPLOADTHING_TOKEN) {
-      await utapi.deleteFiles(existing.uploadthingKey)
+      try {
+        await utapi.deleteFiles(existing.uploadthingKey)
+      } catch {
+        throw new Error(
+          'Nepodarilo sa zmazať súbor z úložiska. Skús to znova.',
+        )
+      }
     }
 
     await db
@@ -147,14 +177,20 @@ export const getFileDownloadUrl = createServerFn({ method: 'GET' })
     )
 
     if (!process.env.UPLOADTHING_TOKEN) {
-      throw new Error('UPLOADTHING_TOKEN nie je nastavený')
+      throw new Error('Úložisko nie je nakonfigurované (chýba token).')
     }
 
-    const { ufsUrl } = await utapi.generateSignedURL(existing.uploadthingKey, {
-      expiresIn: 60 * 15,
-    })
-
-    return { url: ufsUrl, name: existing.name }
+    try {
+      const { ufsUrl } = await utapi.generateSignedURL(
+        existing.uploadthingKey,
+        {
+          expiresIn: 60 * 15,
+        },
+      )
+      return { url: ufsUrl, name: existing.name }
+    } catch {
+      throw new Error('Nepodarilo sa pripraviť odkaz na stiahnutie.')
+    }
   })
 
 /** Short-lived signed URLs for image thumbnails (grid view). */
@@ -189,10 +225,14 @@ export const getImagePreviewUrls = createServerFn({ method: 'POST' })
 
     await Promise.all(
       images.map(async (row) => {
-        const { ufsUrl } = await utapi.generateSignedURL(row.uploadthingKey, {
-          expiresIn: 60 * 10,
-        })
-        result[row.id] = ufsUrl
+        try {
+          const { ufsUrl } = await utapi.generateSignedURL(row.uploadthingKey, {
+            expiresIn: 60 * 10,
+          })
+          result[row.id] = ufsUrl
+        } catch {
+          // Skip broken previews — UI falls back to icons.
+        }
       }),
     )
 

@@ -1,8 +1,10 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Clock3, Link2Off, ShieldAlert } from 'lucide-react'
+import { motion, useReducedMotion } from 'motion/react'
 
-import { ThemeToggle } from '#/components/theme-toggle'
+import { AtmosphereShell } from '#/components/layout/atmosphere-shell'
 import { APP_NAME } from '#/lib/constants'
+import { riseTransition, scaleIn } from '#/lib/motion'
 import { buildSeoHead } from '#/lib/seo'
 import { resolvePublicShare } from '#/server/functions/shares'
 
@@ -44,12 +46,12 @@ function PublicSharePage() {
   if (data.status === 'rate_limited') {
     return (
       <ShareShell>
-        <ShieldAlert className="size-8 text-destructive" aria-hidden />
-        <h1 className="text-xl font-semibold">Príliš veľa požiadaviek</h1>
-        <p className="text-sm text-muted-foreground">
-          Skús to znova o{' '}
-          {Math.max(1, Math.ceil(data.retryAfterMs / 1000))} s.
-        </p>
+        <ShareCard
+          icon={ShieldAlert}
+          iconClassName="text-destructive"
+          title="Príliš veľa požiadaviek"
+          description={`Skús to znova o ${Math.max(1, Math.ceil(data.retryAfterMs / 1000))} s.`}
+        />
       </ShareShell>
     )
   }
@@ -61,33 +63,75 @@ function PublicSharePage() {
         ? 'Odkaz vypršal'
         : 'Odkaz neexistuje'
 
-  const goneFileName =
-    data.reason === 'not_found' ? null : data.fileName
+  const goneFileName = data.reason === 'not_found' ? null : data.fileName
 
   return (
     <ShareShell>
-      <Clock3 className="size-8 text-muted-foreground" aria-hidden />
-      <h1 className="text-xl font-semibold">{reasonLabel}</h1>
-      <p className="text-sm text-muted-foreground">
-        {goneFileName
-          ? `Súbor „${goneFileName}“ už nie je dostupný cez tento odkaz (HTTP 410).`
-          : 'Tento safe-url nie je platný (HTTP 410).'}
-      </p>
-      <Link2Off className="mt-2 size-5 text-muted-foreground/60" aria-hidden />
+      <ShareCard
+        icon={Clock3}
+        title={reasonLabel}
+        description={
+          goneFileName
+            ? `Súbor „${goneFileName}“ už nie je dostupný cez tento odkaz (HTTP 410).`
+            : 'Tento safe-url nie je platný (HTTP 410).'
+        }
+        footer={<Link2Off className="size-5 text-muted-foreground/60" aria-hidden />}
+      />
     </ShareShell>
   )
 }
 
 function ShareShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto flex min-h-svh w-full max-w-md flex-col px-4 py-10">
-      <header className="mb-12 flex items-center justify-between">
-        <p className="text-sm font-semibold">{APP_NAME}</p>
-        <ThemeToggle />
-      </header>
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-        {children}
-      </div>
-    </div>
+    <AtmosphereShell intensity="bold" className="justify-center">
+      {children}
+    </AtmosphereShell>
+  )
+}
+
+function ShareCard({
+  icon: Icon,
+  iconClassName,
+  title,
+  description,
+  footer,
+}: {
+  icon: typeof Clock3
+  iconClassName?: string
+  title: string
+  description: string
+  footer?: React.ReactNode
+}) {
+  const reduce = useReducedMotion()
+
+  return (
+    <motion.div
+      className="w-full rounded-2xl border border-border/80 bg-background/80 p-8 text-center shadow-lg backdrop-blur-md"
+      variants={reduce ? undefined : scaleIn}
+      initial={reduce ? false : 'hidden'}
+      animate="show"
+    >
+      <motion.span
+        className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl border border-border bg-muted/60"
+        animate={reduce ? undefined : { y: [0, -4, 0] }}
+        transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <Icon className={`size-6 ${iconClassName ?? 'text-muted-foreground'}`} aria-hidden />
+      </motion.span>
+      <h1 className="font-display text-2xl">{title}</h1>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+      {footer ? (
+        <motion.div
+          className="mt-4 flex justify-center"
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ ...riseTransition, delay: 0.15 }}
+        >
+          {footer}
+        </motion.div>
+      ) : null}
+    </motion.div>
   )
 }

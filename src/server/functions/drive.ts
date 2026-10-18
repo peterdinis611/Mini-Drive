@@ -100,3 +100,40 @@ export const listRecentFiles = createServerFn({ method: 'GET' }).handler(
       .limit(40)
   },
 )
+
+/** Full index of folders + files for client-side Fuse.js search. */
+export const getDriveSearchIndex = createServerFn({ method: 'GET' }).handler(
+  async () => {
+    const { requireSession } = await import('#/server/auth.server')
+    const { db } = await import('#/db')
+    const { files, folders } = await import('#/db/schema')
+
+    const session = await requireSession()
+    const userId = session.user.id
+
+    const [folderRows, fileRows] = await Promise.all([
+      db
+        .select({
+          id: folders.id,
+          parentId: folders.parentId,
+          name: folders.name,
+        })
+        .from(folders)
+        .where(eq(folders.userId, userId)),
+      db
+        .select({
+          id: files.id,
+          name: files.name,
+          size: files.size,
+          mimeType: files.mimeType,
+          folderId: files.folderId,
+        })
+        .from(files)
+        .where(eq(files.userId, userId))
+        .orderBy(desc(files.createdAt))
+        .limit(500),
+    ])
+
+    return { folders: folderRows, files: fileRows }
+  },
+)

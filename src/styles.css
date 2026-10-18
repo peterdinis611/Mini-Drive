@@ -182,6 +182,21 @@ body {
   background-size: 180px 180px;
 }
 
+.upload-dock-grid {
+  opacity: 0.45;
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--border) 70%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--border) 70%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black, transparent 75%);
+}
+
+.upload-dock-glow {
+  background:
+    radial-gradient(ellipse 55% 45% at 30% 30%, color-mix(in oklab, var(--primary) 22%, transparent), transparent 70%),
+    radial-gradient(ellipse 45% 40% at 80% 70%, color-mix(in oklab, var(--accent-foreground) 12%, transparent), transparent 65%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-rise,
   .animate-rise-delay-1,

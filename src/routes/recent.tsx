@@ -1,8 +1,11 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { FileIcon, FolderOpen } from 'lucide-react'
+import { motion, useReducedMotion } from 'motion/react'
 
-import { FadeIn } from '#/components/motion/fade-in'
 import { AppShell } from '#/components/layout/app-shell'
+import { FadeIn } from '#/components/motion/fade-in'
+import { Button } from '#/components/ui/button'
+import { EmptyState } from '#/components/ui/empty-state'
 import {
   Table,
   TableBody,
@@ -31,6 +34,7 @@ export const Route = createFileRoute('/recent')({
 
 function RecentPage() {
   const { chrome, recent } = Route.useLoaderData()
+  const reduce = useReducedMotion()
 
   return (
     <AppShell
@@ -42,69 +46,80 @@ function RecentPage() {
       subtitle="Posledných 40 nahratých súborov"
     >
       <FadeIn>
-      <section>
-        {recent.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
-            <FolderOpen className="size-8 text-muted-foreground" />
-            <h2 className="text-lg font-medium">Zatiaľ prázdne</h2>
-            <p className="text-sm text-muted-foreground">
-              Po prvom uploade sa tu zobrazia najnovšie súbory.
-            </p>
-            <Link to="/files" className="text-sm text-primary underline-offset-4 hover:underline">
-              Prejsť do súborov
-            </Link>
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Názov</TableHead>
-                <TableHead>Typ</TableHead>
-                <TableHead>Veľkosť</TableHead>
-                <TableHead>Dátum</TableHead>
-                <TableHead>Umiestnenie</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recent.map((file) => (
-                <TableRow key={file.id}>
-                  <TableCell>
-                    <span className="inline-flex items-center gap-2 font-medium">
-                      <FileIcon className="size-4 text-muted-foreground" />
-                      {file.name}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {file.mimeType}
-                  </TableCell>
-                  <TableCell>{formatFileSize(file.size)}</TableCell>
-                  <TableCell>
-                    {new Date(file.createdAt).toLocaleString('sk-SK')}
-                  </TableCell>
-                  <TableCell>
-                    {file.folderId ? (
-                      <Link
-                        to="/files/$folderId"
-                        params={{ folderId: file.folderId }}
-                        className="text-primary underline-offset-4 hover:underline"
-                      >
-                        Otvoriť priečinok
-                      </Link>
-                    ) : (
-                      <Link
-                        to="/files"
-                        className="text-primary underline-offset-4 hover:underline"
-                      >
-                        Súbory
-                      </Link>
-                    )}
-                  </TableCell>
+        <section className="overflow-hidden rounded-2xl border border-border/70 bg-card/40">
+          {recent.length === 0 ? (
+            <EmptyState
+              icon={FolderOpen}
+              title="Zatiaľ prázdne"
+              description="Po prvom uploade sa tu zobrazia najnovšie súbory."
+              action={
+                <Button asChild variant="outline">
+                  <Link to="/files">Prejsť do súborov</Link>
+                </Button>
+              }
+            />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Názov</TableHead>
+                  <TableHead>Typ</TableHead>
+                  <TableHead>Veľkosť</TableHead>
+                  <TableHead>Dátum</TableHead>
+                  <TableHead>Umiestnenie</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </section>
+              </TableHeader>
+              <TableBody>
+                {recent.map((file, index) => (
+                  <motion.tr
+                    key={file.id}
+                    initial={reduce ? false : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.32,
+                      ease: [0.22, 1, 0.36, 1],
+                      delay: reduce ? 0 : index * 0.045,
+                    }}
+                    className="border-b transition-colors hover:bg-muted/40 data-[state=selected]:bg-muted"
+                    whileHover={reduce ? undefined : { x: 2 }}
+                  >
+                    <TableCell>
+                      <span className="inline-flex items-center gap-2 font-medium">
+                        <FileIcon className="size-4 text-muted-foreground" />
+                        {file.name}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {file.mimeType}
+                    </TableCell>
+                    <TableCell>{formatFileSize(file.size)}</TableCell>
+                    <TableCell>
+                      {new Date(file.createdAt).toLocaleString('sk-SK')}
+                    </TableCell>
+                    <TableCell>
+                      {file.folderId ? (
+                        <Link
+                          to="/files/$folderId"
+                          params={{ folderId: file.folderId }}
+                          className="text-primary underline-offset-4 hover:underline"
+                        >
+                          Otvoriť priečinok
+                        </Link>
+                      ) : (
+                        <Link
+                          to="/files"
+                          className="text-primary underline-offset-4 hover:underline"
+                        >
+                          Súbory
+                        </Link>
+                      )}
+                    </TableCell>
+                  </motion.tr>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </section>
       </FadeIn>
     </AppShell>
   )

@@ -2,6 +2,7 @@ export const APP_NAME = 'Mini Drive'
 
 export const UPLOAD_LIMITS = {
   maxFileSize: '32MB',
+  maxFileSizeBytes: 32 * 1024 * 1024,
   maxFileCount: 10,
   allowedTypes: [
     'image',
@@ -11,6 +12,12 @@ export const UPLOAD_LIMITS = {
     'text',
     'blob',
   ] as const,
+} as const
+
+export const AUTH_LIMITS = {
+  passwordMin: 8,
+  passwordMax: 128,
+  nameMax: 100,
 } as const
 
 export const SHARE_EXPIRY_PRESETS = [

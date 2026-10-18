@@ -1,13 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod'
 
-import { viewPreferenceSchema } from '#/lib/validation'
-
-const updateSettingsSchema = z.object({
-  name: z.string().trim().min(1).max(100).optional(),
-  viewPreference: viewPreferenceSchema.optional(),
-})
+import { updateSettingsSchema } from '#/lib/validation'
 
 export const updateSettings = createServerFn({ method: 'POST' })
   .validator(updateSettingsSchema)

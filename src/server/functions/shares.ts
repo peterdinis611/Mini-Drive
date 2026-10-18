@@ -212,7 +212,7 @@ export const resolvePublicShare = createServerFn({ method: 'GET' })
     }
 
     if (!process.env.UPLOADTHING_TOKEN) {
-      throw new Error('UPLOADTHING_TOKEN nie je nastavený')
+      throw new Error('Úložisko nie je nakonfigurované (chýba token).')
     }
 
     const { ufsUrl } = await utapi.generateSignedURL(row.uploadthingKey, {

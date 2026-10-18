@@ -8,7 +8,6 @@ import {
   List,
   MoreHorizontal,
   Pencil,
-  Search,
   Share2,
   Trash2,
   FolderInput,
@@ -22,6 +21,7 @@ import { NameDialog } from '#/components/files/name-dialog'
 import { MoveDialog } from '#/components/files/move-dialog'
 import { DeleteFolderDialog } from '#/components/files/delete-folder-dialog'
 import { ShareDialog } from '#/components/files/share-dialog'
+import { DriveSearchDialog } from '#/components/files/drive-search-dialog'
 import { FileThumbnail } from '#/components/files/file-thumbnail'
 import { useImagePreviews } from '#/components/files/use-image-previews'
 import { FadeIn } from '#/components/motion/fade-in'
@@ -38,6 +38,7 @@ import {
   BreadcrumbSeparator,
 } from '#/components/ui/breadcrumb'
 import { Button } from '#/components/ui/button'
+import { EmptyState } from '#/components/ui/empty-state'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,7 +46,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
-import { Input } from '#/components/ui/input'
 import { Skeleton } from '#/components/ui/skeleton'
 import {
   Table,
@@ -55,6 +55,7 @@ import {
   TableHeader,
   TableRow,
 } from '#/components/ui/table'
+import { getErrorMessage } from '#/lib/errors'
 import { formatFileSize } from '#/lib/format'
 import {
   deleteFile,
@@ -109,28 +110,13 @@ export function FileExplorer({
   const router = useRouter()
   const reduce = useReducedMotion()
   const [view, setView] = useState<'grid' | 'list'>(initial.viewPreference)
-  const [query, setQuery] = useState('')
   const [showUpload, setShowUpload] = useState(true)
   const [dialog, setDialog] = useState<DialogState>(null)
   const [pending, startTransition] = useTransition()
   const previewUrls = useImagePreviews(initial.files, view === 'grid')
 
-  const folders = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return initial.folders
-    return initial.folders.filter((f) => f.name.toLowerCase().includes(q))
-  }, [initial.folders, query])
-
-  const files = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return initial.files
-    return initial.files.filter(
-      (f) =>
-        f.name.toLowerCase().includes(q) ||
-        f.mimeType.toLowerCase().includes(q),
-    )
-  }, [initial.files, query])
-
+  const folders = initial.folders
+  const files = initial.files
   const empty = folders.length === 0 && files.length === 0
 
   const excludeForFolderMove = useMemo(() => {
@@ -150,7 +136,7 @@ export function FileExplorer({
         setDialog(null)
         refresh()
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Operácia zlyhala')
+        toast.error(getErrorMessage(error, 'Operácia zlyhala'))
       }
     })
   }
@@ -169,16 +155,7 @@ export function FileExplorer({
       subtitle={`${folders.length} priečinkov · ${files.length} súborov`}
       actions={
         <>
-          <div className="relative hidden min-w-[200px] sm:block">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Hľadať…"
-              className="h-9 pl-8"
-              aria-label="Hľadať"
-            />
-          </div>
+          <DriveSearchDialog />
           <div className="flex overflow-hidden rounded-md border border-border">
             <Button
               type="button"
@@ -203,11 +180,12 @@ export function FileExplorer({
           </div>
           <Button
             type="button"
-            variant="outline"
+            variant={showUpload ? 'secondary' : 'outline'}
             onClick={() => setShowUpload((v) => !v)}
+            aria-pressed={showUpload}
           >
             <Upload />
-            Nahrať
+            {showUpload ? 'Skryť upload' : 'Nahrať'}
           </Button>
           <Button
             type="button"
@@ -221,15 +199,7 @@ export function FileExplorer({
     >
       <div className="space-y-5">
         <div className="sm:hidden">
-          <div className="relative">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Hľadať…"
-              className="h-9 pl-8"
-            />
-          </div>
+          <DriveSearchDialog compact />
         </div>
 
         <FadeIn>
@@ -287,22 +257,12 @@ export function FileExplorer({
               <Skeleton className="h-10 w-2/3" />
             </div>
           ) : empty ? (
-            <motion.div
-              className="flex flex-col items-center gap-3 px-6 py-16 text-center"
-              initial={reduce ? false : { opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={riseTransition}
-            >
-              <Folder className="size-9 text-muted-foreground" aria-hidden />
-              <h3 className="text-lg font-medium">
-                {query ? 'Žiadne výsledky' : 'Zatiaľ prázdne'}
-              </h3>
-              <p className="max-w-sm text-sm text-muted-foreground">
-                {query
-                  ? 'Skús iný výraz alebo vymaž filter.'
-                  : 'Nahraj súbor alebo vytvor nový priečinok.'}
-              </p>
-            </motion.div>
+            <EmptyState
+              icon={Folder}
+              title="Zatiaľ prázdne"
+              description="Nahraj súbor alebo vytvor nový priečinok. Hľadaj cez ⌘K."
+              className="rounded-2xl border border-dashed border-border/80 bg-muted/20"
+            />
           ) : view === 'list' ? (
             <Table>
               <TableHeader>

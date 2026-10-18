@@ -8,6 +8,19 @@ const navigate = vi.fn()
 
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => navigate,
+  Link: ({
+    children,
+    to,
+    className,
+  }: {
+    children?: unknown
+    to?: string
+    className?: string
+  }) => (
+    <a href={to ?? '/'} className={className}>
+      {children as never}
+    </a>
+  ),
 }))
 
 vi.mock('next-themes', () => ({

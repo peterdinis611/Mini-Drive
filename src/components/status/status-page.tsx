@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { ArrowLeft, Home, RefreshCw } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 
+import { AtmosphereBackdrop } from '#/components/three/atmosphere-backdrop'
 import { ThemeToggle } from '#/components/theme-toggle'
 import { Button } from '#/components/ui/button'
 import { APP_NAME } from '#/lib/constants'
@@ -25,14 +26,7 @@ export function StatusPage({
 
   return (
     <div className="status-page relative flex min-h-svh flex-col overflow-hidden">
-      <motion.div
-        className="status-page-mesh pointer-events-none absolute inset-0"
-        aria-hidden
-        initial={reduce ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      />
-      <div className="status-page-grain pointer-events-none absolute inset-0" aria-hidden />
+      <AtmosphereBackdrop intensity="bold" />
 
       <motion.header
         className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10"

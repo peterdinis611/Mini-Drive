@@ -13,6 +13,8 @@ import {
 } from '#/components/ui/dialog'
 import { Label } from '#/components/ui/label'
 import { SHARE_EXPIRY_PRESETS } from '#/lib/constants'
+import { getErrorMessage } from '#/lib/errors'
+import { createShareLinkSchema } from '#/lib/validation'
 import { createShareLink } from '#/server/functions/shares'
 import { cn } from '#/lib/utils'
 
@@ -32,7 +34,7 @@ export function ShareDialog({
   onCreated,
 }: Props) {
   const [expiresIn, setExpiresIn] = useState<number>(
-    SHARE_EXPIRY_PRESETS[1]?.value ?? 3600,
+    SHARE_EXPIRY_PRESETS[1].value,
   )
   const [pending, setPending] = useState(false)
   const [createdPath, setCreatedPath] = useState<string | null>(null)
@@ -42,22 +44,34 @@ export function ShareDialog({
     if (open) {
       setCreatedPath(null)
       setCopied(false)
-      setExpiresIn(SHARE_EXPIRY_PRESETS[1]?.value ?? 3600)
+      setExpiresIn(SHARE_EXPIRY_PRESETS[1].value)
     }
   }, [open, fileId])
 
   async function handleCreate() {
-    if (!fileId) return
+    if (!fileId) {
+      toast.error('Chýba súbor na zdieľanie')
+      return
+    }
+
+    const parsed = createShareLinkSchema.safeParse({ fileId, expiresIn })
+    if (!parsed.success) {
+      toast.error(
+        parsed.error.issues[0]?.message ?? 'Neplatné nastavenie zdieľania',
+      )
+      return
+    }
+
     setPending(true)
     try {
       const result = await createShareLink({
-        data: { fileId, expiresIn },
+        data: parsed.data,
       })
       setCreatedPath(result.path)
       toast.success('Odkaz vytvorený')
       onCreated?.()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Vytvorenie zlyhalo')
+      toast.error(getErrorMessage(error, 'Vytvorenie zlyhalo'))
     } finally {
       setPending(false)
     }
