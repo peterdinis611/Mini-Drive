@@ -1,0 +1,28 @@
+{
+  "projectName": "mini-drive",
+  "mode": "file-router",
+  "bundler": "vite",
+  "typescript": true,
+  "tailwind": true,
+  "packageManager": "pnpm",
+  "git": false,
+  "install": true,
+  "intent": true,
+  "addOnOptions": {
+    "drizzle": {
+      "database": "sqlite"
+    }
+  },
+  "projectPreset": "default",
+  "routerOnly": false,
+  "includeExamples": false,
+  "version": 1,
+  "framework": "react",
+  "chosenAddOns": [
+    "drizzle",
+    "better-auth",
+    "shadcn",
+    "tanstack-query",
+    "eslint"
+  ]
+}

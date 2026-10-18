@@ -1,0 +1,102 @@
+import { createServerFn } from '@tanstack/react-start'
+import { count, desc, eq, sum } from 'drizzle-orm'
+
+import { firstOrThrow } from '#/server/db-helpers.server'
+
+export const getAppChrome = createServerFn({ method: 'GET' }).handler(
+  async () => {
+    const { requireSession } = await import('#/server/auth.server')
+    const { db } = await import('#/db')
+    const { files, folders, user } = await import('#/db/schema')
+
+    const session = await requireSession()
+    const userId = session.user.id
+
+    const fileStatsRows = await db
+      .select({
+        fileCount: count(files.id),
+        totalBytes: sum(files.size),
+      })
+      .from(files)
+      .where(eq(files.userId, userId))
+
+    const folderStatsRows = await db
+      .select({
+        folderCount: count(folders.id),
+      })
+      .from(folders)
+      .where(eq(folders.userId, userId))
+
+    const folderTree = await db
+      .select({
+        id: folders.id,
+        parentId: folders.parentId,
+        name: folders.name,
+      })
+      .from(folders)
+      .where(eq(folders.userId, userId))
+
+    const profile = firstOrThrow(
+      await db
+        .select({
+          name: user.name,
+          email: user.email,
+          viewPreference: user.viewPreference,
+        })
+        .from(user)
+        .where(eq(user.id, userId))
+        .limit(1),
+      'User not found',
+    )
+
+    const fileStats = fileStatsRows.at(0)
+    const folderStats = folderStatsRows.at(0)
+
+    return {
+      user: {
+        id: userId,
+        name: profile.name,
+        email: profile.email,
+        viewPreference: profile.viewPreference,
+      },
+      folders: folderTree,
+      stats: {
+        fileCount: Number(fileStats?.fileCount ?? 0),
+        folderCount: Number(folderStats?.folderCount ?? 0),
+        totalBytes: Number(fileStats?.totalBytes ?? 0),
+        quotaBytes: 10 * 1024 ** 3,
+      },
+    }
+  },
+)
+
+export const getDriveStats = createServerFn({ method: 'GET' }).handler(
+  async () => {
+    const chrome = await getAppChrome()
+    return chrome.stats
+  },
+)
+
+export const listRecentFiles = createServerFn({ method: 'GET' }).handler(
+  async () => {
+    const { requireSession } = await import('#/server/auth.server')
+    const { db } = await import('#/db')
+    const { files } = await import('#/db/schema')
+
+    const session = await requireSession()
+
+    return db
+      .select({
+        id: files.id,
+        name: files.name,
+        size: files.size,
+        mimeType: files.mimeType,
+        folderId: files.folderId,
+        createdAt: files.createdAt,
+      })
+      .from(files)
+      .where(eq(files.userId, session.user.id))
+      .orderBy(desc(files.createdAt))
+      .limit(40)
+  },
+)
