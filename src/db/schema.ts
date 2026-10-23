@@ -114,14 +114,14 @@ export const folders = sqliteTable(
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .notNull()
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    deletedAt: integer('deleted_at', { mode: 'timestamp_ms' }),
   },
   (table) => [
-    uniqueIndex('folders_user_parent_name_uidx').on(
-      table.userId,
-      table.parentId,
-      table.name,
-    ),
+    uniqueIndex('folders_user_parent_name_uidx')
+      .on(table.userId, table.parentId, table.name)
+      .where(sql`${table.deletedAt} is null`),
     index('folders_userId_idx').on(table.userId),
+    index('folders_deletedAt_idx').on(table.deletedAt),
   ],
 )
 
@@ -144,10 +144,41 @@ export const files = sqliteTable(
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .notNull()
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    deletedAt: integer('deleted_at', { mode: 'timestamp_ms' }),
+    currentVersion: integer('current_version').notNull().default(1),
   },
   (table) => [
     index('files_userId_idx').on(table.userId),
     index('files_folderId_idx').on(table.folderId),
+    index('files_deletedAt_idx').on(table.deletedAt),
+  ],
+)
+
+/** Archived prior revisions of a file (current blob stays on `files`). */
+export const fileVersions = sqliteTable(
+  'file_versions',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    fileId: text('file_id')
+      .notNull()
+      .references(() => files.id, { onDelete: 'cascade' }),
+    version: integer('version').notNull(),
+    name: text('name').notNull(),
+    size: integer('size').notNull(),
+    mimeType: text('mime_type').notNull(),
+    uploadthingKey: text('uploadthing_key').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+  },
+  (table) => [
+    uniqueIndex('file_versions_file_version_uidx').on(
+      table.fileId,
+      table.version,
+    ),
+    index('file_versions_fileId_idx').on(table.fileId),
   ],
 )
 
@@ -221,6 +252,14 @@ export const filesRelations = relations(files, ({ one, many }) => ({
     references: [folders.id],
   }),
   shareLinks: many(shareLinks),
+  versions: many(fileVersions),
+}))
+
+export const fileVersionsRelations = relations(fileVersions, ({ one }) => ({
+  file: one(files, {
+    fields: [fileVersions.fileId],
+    references: [files.id],
+  }),
 }))
 
 export const shareLinksRelations = relations(shareLinks, ({ one }) => ({
@@ -237,4 +276,5 @@ export const shareLinksRelations = relations(shareLinks, ({ one }) => ({
 export type User = typeof user.$inferSelect
 export type Folder = typeof folders.$inferSelect
 export type FileRecord = typeof files.$inferSelect
+export type FileVersion = typeof fileVersions.$inferSelect
 export type ShareLink = typeof shareLinks.$inferSelect

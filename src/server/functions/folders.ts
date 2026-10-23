@@ -27,7 +27,7 @@ async function loadUserFolders(userId: string): Promise<FolderNode[]> {
       name: folders.name,
     })
     .from(folders)
-    .where(eq(folders.userId, userId))
+    .where(and(eq(folders.userId, userId), isNull(folders.deletedAt)))
 }
 
 export const listFolderContents = createServerFn({ method: 'GET' })
@@ -46,7 +46,13 @@ export const listFolderContents = createServerFn({ method: 'GET' })
         await db
           .select({ id: folders.id })
           .from(folders)
-          .where(and(eq(folders.id, folderId), eq(folders.userId, userId)))
+          .where(
+            and(
+              eq(folders.id, folderId),
+              eq(folders.userId, userId),
+              isNull(folders.deletedAt),
+            ),
+          )
           .limit(1),
         'Priečinok neexistuje',
       )
@@ -68,7 +74,13 @@ export const listFolderContents = createServerFn({ method: 'GET' })
           createdAt: folders.createdAt,
         })
         .from(folders)
-        .where(and(eq(folders.userId, userId), parentFilter)),
+        .where(
+          and(
+            eq(folders.userId, userId),
+            parentFilter,
+            isNull(folders.deletedAt),
+          ),
+        ),
       db
         .select({
           id: files.id,
@@ -79,7 +91,13 @@ export const listFolderContents = createServerFn({ method: 'GET' })
           createdAt: files.createdAt,
         })
         .from(files)
-        .where(and(eq(files.userId, userId), fileFolderFilter)),
+        .where(
+          and(
+            eq(files.userId, userId),
+            fileFolderFilter,
+            isNull(files.deletedAt),
+          ),
+        ),
       loadUserFolders(userId),
     ])
 
@@ -130,6 +148,7 @@ export const createFolder = createServerFn({ method: 'POST' })
             eq(folders.userId, userId),
             parentFilter,
             eq(folders.name, data.name),
+            isNull(folders.deletedAt),
           ),
         )
         .limit(1),
@@ -183,6 +202,7 @@ export const renameFolder = createServerFn({ method: 'POST' })
             eq(folders.userId, userId),
             parentFilter,
             eq(folders.name, data.name),
+            isNull(folders.deletedAt),
           ),
         )
         .limit(1),
@@ -219,7 +239,13 @@ export const getFolderDeleteSummary = createServerFn({ method: 'GET' })
     const fileRows = await db
       .select({ id: files.id })
       .from(files)
-      .where(and(eq(files.userId, userId), inArray(files.folderId, ids)))
+      .where(
+        and(
+          eq(files.userId, userId),
+          isNull(files.deletedAt),
+          inArray(files.folderId, ids),
+        ),
+      )
 
     return {
       folderCount: ids.length,
@@ -228,13 +254,13 @@ export const getFolderDeleteSummary = createServerFn({ method: 'GET' })
     }
   })
 
+/** Soft-delete folder tree + contained files into Trash. */
 export const deleteFolder = createServerFn({ method: 'POST' })
   .validator(deleteFolderSchema)
   .handler(async ({ data }) => {
     const { requireSession } = await import('#/server/auth.server')
     const { db } = await import('#/db')
     const { files, folders } = await import('#/db/schema')
-    const { utapi } = await import('#/server/utapi.server')
 
     const session = await requireSession()
     const userId = session.user.id
@@ -243,33 +269,40 @@ export const deleteFolder = createServerFn({ method: 'POST' })
     if (!owned) throw new Error('Priečinok neexistuje')
 
     const ids = collectDescendantIds(data.folderId, allFolders)
+    const now = new Date()
+
     const fileRows = await db
-      .select({ id: files.id, uploadthingKey: files.uploadthingKey })
+      .select({ id: files.id })
       .from(files)
-      .where(and(eq(files.userId, userId), inArray(files.folderId, ids)))
-
-    const keys = fileRows.map((f) => f.uploadthingKey).filter(Boolean)
-    if (keys.length > 0 && process.env.UPLOADTHING_TOKEN) {
-      await utapi.deleteFiles(keys)
-    }
-
-    if (fileRows.length > 0) {
-      await db
-        .delete(files)
-        .where(
-          and(
-            eq(files.userId, userId),
-            inArray(
-              files.id,
-              fileRows.map((f) => f.id),
-            ),
-          ),
-        )
-    }
+      .where(
+        and(
+          eq(files.userId, userId),
+          isNull(files.deletedAt),
+          inArray(files.folderId, ids),
+        ),
+      )
 
     await db
-      .delete(folders)
-      .where(and(eq(folders.userId, userId), inArray(folders.id, ids)))
+      .update(files)
+      .set({ deletedAt: now })
+      .where(
+        and(
+          eq(files.userId, userId),
+          isNull(files.deletedAt),
+          inArray(files.folderId, ids),
+        ),
+      )
+
+    await db
+      .update(folders)
+      .set({ deletedAt: now })
+      .where(
+        and(
+          eq(folders.userId, userId),
+          isNull(folders.deletedAt),
+          inArray(folders.id, ids),
+        ),
+      )
 
     return {
       deletedFolders: ids.length,
@@ -313,6 +346,7 @@ export const moveFolder = createServerFn({ method: 'POST' })
             eq(folders.userId, userId),
             parentFilter,
             eq(folders.name, owned.name),
+            isNull(folders.deletedAt),
           ),
         )
         .limit(1),

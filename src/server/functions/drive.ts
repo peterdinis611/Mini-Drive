@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
-import { count, desc, eq, sum } from 'drizzle-orm'
+import { and, count, desc, eq, isNull, sum } from 'drizzle-orm'
 
+import { STORAGE_QUOTA_BYTES } from '#/lib/constants'
 import { firstOrThrow } from '#/server/db-helpers.server'
 
 export const getAppChrome = createServerFn({ method: 'GET' }).handler(
@@ -18,14 +19,14 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
         totalBytes: sum(files.size),
       })
       .from(files)
-      .where(eq(files.userId, userId))
+      .where(and(eq(files.userId, userId), isNull(files.deletedAt)))
 
     const folderStatsRows = await db
       .select({
         folderCount: count(folders.id),
       })
       .from(folders)
-      .where(eq(folders.userId, userId))
+      .where(and(eq(folders.userId, userId), isNull(folders.deletedAt)))
 
     const folderTree = await db
       .select({
@@ -34,7 +35,7 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
         name: folders.name,
       })
       .from(folders)
-      .where(eq(folders.userId, userId))
+      .where(and(eq(folders.userId, userId), isNull(folders.deletedAt)))
 
     const profile = firstOrThrow(
       await db
@@ -64,7 +65,7 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
         fileCount: Number(fileStats?.fileCount ?? 0),
         folderCount: Number(folderStats?.folderCount ?? 0),
         totalBytes: Number(fileStats?.totalBytes ?? 0),
-        quotaBytes: 10 * 1024 ** 3,
+        quotaBytes: STORAGE_QUOTA_BYTES,
       },
     }
   },
@@ -95,7 +96,9 @@ export const listRecentFiles = createServerFn({ method: 'GET' }).handler(
         createdAt: files.createdAt,
       })
       .from(files)
-      .where(eq(files.userId, session.user.id))
+      .where(
+        and(eq(files.userId, session.user.id), isNull(files.deletedAt)),
+      )
       .orderBy(desc(files.createdAt))
       .limit(40)
   },
@@ -119,7 +122,7 @@ export const getDriveSearchIndex = createServerFn({ method: 'GET' }).handler(
           name: folders.name,
         })
         .from(folders)
-        .where(eq(folders.userId, userId)),
+        .where(and(eq(folders.userId, userId), isNull(folders.deletedAt))),
       db
         .select({
           id: files.id,
@@ -129,7 +132,7 @@ export const getDriveSearchIndex = createServerFn({ method: 'GET' }).handler(
           folderId: files.folderId,
         })
         .from(files)
-        .where(eq(files.userId, userId))
+        .where(and(eq(files.userId, userId), isNull(files.deletedAt)))
         .orderBy(desc(files.createdAt))
         .limit(500),
     ])

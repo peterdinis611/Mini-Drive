@@ -21,9 +21,6 @@ import { updateSettingsSchema } from '#/lib/validation'
 import { getAppChrome } from '#/server/functions/drive'
 import { updateSettings } from '#/server/functions/settings'
 
-/** Soft capacity ceiling for the visual fill (not a hard quota). */
-const STORAGE_VISUAL_CAP = 5 * 1024 * 1024 * 1024
-
 export const Route = createFileRoute('/settings')({
   beforeLoad: requireOnboardedSession,
   loader: async () => getAppChrome(),
@@ -42,7 +39,10 @@ function SettingsPage() {
   const [pending, startTransition] = useTransition()
   const [nameError, setNameError] = useState<string | null>(null)
 
-  const fill = Math.min(1, chrome.stats.totalBytes / STORAGE_VISUAL_CAP)
+  const fill = Math.min(
+    1,
+    chrome.stats.totalBytes / Math.max(chrome.stats.quotaBytes, 1),
+  )
 
   return (
     <AppShell

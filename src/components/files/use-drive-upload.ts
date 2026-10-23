@@ -17,6 +17,12 @@ type Options = {
   onComplete?: (folderId: string | null, count: number) => void
 }
 
+export type UploadInput = {
+  folderId: string | null
+  replaceFileId?: string | null
+  saveAsName?: string | null
+}
+
 export function useDriveUpload(options: Options = {}) {
   const [percent, setPercent] = useState(0)
   const [queue, setQueue] = useState<UploadQueueItem[]>([])
@@ -28,10 +34,21 @@ export function useDriveUpload(options: Options = {}) {
     onClientUploadComplete: (res) => {
       const count = res.length
       const dest = activeFolderId
+      const replaced = res.some(
+        (item) =>
+          item.serverData &&
+          typeof item.serverData === 'object' &&
+          'replaced' in item.serverData &&
+          Boolean((item.serverData as { replaced?: boolean }).replaced),
+      )
       setPercent(0)
       setQueue([])
       toast.success(
-        count === 1 ? 'Súbor nahraný' : `Nahraných ${count} súborov`,
+        replaced
+          ? 'Súbor uložený (nová verzia)'
+          : count === 1
+            ? 'Súbor nahraný'
+            : `Nahraných ${count} súborov`,
       )
       options.onComplete?.(dest, count)
     },
@@ -45,8 +62,15 @@ export function useDriveUpload(options: Options = {}) {
   const uploadFiles = useCallback(
     async (
       incoming: File[] | FileList | null | undefined,
-      folderId: string | null,
+      folderIdOrInput: string | null | UploadInput,
     ) => {
+      const input: UploadInput =
+        folderIdOrInput !== null &&
+        typeof folderIdOrInput === 'object' &&
+        'folderId' in folderIdOrInput
+          ? folderIdOrInput
+          : { folderId: folderIdOrInput as string | null }
+
       const validated = validateFilesForUpload(incoming)
       if (!validated.ok) {
         toast.error(validated.message)
@@ -63,7 +87,7 @@ export function useDriveUpload(options: Options = {}) {
         )
       }
 
-      setActiveFolderId(folderId)
+      setActiveFolderId(input.folderId)
       setQueue(
         files.map((file, index) => ({
           id: `${file.name}-${file.size}-${index}`,
@@ -73,7 +97,11 @@ export function useDriveUpload(options: Options = {}) {
       )
 
       try {
-        await startUpload(files, { folderId })
+        await startUpload(files, {
+          folderId: input.folderId,
+          replaceFileId: input.replaceFileId ?? null,
+          saveAsName: input.saveAsName ?? null,
+        })
       } catch (error) {
         setPercent(0)
         setQueue([])

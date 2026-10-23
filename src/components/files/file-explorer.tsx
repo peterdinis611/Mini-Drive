@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useTransition } from 'react'
+import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
 import { Link, useNavigate, useRouter } from '@tanstack/react-router'
 import {
   Download,
@@ -9,12 +9,15 @@ import {
   List,
   MoreHorizontal,
   Pencil,
+  Search,
   Share2,
   Trash2,
   FolderInput,
   Upload,
+  X,
 } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { useQueryStates } from 'nuqs'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { toast } from '#/lib/toast'
@@ -31,6 +34,8 @@ import { FolderDropTarget } from '#/components/files/folder-drop-target'
 import { useDriveUpload } from '#/components/files/use-drive-upload'
 import { useImagePreviews } from '#/components/files/use-image-previews'
 import { canInlinePreview } from '#/lib/mime'
+import { getFileKind } from '#/lib/file-kind'
+import { driveSearchParams, viewParser } from '#/lib/drive-url-state'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
 import { riseTransition } from '#/lib/motion'
@@ -45,6 +50,7 @@ import {
   BreadcrumbSeparator,
 } from '#/components/ui/breadcrumb'
 import { Button } from '#/components/ui/button'
+import { Checkbox } from '#/components/ui/checkbox'
 import { EmptyState } from '#/components/ui/empty-state'
 import {
   DropdownMenu,
@@ -57,10 +63,14 @@ import {
   createDataTableColumnHelper,
   DataTable,
 } from '#/components/ui/data-table'
+import { Input } from '#/components/ui/input'
 import { Skeleton } from '#/components/ui/skeleton'
 import { getErrorMessage } from '#/lib/errors'
 import { formatFileSize } from '#/lib/format'
+import { cn } from '#/lib/utils'
 import {
+  bulkDeleteFiles,
+  bulkMoveFiles,
   deleteFile,
   getFileDownloadUrl,
   moveFile,
@@ -78,6 +88,15 @@ import type {
   DriveFolder,
   FolderTreeNode,
 } from './types'
+
+const KIND_CHIPS = [
+  { value: 'all' as const, label: 'Všetko' },
+  { value: 'image' as const, label: 'Obrázky' },
+  { value: 'pdf' as const, label: 'PDF' },
+  { value: 'video' as const, label: 'Video' },
+  { value: 'audio' as const, label: 'Audio' },
+  { value: 'text' as const, label: 'Text' },
+]
 
 type Props = {
   folderId: string | null
@@ -99,9 +118,9 @@ type DialogState =
   | { type: 'rename-file'; file: DriveFile }
   | { type: 'move-file'; file: DriveFile }
   | { type: 'move-folder'; folder: DriveFolder }
+  | { type: 'bulk-move' }
   | { type: 'delete-folder'; folder: DriveFolder }
   | { type: 'share-file'; file: DriveFile }
-  | { type: 'preview-file'; file: DriveFile }
   | null
 
 type DriveListItem =
@@ -120,26 +139,72 @@ export function FileExplorer({
   const router = useRouter()
   const navigate = useNavigate()
   const reduce = useReducedMotion()
-  const [view, setView] = useState<'grid' | 'list'>(initial.viewPreference)
-  const [showUpload, setShowUpload] = useState(true)
+  const [{ view, kind, preview, q, upload: showUpload }, setUrlState] =
+    useQueryStates({
+      ...driveSearchParams,
+      view: viewParser.withDefault(initial.viewPreference),
+    })
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
   const [dialog, setDialog] = useState<DialogState>(null)
   const [pending, startTransition] = useTransition()
   const previewUrls = useImagePreviews(initial.files, true)
 
   const folders = initial.folders
   const files = initial.files
-  const empty = folders.length === 0 && files.length === 0
+  const query = q.trim().toLowerCase()
+
+  const filteredFolders = useMemo(() => {
+    if (kind !== 'all') return []
+    if (!query) return folders
+    return folders.filter((folder) =>
+      folder.name.toLowerCase().includes(query),
+    )
+  }, [folders, kind, query])
+
+  const filteredFiles = useMemo(() => {
+    return files.filter((file) => {
+      if (kind !== 'all' && getFileKind(file.mimeType, file.name) !== kind) {
+        return false
+      }
+      if (query && !file.name.toLowerCase().includes(query)) return false
+      return true
+    })
+  }, [files, kind, query])
+
+  const empty = filteredFolders.length === 0 && filteredFiles.length === 0
+
+  const previewFile = useMemo(() => {
+    if (!preview) return null
+    return files.find((file) => file.id === preview) ?? null
+  }, [files, preview])
+
+  useEffect(() => {
+    setSelectedIds(new Set())
+  }, [folderId])
+
+  useEffect(() => {
+    if (preview && !previewFile) {
+      void setUrlState({ preview: null })
+    }
+  }, [preview, previewFile, setUrlState])
+
+  const openPreview = useCallback(
+    (file: DriveFile) => {
+      void setUrlState({ preview: file.id })
+    },
+    [setUrlState],
+  )
 
   const listItems = useMemo<DriveListItem[]>(
     () => [
-      ...folders.map(
+      ...filteredFolders.map(
         (folder): DriveListItem => ({
           kind: 'folder',
           id: `folder-${folder.id}`,
           folder,
         }),
       ),
-      ...files.map(
+      ...filteredFiles.map(
         (file): DriveListItem => ({
           kind: 'file',
           id: `file-${file.id}`,
@@ -147,7 +212,7 @@ export function FileExplorer({
         }),
       ),
     ],
-    [folders, files],
+    [filteredFolders, filteredFiles],
   )
 
   const excludeForFolderMove = useMemo(() => {
@@ -176,10 +241,10 @@ export function FileExplorer({
 
   const handleUpload = useCallback(
     (incoming: File[] | FileList | null, dest: string | null) => {
-      setShowUpload(true)
+      void setUrlState({ upload: true })
       void uploadFiles(incoming, dest)
     },
-    [uploadFiles],
+    [setUrlState, uploadFiles],
   )
 
   const run = useCallback(
@@ -202,9 +267,85 @@ export function FileExplorer({
     [router],
   )
 
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set())
+  }, [])
+
+  const toggleFileSelected = useCallback((fileId: string, checked: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (checked) next.add(fileId)
+      else next.delete(fileId)
+      return next
+    })
+  }, [])
+
+  const handleBulkDelete = useCallback(() => {
+    const fileIds = [...selectedIds]
+    if (fileIds.length === 0) return
+    void run(
+      () => bulkDeleteFiles({ data: { fileIds } }),
+      'Presunuté do koša',
+    ).then(clearSelection)
+  }, [clearSelection, run, selectedIds])
+
+  const handleBulkShare = useCallback(() => {
+    if (selectedIds.size !== 1) return
+    const fileId = [...selectedIds][0]
+    const file = files.find((f) => f.id === fileId)
+    if (file) setDialog({ type: 'share-file', file })
+  }, [files, selectedIds])
+
+  const allFilteredSelected =
+    filteredFiles.length > 0 &&
+    filteredFiles.every((file) => selectedIds.has(file.id))
+  const someFilteredSelected = filteredFiles.some((file) =>
+    selectedIds.has(file.id),
+  )
+
   const listColumns = useMemo(
     () =>
       listColumnHelper.columns([
+        listColumnHelper.display({
+          id: 'select',
+          header: () => (
+            <Checkbox
+              checked={
+                allFilteredSelected
+                  ? true
+                  : someFilteredSelected
+                    ? 'indeterminate'
+                    : false
+              }
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  setSelectedIds(new Set(filteredFiles.map((f) => f.id)))
+                } else {
+                  setSelectedIds(new Set())
+                }
+              }}
+              aria-label="Vybrať všetky súbory"
+            />
+          ),
+          cell: ({ row }) => {
+            if (row.original.kind === 'folder') return null
+            const file = row.original.file
+            return (
+              <Checkbox
+                checked={selectedIds.has(file.id)}
+                onCheckedChange={(checked) =>
+                  toggleFileSelected(file.id, checked === true)
+                }
+                aria-label={`Vybrať ${file.name}`}
+                onClick={(event) => event.stopPropagation()}
+              />
+            )
+          },
+          meta: {
+            headerClassName: 'w-10',
+            cellClassName: 'w-10',
+          },
+        }),
         listColumnHelper.display({
           id: 'name',
           header: 'Názov',
@@ -236,7 +377,7 @@ export function FileExplorer({
               <button
                 type="button"
                 className="inline-flex max-w-full items-center gap-2 text-left font-medium hover:text-primary"
-                onClick={() => setDialog({ type: 'preview-file', file })}
+                onClick={() => openPreview(file)}
               >
                 <FileThumbnail
                   name={file.name}
@@ -301,7 +442,7 @@ export function FileExplorer({
             return (
               <FileActions
                 canPreview={canInlinePreview(file.mimeType, file.name)}
-                onPreview={() => setDialog({ type: 'preview-file', file })}
+                onPreview={() => openPreview(file)}
                 onRename={() => setDialog({ type: 'rename-file', file })}
                 onMove={() => setDialog({ type: 'move-file', file })}
                 onDownload={() =>
@@ -315,7 +456,7 @@ export function FileExplorer({
                 onDelete={() =>
                   run(
                     () => deleteFile({ data: { fileId: file.id } }),
-                    'Súbor zmazaný',
+                    'Presunuté do koša',
                   )
                 }
                 onShare={() => setDialog({ type: 'share-file', file })}
@@ -329,7 +470,18 @@ export function FileExplorer({
           },
         }),
       ]),
-    [handleUpload, isUploading, previewUrls, run],
+    [
+      allFilteredSelected,
+      filteredFiles,
+      handleUpload,
+      isUploading,
+      openPreview,
+      previewUrls,
+      run,
+      selectedIds,
+      someFilteredSelected,
+      toggleFileSelected,
+    ],
   )
 
   const currentName =
@@ -344,7 +496,7 @@ export function FileExplorer({
       activeFolderId={folderId}
       stats={stats}
       title={currentName}
-      subtitle={`${folders.length} priečinkov · ${files.length} súborov`}
+      subtitle={`${filteredFolders.length} priečinkov · ${filteredFiles.length} súborov`}
       actions={
         <>
           <DriveSearchDialog />
@@ -355,7 +507,7 @@ export function FileExplorer({
               size="icon"
               className={view === 'list' ? 'bg-accent' : ''}
               aria-label="Zoznam"
-              onClick={() => setView('list')}
+              onClick={() => void setUrlState({ view: 'list' })}
             >
               <List />
             </Button>
@@ -365,7 +517,7 @@ export function FileExplorer({
               size="icon"
               className={view === 'grid' ? 'bg-accent' : ''}
               aria-label="Mriežka"
-              onClick={() => setView('grid')}
+              onClick={() => void setUrlState({ view: 'grid' })}
             >
               <Grid2X2 />
             </Button>
@@ -373,7 +525,7 @@ export function FileExplorer({
           <Button
             type="button"
             variant={showUpload ? 'secondary' : 'outline'}
-            onClick={() => setShowUpload((v) => !v)}
+            onClick={() => void setUrlState({ upload: !showUpload })}
             aria-pressed={showUpload}
           >
             <Upload />
@@ -426,6 +578,36 @@ export function FileExplorer({
             </Breadcrumb>
           </nav>
         </FadeIn>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-1.5">
+            {KIND_CHIPS.map((chip) => (
+              <Button
+                key={chip.value}
+                type="button"
+                size="sm"
+                variant={kind === chip.value ? 'secondary' : 'ghost'}
+                className={cn(
+                  'h-8 rounded-md px-2.5 text-xs',
+                  kind === chip.value && 'bg-accent',
+                )}
+                onClick={() => void setUrlState({ kind: chip.value })}
+              >
+                {chip.label}
+              </Button>
+            ))}
+          </div>
+          <div className="relative w-full sm:max-w-56">
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(event) => void setUrlState({ q: event.target.value })}
+              placeholder="Filtrovať…"
+              className="h-8 pl-8"
+              aria-label="Filtrovať podľa názvu"
+            />
+          </div>
+        </div>
 
         <AnimatePresence initial={false}>
           {showUpload ? (

@@ -17,6 +17,7 @@ import {
   RefreshCw,
   RotateCcw,
   RotateCw,
+  Save,
   Type,
   X,
   ZoomIn,
@@ -37,6 +38,7 @@ import {
   withCroppedName,
 } from '#/lib/crop-image'
 import { toast } from '#/lib/toast'
+import { uploadFiles } from '#/lib/uploadthing'
 import { cn } from '#/lib/utils'
 
 import type { PreviewShellProps } from './types'
@@ -95,7 +97,9 @@ export function ImageBlock({
   fileName,
   mimeType,
   fileId,
+  folderId = null,
   onRequestShare,
+  onSavedToDrive,
 }: PreviewShellProps) {
   const [failed, setFailed] = useState(false)
   const [imageLoading, setImageLoading] = useState(true)
@@ -165,20 +169,59 @@ export function ImageBlock({
     }
   }
 
+  async function buildCroppedFile() {
+    if (!croppedAreaPixels) return null
+    const outMime = mimeType.startsWith('image/') ? mimeType : 'image/jpeg'
+    const blob = await getCroppedImageBlob(url, croppedAreaPixels, rotation, {
+      flipHorizontal: flipH,
+      flipVertical: flipV,
+      mimeType: outMime,
+    })
+    const name = withCroppedName(fileName)
+    return new File([blob], name, { type: outMime })
+  }
+
   async function applyCropAndDownload() {
-    if (!croppedAreaPixels) return
     setBusy(true)
     try {
-      const blob = await getCroppedImageBlob(url, croppedAreaPixels, rotation, {
-        flipHorizontal: flipH,
-        flipVertical: flipV,
-        mimeType: mimeType.startsWith('image/') ? mimeType : 'image/jpeg',
-      })
-      downloadBlob(blob, withCroppedName(fileName))
+      const file = await buildCroppedFile()
+      if (!file) return
+      downloadBlob(file, file.name)
       toast.success('Orezané a stiahnuté')
       exitCrop()
     } catch {
       toast.error('Orezanie zlyhalo — skús stiahnuť originál')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function applyCropAndSave(mode: 'replace' | 'saveAs') {
+    if (!fileId) {
+      toast.error('Chýba ID súboru')
+      return
+    }
+    setBusy(true)
+    try {
+      const file = await buildCroppedFile()
+      if (!file) return
+      await uploadFiles('driveUploader', {
+        files: [file],
+        input: {
+          folderId: mode === 'saveAs' ? folderId : null,
+          replaceFileId: mode === 'replace' ? fileId : null,
+          saveAsName: mode === 'saveAs' ? file.name : null,
+        },
+      })
+      toast.success(
+        mode === 'replace'
+          ? 'Uložené ako nová verzia'
+          : 'Uložené ako nový súbor',
+      )
+      exitCrop()
+      onSavedToDrive?.()
+    } catch {
+      toast.error('Uloženie do Drive zlyhalo')
     } finally {
       setBusy(false)
     }
@@ -364,6 +407,34 @@ export function ImageBlock({
                 <ZoomIn className="size-4" />
               </ToolButton>
               <div className="mx-1 h-5 w-px bg-white/10" />
+              {fileId ? (
+                <>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 gap-1.5 bg-cyan-400 text-black hover:bg-cyan-300"
+                    disabled={busy || !croppedAreaPixels}
+                    onClick={() => void applyCropAndSave('replace')}
+                  >
+                    {busy ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <Save className="size-3.5" />
+                    )}
+                    Nahradiť
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="h-8 gap-1.5"
+                    disabled={busy || !croppedAreaPixels}
+                    onClick={() => void applyCropAndSave('saveAs')}
+                  >
+                    Uložiť ako
+                  </Button>
+                </>
+              ) : null}
               <Button
                 type="button"
                 size="sm"
@@ -376,7 +447,7 @@ export function ImageBlock({
                 ) : (
                   <Check className="size-3.5" />
                 )}
-                {busy ? 'Export…' : 'Orezať a stiahnuť'}
+                {busy ? 'Export…' : 'Stiahnuť'}
               </Button>
             </>
           )}

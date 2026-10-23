@@ -3,9 +3,11 @@ import {
   Outlet,
   Scripts,
   createRootRouteWithContext,
+  useRouterState,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { NuqsAdapter } from 'nuqs/adapters/react'
 
 import { ThemeProvider } from '#/components/theme-provider'
 import {
@@ -27,7 +29,7 @@ interface MyRouterContext {
 }
 
 const FONT_STYLESHEET =
-  'https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Literata:opsz,wght@7..72,500;7..72,600&display=swap'
+  'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap'
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => {
@@ -100,7 +102,17 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 })
 
 function RootComponent() {
-  return <Outlet />
+  // React SPA adapter — TanStack Router adapter does not cover TanStack Start yet.
+  // Pass the current search so SSR hooks match the request URL (no flash of defaults).
+  const serverSearch = useRouterState({
+    select: (s) => s.location.searchStr,
+  })
+
+  return (
+    <NuqsAdapter serverSearch={serverSearch}>
+      <Outlet />
+    </NuqsAdapter>
+  )
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {

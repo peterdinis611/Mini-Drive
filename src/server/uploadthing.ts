@@ -1,7 +1,7 @@
 import { createUploadthing, UploadThingError } from 'uploadthing/server'
 import type { FileRouter } from 'uploadthing/server'
 import { z } from 'zod'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 
 import { db } from '#/db'
 import { files, folders } from '#/db/schema'
@@ -10,23 +10,27 @@ import { UPLOAD_LIMITS } from '#/lib/constants'
 import { resolveStoredMimeType } from '#/lib/mime'
 import { fileNameSchema } from '#/lib/validation'
 import { firstOrThrow } from '#/server/db-helpers.server'
+import {
+  archiveAndReplaceFile,
+  assertStorageQuota,
+} from '#/server/storage.server'
 
 const f = createUploadthing()
 
 const uploadInputSchema = z.object({
-  // nullish: client may send null, omit the field, or a UUID
   folderId: z
     .union([z.uuid(), z.null()])
     .optional()
     .transform((value) => value ?? null),
+  /** When set, archive current blob and replace with the uploaded file. */
+  replaceFileId: z.uuid().optional().nullable(),
+  /** When set with a new upload (not replace), force this display name. */
+  saveAsName: z.string().trim().min(1).max(255).optional().nullable(),
 })
 
 export const uploadRouter = {
   driveUploader: f(
     {
-      // ACL must match the app default on the UploadThing dashboard.
-      // Per-route `acl` overrides require "Allow ACL overrides" to be enabled
-      // (otherwise ingest returns 400).
       image: {
         maxFileSize: '32MB',
         maxFileCount: UPLOAD_LIMITS.maxFileCount,
@@ -55,10 +59,47 @@ export const uploadRouter = {
     { awaitServerData: true },
   )
     .input(uploadInputSchema)
-    .middleware(async ({ req, input }) => {
+    .middleware(async ({ req, input, files: incoming }) => {
       const session = await auth.api.getSession({ headers: req.headers })
       if (!session) {
         throw new UploadThingError('Musíš byť prihlásený')
+      }
+
+      const userId = session.user.id
+      const totalIncoming = incoming.reduce((sum, file) => sum + file.size, 0)
+
+      if (input.replaceFileId) {
+        const existing = firstOrThrow(
+          await db
+            .select({ id: files.id, size: files.size, userId: files.userId })
+            .from(files)
+            .where(
+              and(
+                eq(files.id, input.replaceFileId),
+                eq(files.userId, userId),
+                isNull(files.deletedAt),
+              ),
+            )
+            .limit(1),
+          'Súbor na nahradenie neexistuje',
+        )
+
+        try {
+          await assertStorageQuota(userId, totalIncoming, {
+            releasingBytes: existing.size,
+          })
+        } catch (error) {
+          throw new UploadThingError(
+            error instanceof Error ? error.message : 'Kvóta prekročená',
+          )
+        }
+
+        return {
+          userId,
+          folderId: input.folderId,
+          replaceFileId: input.replaceFileId as string,
+          saveAsName: input.saveAsName ?? null,
+        }
       }
 
       if (input.folderId) {
@@ -70,7 +111,8 @@ export const uploadRouter = {
               .where(
                 and(
                   eq(folders.id, input.folderId),
-                  eq(folders.userId, session.user.id),
+                  eq(folders.userId, userId),
+                  isNull(folders.deletedAt),
                 ),
               )
               .limit(1),
@@ -81,13 +123,24 @@ export const uploadRouter = {
         }
       }
 
+      try {
+        await assertStorageQuota(userId, totalIncoming)
+      } catch (error) {
+        throw new UploadThingError(
+          error instanceof Error ? error.message : 'Kvóta prekročená',
+        )
+      }
+
       return {
-        userId: session.user.id,
+        userId,
         folderId: input.folderId,
+        replaceFileId: null as string | null,
+        saveAsName: input.saveAsName ?? null,
       }
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      const parsedName = fileNameSchema.safeParse(file.name)
+      const displayName = metadata.saveAsName || file.name
+      const parsedName = fileNameSchema.safeParse(displayName)
       if (!parsedName.success) {
         throw new UploadThingError(
           parsedName.error.issues[0]?.message ?? 'Neplatný názov súboru',
@@ -108,6 +161,37 @@ export const uploadRouter = {
         file.type || '',
         parsedName.data,
       )
+
+      if (metadata.replaceFileId) {
+        try {
+          const replaced = await archiveAndReplaceFile({
+            userId: metadata.userId,
+            fileId: metadata.replaceFileId,
+            uploadthingKey: file.key,
+            size: file.size,
+            mimeType,
+            name: parsedName.data,
+          })
+          return {
+            fileId: replaced.id,
+            name: replaced.name,
+            replaced: true,
+            version: replaced.currentVersion,
+          }
+        } catch (error) {
+          throw new UploadThingError(
+            error instanceof Error ? error.message : 'Nahradenie zlyhalo',
+          )
+        }
+      }
+
+      try {
+        await assertStorageQuota(metadata.userId, file.size)
+      } catch (error) {
+        throw new UploadThingError(
+          error instanceof Error ? error.message : 'Kvóta prekročená',
+        )
+      }
 
       const created = firstOrThrow(
         await db
@@ -134,6 +218,7 @@ export const uploadRouter = {
       return {
         fileId: created.id,
         name: created.name,
+        replaced: false,
       }
     }),
 } satisfies FileRouter

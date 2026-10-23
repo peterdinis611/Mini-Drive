@@ -169,6 +169,48 @@ export const deleteFileSchema = z.object({
   fileId: idSchema,
 })
 
+export const fileIdsSchema = z.object({
+  fileIds: z
+    .array(idSchema)
+    .min(1, 'Vyber aspoň jeden súbor')
+    .max(50, 'Príliš veľa súborov naraz'),
+})
+
+export const bulkMoveFilesSchema = z.object({
+  fileIds: z.array(idSchema).min(1).max(50),
+  folderId: idSchema.nullable(),
+})
+
+export const bulkShareFilesSchema = z.object({
+  fileIds: z.array(idSchema).min(1).max(20),
+  expiresIn: expiresInSchema,
+})
+
+export const restoreFileSchema = z.object({
+  fileId: idSchema,
+})
+
+export const restoreFolderSchema = z.object({
+  folderId: idSchema,
+})
+
+export const purgeFileSchema = z.object({
+  fileId: idSchema,
+})
+
+export const purgeFolderSchema = z.object({
+  folderId: idSchema,
+})
+
+export const listFileVersionsSchema = z.object({
+  fileId: idSchema,
+})
+
+export const restoreFileVersionSchema = z.object({
+  fileId: idSchema,
+  versionId: idSchema,
+})
+
 export const imagePreviewUrlsSchema = z.object({
   fileIds: z.array(idSchema).max(24, 'Príliš veľa súborov naraz'),
 })

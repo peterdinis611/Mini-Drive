@@ -6,6 +6,7 @@ import {
   LogOut,
   Settings2,
   PanelLeftClose,
+  Trash2,
 } from 'lucide-react'
 
 import { FolderTree } from '#/components/layout/folder-tree'
@@ -42,6 +43,7 @@ const NAV = [
   { to: '/files' as const, label: 'Súbory', icon: FileText, match: 'files' },
   { to: '/recent' as const, label: 'Nedávne', icon: Clock3, match: 'recent' },
   { to: '/shares' as const, label: 'Zdieľania', icon: Link2, match: 'shares' },
+  { to: '/trash' as const, label: 'Kôš', icon: Trash2, match: 'trash' },
   {
     to: '/settings' as const,
     label: 'Nastavenia',

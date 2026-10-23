@@ -18,6 +18,7 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SharesRouteImport } from './routes/shares'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TrashRouteImport } from './routes/trash'
 import { Route as ApiUploadthingRouteImport } from './routes/api/uploadthing'
 import { Route as FilesIndexRouteImport } from './routes/files/index'
 import { Route as FilesFolderIdRouteImport } from './routes/files/$folderId'
@@ -69,6 +70,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrashRoute = TrashRouteImport.update({
+  id: '/trash',
+  path: '/trash',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiUploadthingRoute = ApiUploadthingRouteImport.update({
   id: '/api/uploadthing',
   path: '/api/uploadthing',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/shares': typeof SharesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/trash': typeof TrashRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/files/$folderId': typeof FilesFolderIdRoute
   '/s/$token': typeof STokenRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/shares': typeof SharesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/trash': typeof TrashRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/files/$folderId': typeof FilesFolderIdRoute
   '/s/$token': typeof STokenRoute
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/shares': typeof SharesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/trash': typeof TrashRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/files/$folderId': typeof FilesFolderIdRoute
   '/s/$token': typeof STokenRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shares'
     | '/sitemap.xml'
+    | '/trash'
     | '/api/uploadthing'
     | '/files/$folderId'
     | '/s/$token'
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shares'
     | '/sitemap.xml'
+    | '/trash'
     | '/api/uploadthing'
     | '/files/$folderId'
     | '/s/$token'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shares'
     | '/sitemap.xml'
+    | '/trash'
     | '/api/uploadthing'
     | '/files/$folderId'
     | '/s/$token'
@@ -205,6 +217,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SharesRoute: typeof SharesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TrashRoute: typeof TrashRoute
   ApiUploadthingRoute: typeof ApiUploadthingRoute
   FilesFolderIdRoute: typeof FilesFolderIdRoute
   STokenRoute: typeof STokenRoute
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trash': {
+      id: '/trash'
+      path: '/trash'
+      fullPath: '/trash'
+      preLoaderRoute: typeof TrashRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/uploadthing': {
       id: '/api/uploadthing'
       path: '/api/uploadthing'
@@ -325,6 +345,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SharesRoute: SharesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TrashRoute: TrashRoute,
   ApiUploadthingRoute: ApiUploadthingRoute,
   FilesFolderIdRoute: FilesFolderIdRoute,
   STokenRoute: STokenRoute,

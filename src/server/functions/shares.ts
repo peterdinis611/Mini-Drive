@@ -37,7 +37,13 @@ export const createShareLink = createServerFn({ method: 'POST' })
       await db
         .select({ id: files.id })
         .from(files)
-        .where(and(eq(files.id, data.fileId), eq(files.userId, userId)))
+        .where(
+          and(
+            eq(files.id, data.fileId),
+            eq(files.userId, userId),
+            isNull(files.deletedAt),
+          ),
+        )
         .limit(1),
       'Súbor neexistuje',
     )

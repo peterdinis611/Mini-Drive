@@ -24,9 +24,15 @@ type Props = {
   file: DriveFile | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSavedToDrive?: () => void
 }
 
-export function FilePreviewDialog({ file, open, onOpenChange }: Props) {
+export function FilePreviewDialog({
+  file,
+  open,
+  onOpenChange,
+  onSavedToDrive,
+}: Props) {
   const { resolvedTheme } = useTheme()
   const [url, setUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -103,9 +109,11 @@ export function FilePreviewDialog({ file, open, onOpenChange }: Props) {
                 mimeType={file.mimeType}
                 fileSize={file.size}
                 fileId={file.id}
+                folderId={file.folderId}
                 onRequestShare={
                   kind === 'image' ? () => setShareOpen(true) : undefined
                 }
+                onSavedToDrive={onSavedToDrive}
                 theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
               />
             )}

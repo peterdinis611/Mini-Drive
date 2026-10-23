@@ -1,5 +1,11 @@
 export const APP_NAME = 'Mini Drive'
 
+/** Hard per-user storage ceiling (enforced on upload / replace). */
+export const STORAGE_QUOTA_BYTES = 10 * 1024 ** 3
+
+/** Soft-deleted items older than this are eligible for permanent purge. */
+export const TRASH_RETENTION_DAYS = 30
+
 export const UPLOAD_LIMITS = {
   maxFileSize: '32MB',
   maxFileSizeBytes: 32 * 1024 * 1024,
