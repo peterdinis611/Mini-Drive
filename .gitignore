@@ -17,3 +17,4 @@ todos.json
 *.db-wal
 coverage
 .data
+.superdesign/tmp/

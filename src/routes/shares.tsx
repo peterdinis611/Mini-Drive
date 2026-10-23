@@ -165,7 +165,6 @@ function SharesPage() {
           {shares.length === 0 ? (
             <EmptyState
               icon={Link2}
-              scene="shares"
               title="Zatiaľ žiadne odkazy"
               description="V súboroch zvolíš „Zdieľať“ a vytvoríš safe-url s expiráciou."
               action={

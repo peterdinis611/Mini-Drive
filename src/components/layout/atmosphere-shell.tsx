@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { motion, useReducedMotion } from 'motion/react'
 
-import { AtmosphereBackdrop } from '#/components/three/atmosphere-backdrop'
+import { AtmosphereBackdrop } from '#/components/layout/atmosphere-backdrop'
 import { ThemeToggle } from '#/components/theme-toggle'
 import { APP_NAME } from '#/lib/constants'
 import { riseTransition } from '#/lib/motion'

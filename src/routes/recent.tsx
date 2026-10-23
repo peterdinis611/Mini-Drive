@@ -103,7 +103,6 @@ function RecentPage() {
           {recent.length === 0 ? (
             <EmptyState
               icon={FolderOpen}
-              scene="files"
               title="Zatiaľ prázdne"
               description="Po prvom uploade sa tu zobrazia najnovšie súbory."
               action={

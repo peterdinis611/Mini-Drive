@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { HardDrive, LayoutGrid, List, Save } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
@@ -18,15 +18,8 @@ import { privateAppHead } from '#/lib/seo'
 import { toast } from '#/lib/toast'
 import { cn } from '#/lib/utils'
 import { updateSettingsSchema } from '#/lib/validation'
-import { supportsWebGL } from '#/lib/webgl'
 import { getAppChrome } from '#/server/functions/drive'
 import { updateSettings } from '#/server/functions/settings'
-
-const StorageOrb = lazy(() =>
-  import('#/components/three/storage-orb').then((mod) => ({
-    default: mod.StorageOrb,
-  })),
-)
 
 /** Soft capacity ceiling for the visual fill (not a hard quota). */
 const STORAGE_VISUAL_CAP = 5 * 1024 * 1024 * 1024
@@ -42,7 +35,6 @@ function SettingsPage() {
   const chrome = Route.useLoaderData()
   const router = useRouter()
   const reduce = useReducedMotion()
-  const [mounted, setMounted] = useState(false)
   const [name, setName] = useState(chrome.user.name)
   const [viewPreference, setViewPreference] = useState<'grid' | 'list'>(
     chrome.user.viewPreference,
@@ -50,12 +42,7 @@ function SettingsPage() {
   const [pending, startTransition] = useTransition()
   const [nameError, setNameError] = useState<string | null>(null)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   const fill = Math.min(1, chrome.stats.totalBytes / STORAGE_VISUAL_CAP)
-  const webglOk = mounted && !reduce && supportsWebGL()
 
   return (
     <AppShell
@@ -201,37 +188,11 @@ function SettingsPage() {
           </StaggerItem>
 
           <StaggerItem>
-            <section className="relative overflow-hidden rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6">
-              <div
-                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_60%_at_85%_40%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent_70%)]"
-                aria-hidden
-              />
-              <div className="relative z-10 flex flex-col items-center gap-5 sm:flex-row sm:items-center">
-                <div className="size-28 shrink-0 sm:size-32">
-                  {webglOk ? (
-                    <Suspense
-                      fallback={
-                        <span className="flex size-full items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                          <HardDrive className="size-7" aria-hidden />
-                        </span>
-                      }
-                    >
-                      <StorageOrb fill={fill} className="size-full" />
-                    </Suspense>
-                  ) : (
-                    <motion.span
-                      className="flex size-full items-center justify-center rounded-2xl bg-primary/10 text-primary"
-                      animate={reduce ? undefined : { y: [0, -3, 0] }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                      }}
-                    >
-                      <HardDrive className="size-7" aria-hidden />
-                    </motion.span>
-                  )}
-                </div>
+            <section className="rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6">
+              <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
+                <span className="flex size-20 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/50 text-primary sm:size-24">
+                  <HardDrive className="size-7" aria-hidden />
+                </span>
                 <div className="min-w-0 flex-1 text-center sm:text-left">
                   <h2 className="font-display text-xl">Úložisko</h2>
                   <p className="mt-1 text-sm text-muted-foreground">

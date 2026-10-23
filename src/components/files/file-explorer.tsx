@@ -458,7 +458,6 @@ export function FileExplorer({
           ) : empty ? (
             <EmptyState
               icon={Folder}
-              scene="files"
               title="Zatiaľ prázdne"
               description="Nahraj súbor alebo vytvor nový priečinok. Hľadaj cez ⌘K."
               className="rounded-2xl border border-dashed border-border/80 bg-muted/20"

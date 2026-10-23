@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { ArrowLeft, Home, RefreshCw } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 
-import { AtmosphereBackdrop } from '#/components/three/atmosphere-backdrop'
+import { AtmosphereBackdrop } from '#/components/layout/atmosphere-backdrop'
 import { ThemeToggle } from '#/components/theme-toggle'
 import { Button } from '#/components/ui/button'
 import { APP_NAME } from '#/lib/constants'

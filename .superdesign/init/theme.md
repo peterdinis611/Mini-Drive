@@ -1,0 +1,243 @@
+# Theme
+
+## Compact token summary
+
+### Product
+- Mini Drive — personal cloud file manager (Notion-inspired workspace aesthetic)
+- Stack: TanStack Start/Router, React 19, Tailwind v4, shadcn/ui (Radix), Motion, Three.js accents
+
+### Colors (light)
+- background `#ffffff` · foreground `#37352f` · primary `#2383e2` · muted `#f7f6f3` · border `#e9e9e7`
+- sidebar `#f7f6f3` · accent `#e7f3ff` · destructive `#eb5757`
+
+### Colors (dark)
+- background `#191919` · foreground `#ffffffcf` · primary `#529cca` · card `#202020` · border `#2f2f2f`
+
+### Typography
+- sans: Figtree · display: Literata · radius: 0.5rem
+
+### Layout
+- AppShell: collapsible left sidebar (lg+) + mobile Sheet; sticky header with title/actions
+- Content: rounded panels `rounded-2xl border border-border/70 bg-card/40`
+
+## Raw source
+
+### src/styles.css
+```css
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #37352f;
+  --card: #ffffff;
+  --card-foreground: #37352f;
+  --popover: #ffffff;
+  --popover-foreground: #37352f;
+  --primary: #2383e2;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f1ef;
+  --secondary-foreground: #37352f;
+  --muted: #f7f6f3;
+  --muted-foreground: #787774;
+  --accent: #e7f3ff;
+  --accent-foreground: #0b6bcb;
+  --destructive: #eb5757;
+  --destructive-foreground: #ffffff;
+  --border: #e9e9e7;
+  --input: #e9e9e7;
+  --ring: #2383e2;
+  --radius: 0.5rem;
+  --surface-panel: #ffffff;
+  --sidebar: #f7f6f3;
+  --sidebar-foreground: #37352f;
+  --sidebar-primary: #2383e2;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #efefed;
+  --sidebar-accent-foreground: #37352f;
+  --sidebar-border: #e9e9e7;
+  --sidebar-ring: #2383e2;
+  --chart-1: #2383e2;
+  --chart-2: #0f7b6c;
+  --chart-3: #d9730d;
+  --chart-4: #9065b0;
+  --chart-5: #eb5757;
+}
+
+.dark {
+  --background: #191919;
+  --foreground: #ffffffcf;
+  --card: #202020;
+  --card-foreground: #ffffffcf;
+  --popover: #202020;
+  --popover-foreground: #ffffffcf;
+  --primary: #529cca;
+  --primary-foreground: #0f1115;
+  --secondary: #2a2a2a;
+  --secondary-foreground: #ffffffcf;
+  --muted: #252525;
+  --muted-foreground: #9b9b9b;
+  --accent: #1f2e3d;
+  --accent-foreground: #9ecbff;
+  --destructive: #e03e3e;
+  --destructive-foreground: #ffffff;
+  --border: #2f2f2f;
+  --input: #2f2f2f;
+  --ring: #529cca;
+  --surface-panel: #202020;
+  --sidebar: #202020;
+  --sidebar-foreground: #ffffffcf;
+  --sidebar-primary: #529cca;
+  --sidebar-primary-foreground: #0f1115;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #ffffffcf;
+  --sidebar-border: #2f2f2f;
+  --sidebar-ring: #529cca;
+}
+
+@theme inline {
+  --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Literata', 'Figtree', Georgia, serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+
+.panel {
+  background: var(--surface-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise {
+  animation: rise-in 0.35s ease-out both;
+}
+
+.animate-rise-delay-1 {
+  animation-delay: 40ms;
+}
+.animate-rise-delay-2 {
+  animation-delay: 80ms;
+}
+.animate-rise-delay-3 {
+  animation-delay: 120ms;
+}
+
+.status-page {
+  background: var(--background);
+}
+
+.status-page-mesh {
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 20%, color-mix(in oklab, var(--primary) 14%, transparent), transparent 70%),
+    radial-gradient(ellipse 55% 45% at 90% 80%, color-mix(in oklab, var(--accent-foreground) 8%, transparent), transparent 65%),
+    linear-gradient(180deg, var(--muted) 0%, var(--background) 55%);
+}
+
+.status-page-grain {
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+.upload-dock-grid {
+  opacity: 0.45;
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--border) 70%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--border) 70%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black, transparent 75%);
+}
+
+.upload-dock-glow {
+  background:
+    radial-gradient(ellipse 55% 45% at 30% 30%, color-mix(in oklab, var(--primary) 22%, transparent), transparent 70%),
+    radial-gradient(ellipse 45% 40% at 80% 70%, color-mix(in oklab, var(--accent-foreground) 12%, transparent), transparent 65%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-rise-delay-1,
+  .animate-rise-delay-2,
+  .animate-rise-delay-3 {
+    animation: none;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+```

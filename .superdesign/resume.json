@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "targets": {
+    "/files": {
+      "targetKind": "existing-ui",
+      "projectId": "4cfcb2bd-795d-419d-9245-24d92b078821",
+      "baselineDraftId": "8f8bed90-79f3-453b-81e0-8da905722b25",
+      "activeDraftId": "0b2755c4-25c6-402b-a80d-3f0c0c042cd4",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/init/theme.md:1:40",
+        "src/styles.css:1:120",
+        "src/components/layout/app-shell.tsx",
+        "src/components/layout/app-sidebar.tsx",
+        "src/components/layout/folder-tree.tsx",
+        "src/components/files/file-explorer.tsx:338:540",
+        "src/components/ui/button.tsx",
+        "src/components/ui/empty-state.tsx",
+        "src/lib/utils.ts"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "62c3da83533cc1e66951b4f3530ace515109ec1ea8bd5ee1c8e4e4229fb2c01a",
+        ".superdesign/init/theme.md": "28b0d9f33e6957db0da69885b51e7245d6aefbe8438b46c049b58731b85eb719",
+        "src/styles.css": "41d7e8a63c6c4f0ad98ccd761af910b7bb467fef09f57581175de543140544d2",
+        "src/components/layout/app-shell.tsx": "efe07201f1a27c7b8f0816121d3b3b72128f0efd7419f67b1d90434a8ede99e5",
+        "src/components/layout/app-sidebar.tsx": "86ee9ab168ccfc01be5103a605d430e46f83a32beb259ccef94cf2ee1bb79865",
+        "src/components/layout/folder-tree.tsx": "2f62c23ca8efc2884885362770b2868de9f66ad740fb2a184f9754e29d54ad84",
+        "src/components/files/file-explorer.tsx": "8ccb44ae39b94b53dca4de144475c79153c0053676682b8b9b42540b04b52b4c",
+        "src/components/ui/button.tsx": "63d425b0782492e012a814a76a4e3e248a501d3a280b880285a638a14a495da6",
+        "src/components/ui/empty-state.tsx": "91fa3927892adb98cb307cce25016461b5be1acb50567a7d2ddfeb8a10f6131d",
+        "src/lib/utils.ts": "1f220dc4695697dadeba9d04b6851b87dcbe37faf945950c0f43349ff3eb02c3"
+      },
+      "drafts": {
+        "8f8bed90-79f3-453b-81e0-8da905722b25": {
+          "title": "Current Files Explorer",
+          "visualDirection": "baseline Notion-like reproduction",
+          "currentVersion": 1
+        },
+        "093234bd-97eb-4b71-bffc-4db88db1f098": {
+          "title": "Industrial Archive Refinement",
+          "visualDirection": "industrial utilitarian refined",
+          "parentDraftId": "8f8bed90-79f3-453b-81e0-8da905722b25",
+          "currentVersion": 2
+        },
+        "e6f6a088-d549-477a-a0b2-5a4698fa7345": {
+          "title": "Editorial Workspace",
+          "visualDirection": "editorial magazine",
+          "parentDraftId": "8f8bed90-79f3-453b-81e0-8da905722b25",
+          "currentVersion": 1
+        },
+        "0b2755c4-25c6-402b-a80d-3f0c0c042cd4": {
+          "title": "S\u00fabory (Industrial flow)",
+          "visualDirection": "industrial no-three",
+          "parentDraftId": "093234bd-97eb-4b71-bffc-4db88db1f098",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-10-23T18:34:57.618204Z"
+    },
+    "/recent": {
+      "targetKind": "existing-ui",
+      "projectId": "4cfcb2bd-795d-419d-9245-24d92b078821",
+      "baselineDraftId": "093234bd-97eb-4b71-bffc-4db88db1f098",
+      "activeDraftId": "14611681-7cb5-426d-890c-49168eb5812b",
+      "sourceTarget": "/files",
+      "sourceDraftId": "093234bd-97eb-4b71-bffc-4db88db1f098",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/init/theme.md:1:40",
+        "src/styles.css:1:120",
+        "src/components/layout/app-shell.tsx",
+        "src/components/layout/app-sidebar.tsx",
+        "src/components/layout/folder-tree.tsx",
+        "src/components/files/file-explorer.tsx:338:540",
+        "src/components/ui/button.tsx",
+        "src/components/ui/empty-state.tsx",
+        "src/lib/utils.ts"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "62c3da83533cc1e66951b4f3530ace515109ec1ea8bd5ee1c8e4e4229fb2c01a",
+        ".superdesign/init/theme.md": "28b0d9f33e6957db0da69885b51e7245d6aefbe8438b46c049b58731b85eb719",
+        "src/styles.css": "41d7e8a63c6c4f0ad98ccd761af910b7bb467fef09f57581175de543140544d2",
+        "src/components/layout/app-shell.tsx": "efe07201f1a27c7b8f0816121d3b3b72128f0efd7419f67b1d90434a8ede99e5",
+        "src/components/layout/app-sidebar.tsx": "86ee9ab168ccfc01be5103a605d430e46f83a32beb259ccef94cf2ee1bb79865",
+        "src/components/layout/folder-tree.tsx": "2f62c23ca8efc2884885362770b2868de9f66ad740fb2a184f9754e29d54ad84",
+        "src/components/files/file-explorer.tsx": "8ccb44ae39b94b53dca4de144475c79153c0053676682b8b9b42540b04b52b4c",
+        "src/components/ui/button.tsx": "63d425b0782492e012a814a76a4e3e248a501d3a280b880285a638a14a495da6",
+        "src/components/ui/empty-state.tsx": "91fa3927892adb98cb307cce25016461b5be1acb50567a7d2ddfeb8a10f6131d",
+        "src/lib/utils.ts": "1f220dc4695697dadeba9d04b6851b87dcbe37faf945950c0f43349ff3eb02c3"
+      },
+      "drafts": {
+        "14611681-7cb5-426d-890c-49168eb5812b": {
+          "title": "Ned\u00e1vne",
+          "visualDirection": "industrial archive",
+          "parentDraftId": "093234bd-97eb-4b71-bffc-4db88db1f098",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-10-23T18:34:57.618204Z"
+    },
+    "/shares": {
+      "targetKind": "existing-ui",
+      "projectId": "4cfcb2bd-795d-419d-9245-24d92b078821",
+      "baselineDraftId": "093234bd-97eb-4b71-bffc-4db88db1f098",
+      "activeDraftId": "9dad8120-19cc-4ae4-952f-6cb41f1921f6",
+      "sourceTarget": "/files",
+      "sourceDraftId": "093234bd-97eb-4b71-bffc-4db88db1f098",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/init/theme.md:1:40",
+        "src/styles.css:1:120",
+        "src/components/layout/app-shell.tsx",
+        "src/components/layout/app-sidebar.tsx",
+        "src/components/layout/folder-tree.tsx",
+        "src/components/files/file-explorer.tsx:338:540",
+        "src/components/ui/button.tsx",
+        "src/components/ui/empty-state.tsx",
+        "src/lib/utils.ts"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "62c3da83533cc1e66951b4f3530ace515109ec1ea8bd5ee1c8e4e4229fb2c01a",
+        ".superdesign/init/theme.md": "28b0d9f33e6957db0da69885b51e7245d6aefbe8438b46c049b58731b85eb719",
+        "src/styles.css": "41d7e8a63c6c4f0ad98ccd761af910b7bb467fef09f57581175de543140544d2",
+        "src/components/layout/app-shell.tsx": "efe07201f1a27c7b8f0816121d3b3b72128f0efd7419f67b1d90434a8ede99e5",
+        "src/components/layout/app-sidebar.tsx": "86ee9ab168ccfc01be5103a605d430e46f83a32beb259ccef94cf2ee1bb79865",
+        "src/components/layout/folder-tree.tsx": "2f62c23ca8efc2884885362770b2868de9f66ad740fb2a184f9754e29d54ad84",
+        "src/components/files/file-explorer.tsx": "8ccb44ae39b94b53dca4de144475c79153c0053676682b8b9b42540b04b52b4c",
+        "src/components/ui/button.tsx": "63d425b0782492e012a814a76a4e3e248a501d3a280b880285a638a14a495da6",
+        "src/components/ui/empty-state.tsx": "91fa3927892adb98cb307cce25016461b5be1acb50567a7d2ddfeb8a10f6131d",
+        "src/lib/utils.ts": "1f220dc4695697dadeba9d04b6851b87dcbe37faf945950c0f43349ff3eb02c3"
+      },
+      "drafts": {
+        "9dad8120-19cc-4ae4-952f-6cb41f1921f6": {
+          "title": "Zdie\u013eania",
+          "visualDirection": "industrial archive",
+          "parentDraftId": "093234bd-97eb-4b71-bffc-4db88db1f098",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-10-23T18:34:57.618204Z"
+    },
+    "/settings": {
+      "targetKind": "existing-ui",
+      "projectId": "4cfcb2bd-795d-419d-9245-24d92b078821",
+      "baselineDraftId": "093234bd-97eb-4b71-bffc-4db88db1f098",
+      "activeDraftId": "ca843eaf-0dde-4c52-a7f8-4a639a02729c",
+      "sourceTarget": "/files",
+      "sourceDraftId": "093234bd-97eb-4b71-bffc-4db88db1f098",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/init/theme.md:1:40",
+        "src/styles.css:1:120",
+        "src/components/layout/app-shell.tsx",
+        "src/components/layout/app-sidebar.tsx",
+        "src/components/layout/folder-tree.tsx",
+        "src/components/files/file-explorer.tsx:338:540",
+        "src/components/ui/button.tsx",
+        "src/components/ui/empty-state.tsx",
+        "src/lib/utils.ts"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "62c3da83533cc1e66951b4f3530ace515109ec1ea8bd5ee1c8e4e4229fb2c01a",
+        ".superdesign/init/theme.md": "28b0d9f33e6957db0da69885b51e7245d6aefbe8438b46c049b58731b85eb719",
+        "src/styles.css": "41d7e8a63c6c4f0ad98ccd761af910b7bb467fef09f57581175de543140544d2",
+        "src/components/layout/app-shell.tsx": "efe07201f1a27c7b8f0816121d3b3b72128f0efd7419f67b1d90434a8ede99e5",
+        "src/components/layout/app-sidebar.tsx": "86ee9ab168ccfc01be5103a605d430e46f83a32beb259ccef94cf2ee1bb79865",
+        "src/components/layout/folder-tree.tsx": "2f62c23ca8efc2884885362770b2868de9f66ad740fb2a184f9754e29d54ad84",
+        "src/components/files/file-explorer.tsx": "8ccb44ae39b94b53dca4de144475c79153c0053676682b8b9b42540b04b52b4c",
+        "src/components/ui/button.tsx": "63d425b0782492e012a814a76a4e3e248a501d3a280b880285a638a14a495da6",
+        "src/components/ui/empty-state.tsx": "91fa3927892adb98cb307cce25016461b5be1acb50567a7d2ddfeb8a10f6131d",
+        "src/lib/utils.ts": "1f220dc4695697dadeba9d04b6851b87dcbe37faf945950c0f43349ff3eb02c3"
+      },
+      "drafts": {
+        "ca843eaf-0dde-4c52-a7f8-4a639a02729c": {
+          "title": "Nastavenia",
+          "visualDirection": "industrial archive",
+          "parentDraftId": "093234bd-97eb-4b71-bffc-4db88db1f098",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-10-23T18:34:57.618204Z"
+    }
+  }
+}

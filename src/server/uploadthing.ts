@@ -16,7 +16,7 @@ const f = createUploadthing()
 const uploadInputSchema = z.object({
   // nullish: client may send null, omit the field, or a UUID
   folderId: z
-    .union([z.string().uuid(), z.null()])
+    .union([z.uuid(), z.null()])
     .optional()
     .transform((value) => value ?? null),
 })
