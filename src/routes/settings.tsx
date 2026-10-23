@@ -201,8 +201,12 @@ function SettingsPage() {
                   </p>
                   <p className="mt-3 font-display text-2xl text-foreground">
                     {formatFileSize(chrome.stats.totalBytes)}
+                    {' / '}
+                    {formatFileSize(chrome.stats.quotaBytes)}
                   </p>
-                  <p className="text-xs text-muted-foreground">použité</p>
+                  <p className="text-xs text-muted-foreground">
+                    použité · tvrdá kvóta
+                  </p>
                   <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-muted">
                     <motion.div
                       className="h-full rounded-full bg-primary"

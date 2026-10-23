@@ -34,7 +34,7 @@ import { FolderDropTarget } from '#/components/files/folder-drop-target'
 import { useDriveUpload } from '#/components/files/use-drive-upload'
 import { useImagePreviews } from '#/components/files/use-image-previews'
 import { canInlinePreview } from '#/lib/mime'
-import { getFileKind } from '#/lib/file-kind'
+import { filterDriveFiles, filterDriveFolders } from '#/lib/drive-filters'
 import { driveSearchParams, viewParser } from '#/lib/drive-url-state'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
@@ -151,25 +151,16 @@ export function FileExplorer({
 
   const folders = initial.folders
   const files = initial.files
-  const query = q.trim().toLowerCase()
 
-  const filteredFolders = useMemo(() => {
-    if (kind !== 'all') return []
-    if (!query) return folders
-    return folders.filter((folder) =>
-      folder.name.toLowerCase().includes(query),
-    )
-  }, [folders, kind, query])
+  const filteredFolders = useMemo(
+    () => filterDriveFolders(folders, kind, q),
+    [folders, kind, q],
+  )
 
-  const filteredFiles = useMemo(() => {
-    return files.filter((file) => {
-      if (kind !== 'all' && getFileKind(file.mimeType, file.name) !== kind) {
-        return false
-      }
-      if (query && !file.name.toLowerCase().includes(query)) return false
-      return true
-    })
-  }, [files, kind, query])
+  const filteredFiles = useMemo(
+    () => filterDriveFiles(files, kind, q),
+    [files, kind, q],
+  )
 
   const empty = filteredFolders.length === 0 && filteredFiles.length === 0
 
@@ -657,7 +648,7 @@ export function FileExplorer({
               key="grid"
               className="grid gap-1 sm:grid-cols-2 xl:grid-cols-3"
             >
-              {folders.map((folder) => (
+              {filteredFolders.map((folder) => (
                 <StaggerItem key={folder.id}>
                   <FolderDropTarget
                     folderId={folder.id}
@@ -702,7 +693,7 @@ export function FileExplorer({
                   </FolderDropTarget>
                 </StaggerItem>
               ))}
-              {files.map((file) => (
+              {filteredFiles.map((file) => (
                 <StaggerItem key={file.id}>
                   <motion.div
                     className="group relative rounded-md px-3 py-3 hover:bg-muted/70"
@@ -712,9 +703,7 @@ export function FileExplorer({
                     <button
                       type="button"
                       className="flex w-full items-start gap-3 text-left"
-                      onClick={() =>
-                        setDialog({ type: 'preview-file', file })
-                      }
+                      onClick={() => openPreview(file)}
                     >
                       <FileThumbnail
                         name={file.name}
@@ -733,9 +722,7 @@ export function FileExplorer({
                     <div className="absolute top-2 right-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
                       <FileActions
                         canPreview={canInlinePreview(file.mimeType, file.name)}
-                        onPreview={() =>
-                          setDialog({ type: 'preview-file', file })
-                        }
+                        onPreview={() => openPreview(file)}
                         onRename={() =>
                           setDialog({ type: 'rename-file', file })
                         }
@@ -755,7 +742,7 @@ export function FileExplorer({
                         onDelete={() =>
                           run(
                             () => deleteFile({ data: { fileId: file.id } }),
-                            'Súbor zmazaný',
+                            'Presunuté do koša',
                           )
                         }
                         onShare={() =>
@@ -769,6 +756,53 @@ export function FileExplorer({
             </Stagger>
           )}
         </FadeIn>
+
+        {selectedIds.size > 0 ? (
+          <div className="sticky bottom-4 z-20 flex flex-wrap items-center gap-2 rounded-xl border border-border/80 bg-card/95 px-3 py-2 shadow-lg backdrop-blur-sm">
+            <span className="text-sm font-medium">
+              {selectedIds.size} vybraných
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setDialog({ type: 'bulk-move' })}
+            >
+              <FolderInput />
+              Presunúť
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handleBulkDelete}
+            >
+              <Trash2 />
+              Zmazať
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={selectedIds.size !== 1}
+              onClick={handleBulkShare}
+            >
+              <Share2 />
+              Zdieľať
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="ml-auto"
+              onClick={clearSelection}
+              aria-label="Zrušiť výber"
+            >
+              <X />
+              Zrušiť
+            </Button>
+          </div>
+        ) : null}
       </div>
 
       <NameDialog
@@ -869,8 +903,28 @@ export function FileExplorer({
           if (dialog?.type !== 'delete-folder') return
           return run(
             () => deleteFolder({ data: { folderId: dialog.folder.id } }),
-            'Priečinok zmazaný',
+            'Presunuté do koša',
           )
+        }}
+      />
+
+      <MoveDialog
+        open={dialog?.type === 'bulk-move'}
+        title="Presunúť súbory"
+        folders={initial.allFolders}
+        initialFolderId={folderId}
+        onOpenChange={(open) => !open && setDialog(null)}
+        onSubmit={(targetFolderId) => {
+          if (dialog?.type !== 'bulk-move') return
+          const fileIds = [...selectedIds]
+          if (fileIds.length === 0) return
+          return run(
+            () =>
+              bulkMoveFiles({
+                data: { fileIds, folderId: targetFolderId },
+              }),
+            'Súbory presunuté',
+          ).then(clearSelection)
         }}
       />
 
@@ -882,9 +936,12 @@ export function FileExplorer({
       />
 
       <FilePreviewDialog
-        open={dialog?.type === 'preview-file'}
-        file={dialog?.type === 'preview-file' ? dialog.file : null}
-        onOpenChange={(open) => !open && setDialog(null)}
+        open={Boolean(previewFile)}
+        file={previewFile}
+        onOpenChange={(open) => {
+          if (!open) void setUrlState({ preview: null })
+        }}
+        onSavedToDrive={() => refresh()}
       />
     </AppShell>
     </DndProvider>

@@ -52,14 +52,14 @@ export function DeleteFolderDialog({
         <DialogHeader>
           <DialogTitle>Zmazať priečinok</DialogTitle>
           <DialogDescription>
-            Rekurzívne zmaže „{folderName}“ vrátane obsahu.
+            Presunie „{folderName}“ a obsah do Koša (dá sa obnoviť).
           </DialogDescription>
         </DialogHeader>
         <div className="rounded-md bg-muted/60 px-4 py-3 text-sm">
           {summary ? (
             <p>
-              Zmaže sa <strong>{summary.folderCount}</strong> priečinkov a{' '}
-              <strong>{summary.fileCount}</strong> súborov (aj z UploadThing).
+              Do koša ide <strong>{summary.folderCount}</strong> priečinkov a{' '}
+              <strong>{summary.fileCount}</strong> súborov.
             </p>
           ) : (
             <p className="text-muted-foreground">Počítam obsah…</p>
@@ -85,7 +85,7 @@ export function DeleteFolderDialog({
                 .finally(() => setPending(false))
             }}
           >
-            Zmazať natrvalo
+            Presunúť do koša
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest'
 import {
   canInlinePreview,
   codeLanguageFromName,
+  fileKindIcon,
   fileKindLabel,
   getFileKind,
+  type FileKind,
 } from '#/lib/file-kind'
 
 describe('getFileKind', () => {
@@ -26,9 +28,47 @@ describe('getFileKind', () => {
     expect(getFileKind('application/zip', 'pack.zip')).toBe('archive')
   })
 
+  it('detects video and audio from mime and extension', () => {
+    expect(getFileKind('video/mp4', 'clip.mp4')).toBe('video')
+    expect(getFileKind('', 'movie.webm')).toBe('video')
+    expect(getFileKind('audio/mpeg', 'song.mp3')).toBe('audio')
+    expect(getFileKind('', 'track.wav')).toBe('audio')
+  })
+
   it('falls back to file', () => {
     expect(getFileKind('application/octet-stream', 'bin')).toBe('file')
+  })
+})
+
+describe('fileKindLabel + fileKindIcon', () => {
+  const kinds: FileKind[] = [
+    'image',
+    'video',
+    'audio',
+    'pdf',
+    'text',
+    'code',
+    'spreadsheet',
+    'archive',
+    'file',
+  ]
+
+  it('labels every kind in Slovak', () => {
+    expect(fileKindLabel('image')).toBe('Obrázok')
+    expect(fileKindLabel('video')).toBe('Video')
+    expect(fileKindLabel('audio')).toBe('Audio')
+    expect(fileKindLabel('pdf')).toBe('PDF')
+    expect(fileKindLabel('text')).toBe('Text')
+    expect(fileKindLabel('code')).toBe('Kód')
+    expect(fileKindLabel('spreadsheet')).toBe('Tabuľka')
+    expect(fileKindLabel('archive')).toBe('Archív')
     expect(fileKindLabel('file')).toBe('Súbor')
+  })
+
+  it('returns a lucide icon component for every kind', () => {
+    for (const kind of kinds) {
+      expect(typeof fileKindIcon(kind)).toBe('object')
+    }
   })
 })
 

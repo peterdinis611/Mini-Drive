@@ -4,6 +4,7 @@ import {
   buildBreadcrumbs,
   canMoveFolder,
   collectDescendantIds,
+  formatFolderPath,
 } from '../folder-ops'
 
 const nodes = [
@@ -30,5 +31,10 @@ describe('folder-ops', () => {
       { id: 'b', name: 'B' },
       { id: 'c', name: 'C' },
     ])
+  })
+
+  it('formats human folder paths', () => {
+    expect(formatFolderPath(nodes[2]!, nodes)).toBe('A / B / C')
+    expect(formatFolderPath(nodes[3]!, nodes)).toBe('D')
   })
 })

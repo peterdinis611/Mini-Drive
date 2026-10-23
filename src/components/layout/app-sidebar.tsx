@@ -154,8 +154,9 @@ export function AppSidebar({
             <span>{usedPct}%</span>
           </div>
           <Progress value={usedPct} className="h-1" />
-          <p className="text-[11px] text-muted-foreground">
-            {formatFileSize(stats.totalBytes)} · {stats.fileCount} súborov
+          <p className="font-meta text-[11px] text-sidebar-foreground/60">
+            {formatFileSize(stats.totalBytes)} /{' '}
+            {formatFileSize(stats.quotaBytes)} · {stats.fileCount} súborov
           </p>
         </div>
 

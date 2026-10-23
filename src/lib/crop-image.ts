@@ -12,7 +12,8 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   })
 }
 
-function rotateSize(width: number, height: number, rotation: number) {
+/** Bounding box after rotating a rectangle by degrees. */
+export function rotateSize(width: number, height: number, rotation: number) {
   const radians = (rotation * Math.PI) / 180
   return {
     width:

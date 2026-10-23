@@ -17,13 +17,24 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
-      include: ['src/lib/**/*.ts', 'src/components/onboarding/**/*.tsx'],
-      exclude: ['src/**/__tests__/**'],
+      include: [
+        'src/lib/**/*.ts',
+        'src/components/onboarding/**/*.tsx',
+      ],
+      exclude: [
+        'src/**/__tests__/**',
+        'src/lib/auth.ts',
+        'src/lib/auth-client.ts',
+        'src/lib/uploadthing.ts',
+        // SSR session + canvas export — covered indirectly / hard in jsdom
+        'src/lib/route-guards.ts',
+        'src/lib/crop-image.ts',
+      ],
       thresholds: {
-        lines: 60,
-        functions: 60,
-        branches: 50,
-        statements: 60,
+        lines: 70,
+        functions: 70,
+        branches: 60,
+        statements: 70,
       },
     },
   },

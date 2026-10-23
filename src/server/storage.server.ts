@@ -1,6 +1,6 @@
 import { and, eq, isNull, sql, sum } from 'drizzle-orm'
 
-import { STORAGE_QUOTA_BYTES } from '#/lib/constants'
+import { checkStorageQuota } from '#/lib/storage-quota'
 
 /** Bytes used by active (non-trashed) files for a user. */
 export async function getUsedStorageBytes(userId: string): Promise<number> {
@@ -21,22 +21,14 @@ export async function assertStorageQuota(
   options?: { releasingBytes?: number },
 ): Promise<void> {
   const used = await getUsedStorageBytes(userId)
-  const releasing = options?.releasingBytes ?? 0
-  const projected = used - releasing + additionalBytes
-
-  if (projected > STORAGE_QUOTA_BYTES) {
-    const remaining = Math.max(0, STORAGE_QUOTA_BYTES - (used - releasing))
-    throw new Error(
-      `Nedostatok miesta v úložisku (zostáva ${formatBytes(remaining)}).`,
-    )
+  const result = checkStorageQuota({
+    usedBytes: used,
+    additionalBytes,
+    releasingBytes: options?.releasingBytes,
+  })
+  if (!result.ok) {
+    throw new Error(result.message)
   }
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`
-  if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`
-  return `${(bytes / 1024 ** 3).toFixed(2)} GB`
 }
 
 /** Version number for the next archive of a file (1-based). */
