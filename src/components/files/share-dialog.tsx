@@ -114,8 +114,9 @@ export function ShareDialog({
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Po otvorení sa vystaví krátky signed URL (5 min). Odkaz môžeš
-              kedykoľvek zrušiť v Zdieľaniach.
+              Pre obrázky otvorí safe viewer (bez odhalenia UploadThing kľúča).
+              Ostatné súbory redirectnú na krátky signed URL (5 min). Odkaz
+              zrušíš v Zdieľaniach.
             </p>
           </div>
         ) : (

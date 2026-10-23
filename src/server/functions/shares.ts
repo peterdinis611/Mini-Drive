@@ -188,6 +188,8 @@ export const resolvePublicShare = createServerFn({ method: 'GET' })
           expiresAt: shareLinks.expiresAt,
           revokedAt: shareLinks.revokedAt,
           fileName: files.name,
+          fileSize: files.size,
+          mimeType: files.mimeType,
           uploadthingKey: files.uploadthingKey,
         })
         .from(shareLinks)
@@ -223,6 +225,8 @@ export const resolvePublicShare = createServerFn({ method: 'GET' })
       status: 'ok' as const,
       url: ufsUrl,
       fileName: row.fileName,
+      fileSize: row.fileSize,
+      mimeType: row.mimeType,
       signedUrlExpiresIn: SHARE_SIGNED_URL_TTL_SECONDS,
     }
   })

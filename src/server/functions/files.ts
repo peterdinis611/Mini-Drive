@@ -234,7 +234,7 @@ export const getImagePreviewUrls = createServerFn({ method: 'POST' })
           const { ufsUrl } = await utapi.generateSignedURL(row.uploadthingKey, {
             expiresIn: 60 * 10,
           })
-          result[row.id] = ufsUrl
+          if (ufsUrl) result[row.id] = ufsUrl
         } catch {
           // Skip broken previews — UI falls back to icons.
         }

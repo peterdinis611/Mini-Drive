@@ -43,6 +43,7 @@ export function FileThumbnail({
           alt=""
           loading="lazy"
           decoding="async"
+          referrerPolicy="no-referrer"
           className="size-full object-cover"
           onError={() => setFailed(true)}
         />
