@@ -1,15 +1,19 @@
 import { createServerFn } from '@tanstack/react-start'
 import {
+  getRequestHeaders,
   getRequestIP,
   setResponseHeader,
   setResponseStatus,
 } from '@tanstack/react-start/server'
-import { and, desc, eq, isNull } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, isNull } from 'drizzle-orm'
 
 import {
-  SHARE_SIGNED_URL_TTL_SECONDS,
+  CREATE_SHARE_RATE_LIMIT,
+  SHARE_ACCESS_LOG_LIMIT,
   SHARE_RATE_LIMIT,
+  SHARE_SIGNED_URL_TTL_SECONDS,
 } from '#/lib/constants'
+import { normalizeAuditIp, truncateUserAgent } from '#/lib/share-audit'
 import {
   buildSharePath,
   generateShareToken,
@@ -18,6 +22,7 @@ import {
 import { checkRateLimit } from '#/lib/rate-limit'
 import {
   createShareLinkSchema,
+  listShareAccessLogsSchema,
   resolveShareTokenSchema,
   revokeShareLinkSchema,
 } from '#/lib/validation'
@@ -32,6 +37,16 @@ export const createShareLink = createServerFn({ method: 'POST' })
 
     const session = await requireSession()
     const userId = session.user.id
+
+    const rate = checkRateLimit(
+      `share-create:${userId}`,
+      CREATE_SHARE_RATE_LIMIT,
+    )
+    if (!rate.ok) {
+      throw new Error(
+        `Príliš veľa zdieľaní. Skús o ${Math.max(1, Math.ceil(rate.retryAfterMs / 1000))} s.`,
+      )
+    }
 
     firstOrThrow(
       await db
@@ -74,6 +89,7 @@ export const createShareLink = createServerFn({ method: 'POST' })
       ...created,
       path: buildSharePath(created.token),
       status: 'active' as const,
+      accessCount: 0,
     }
   })
 
@@ -81,7 +97,7 @@ export const listShareLinks = createServerFn({ method: 'GET' }).handler(
   async () => {
     const { requireSession } = await import('#/server/auth.server')
     const { db } = await import('#/db')
-    const { files, shareLinks } = await import('#/db/schema')
+    const { files, shareAccessLogs, shareLinks } = await import('#/db/schema')
 
     const session = await requireSession()
     const userId = session.user.id
@@ -103,6 +119,24 @@ export const listShareLinks = createServerFn({ method: 'GET' }).handler(
       .where(eq(shareLinks.createdBy, userId))
       .orderBy(desc(shareLinks.createdAt))
 
+    const ids = rows.map((row) => row.id)
+    const counts = new Map<string, number>()
+
+    if (ids.length > 0) {
+      const countRows = await db
+        .select({
+          shareLinkId: shareAccessLogs.shareLinkId,
+          total: count(shareAccessLogs.id),
+        })
+        .from(shareAccessLogs)
+        .where(inArray(shareAccessLogs.shareLinkId, ids))
+        .groupBy(shareAccessLogs.shareLinkId)
+
+      for (const row of countRows) {
+        counts.set(row.shareLinkId, Number(row.total))
+      }
+    }
+
     return rows.map((row) => ({
       id: row.id,
       token: row.token,
@@ -115,9 +149,49 @@ export const listShareLinks = createServerFn({ method: 'GET' }).handler(
       fileSize: row.fileSize,
       mimeType: row.mimeType,
       status: resolveShareStatus(row),
+      accessCount: counts.get(row.id) ?? 0,
     }))
   },
 )
+
+export const listShareAccessLogs = createServerFn({ method: 'GET' })
+  .validator(listShareAccessLogsSchema)
+  .handler(async ({ data }) => {
+    const { requireSession } = await import('#/server/auth.server')
+    const { db } = await import('#/db')
+    const { shareAccessLogs, shareLinks } = await import('#/db/schema')
+
+    const session = await requireSession()
+    const userId = session.user.id
+
+    firstOrThrow(
+      await db
+        .select({ id: shareLinks.id })
+        .from(shareLinks)
+        .where(
+          and(
+            eq(shareLinks.id, data.shareId),
+            eq(shareLinks.createdBy, userId),
+          ),
+        )
+        .limit(1),
+      'Odkaz neexistuje',
+    )
+
+    const logs = await db
+      .select({
+        id: shareAccessLogs.id,
+        accessedAt: shareAccessLogs.accessedAt,
+        ipAddress: shareAccessLogs.ipAddress,
+        userAgent: shareAccessLogs.userAgent,
+      })
+      .from(shareAccessLogs)
+      .where(eq(shareAccessLogs.shareLinkId, data.shareId))
+      .orderBy(desc(shareAccessLogs.accessedAt))
+      .limit(SHARE_ACCESS_LOG_LIMIT)
+
+    return { logs, limit: SHARE_ACCESS_LOG_LIMIT }
+  })
 
 export const revokeShareLink = createServerFn({ method: 'POST' })
   .validator(revokeShareLinkSchema)
@@ -164,12 +238,13 @@ export const revokeShareLink = createServerFn({ method: 'POST' })
 /**
  * Public resolver used by /s/$token.
  * Never returns uploadthingKey to the client — only a short-lived signed URL.
+ * Successful opens are written to share_access_logs.
  */
 export const resolvePublicShare = createServerFn({ method: 'GET' })
   .validator(resolveShareTokenSchema)
   .handler(async ({ data }) => {
     const { db } = await import('#/db')
-    const { files, shareLinks } = await import('#/db/schema')
+    const { files, shareAccessLogs, shareLinks } = await import('#/db/schema')
     const { utapi } = await import('#/server/utapi.server')
 
     setResponseHeader('Cache-Control', 'no-store')
@@ -191,6 +266,7 @@ export const resolvePublicShare = createServerFn({ method: 'GET' })
     const row = firstOrNull(
       await db
         .select({
+          shareLinkId: shareLinks.id,
           expiresAt: shareLinks.expiresAt,
           revokedAt: shareLinks.revokedAt,
           fileName: files.name,
@@ -226,6 +302,20 @@ export const resolvePublicShare = createServerFn({ method: 'GET' })
     const { ufsUrl } = await utapi.generateSignedURL(row.uploadthingKey, {
       expiresIn: SHARE_SIGNED_URL_TTL_SECONDS,
     })
+
+    const headers = getRequestHeaders()
+    const userAgent = truncateUserAgent(headers.get('user-agent'))
+
+    // Fire-and-forget style: await so the row exists before response, but never fail the share.
+    try {
+      await db.insert(shareAccessLogs).values({
+        shareLinkId: row.shareLinkId,
+        ipAddress: normalizeAuditIp(ip),
+        userAgent,
+      })
+    } catch {
+      // Audit must not break delivery of a valid share.
+    }
 
     return {
       status: 'ok' as const,

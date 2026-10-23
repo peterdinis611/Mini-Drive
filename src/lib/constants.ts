@@ -42,6 +42,15 @@ export const SHARE_RATE_LIMIT = {
   windowMs: 60_000,
 } as const
 
+/** Authenticated createShare rate limit (per user, sliding window). */
+export const CREATE_SHARE_RATE_LIMIT = {
+  limit: 10,
+  windowMs: 60_000,
+} as const
+
+/** Max stored audit rows returned per share in the UI. */
+export const SHARE_ACCESS_LOG_LIMIT = 50
+
 export const NAME_MAX_LENGTH = 255
 // Control chars (U+0000–U+001F) are rejected in folder/file names
 export const FORBIDDEN_NAME_CHARS = /[<>:"/\\|?*\x00-\x1f]/ // eslint-disable-line no-control-regex

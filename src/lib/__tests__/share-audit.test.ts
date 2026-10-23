@@ -1,0 +1,42 @@
+import { describe, expect, it } from 'vitest'
+
+import { normalizeAuditIp, truncateUserAgent } from '#/lib/share-audit'
+import { CREATE_SHARE_RATE_LIMIT, SHARE_ACCESS_LOG_LIMIT } from '#/lib/constants'
+
+describe('truncateUserAgent', () => {
+  it('returns null for empty', () => {
+    expect(truncateUserAgent(null)).toBeNull()
+    expect(truncateUserAgent('   ')).toBeNull()
+  })
+
+  it('keeps short agents', () => {
+    expect(truncateUserAgent('Mozilla/5.0')).toBe('Mozilla/5.0')
+  })
+
+  it('truncates long agents with ellipsis', () => {
+    const long = 'x'.repeat(300)
+    const result = truncateUserAgent(long, 50)
+    expect(result).not.toBeNull()
+    expect(result!.length).toBe(50)
+    expect(result!.endsWith('…')).toBe(true)
+  })
+})
+
+describe('normalizeAuditIp', () => {
+  it('falls back to unknown', () => {
+    expect(normalizeAuditIp(null)).toBe('unknown')
+    expect(normalizeAuditIp('')).toBe('unknown')
+  })
+
+  it('keeps and trims ip', () => {
+    expect(normalizeAuditIp(' 1.2.3.4 ')).toBe('1.2.3.4')
+  })
+})
+
+describe('create-share rate limit constants', () => {
+  it('limits creates more tightly than public resolve', () => {
+    expect(CREATE_SHARE_RATE_LIMIT.limit).toBe(10)
+    expect(CREATE_SHARE_RATE_LIMIT.windowMs).toBe(60_000)
+    expect(SHARE_ACCESS_LOG_LIMIT).toBe(50)
+  })
+})

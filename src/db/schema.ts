@@ -207,6 +207,28 @@ export const shareLinks = sqliteTable(
   ],
 )
 
+/** Audit log of successful public share opens (IP + UA truncated). */
+export const shareAccessLogs = sqliteTable(
+  'share_access_logs',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    shareLinkId: text('share_link_id')
+      .notNull()
+      .references(() => shareLinks.id, { onDelete: 'cascade' }),
+    accessedAt: integer('accessed_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    ipAddress: text('ip_address').notNull(),
+    userAgent: text('user_agent'),
+  },
+  (table) => [
+    index('share_access_logs_shareLinkId_idx').on(table.shareLinkId),
+    index('share_access_logs_accessedAt_idx').on(table.accessedAt),
+  ],
+)
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -262,7 +284,7 @@ export const fileVersionsRelations = relations(fileVersions, ({ one }) => ({
   }),
 }))
 
-export const shareLinksRelations = relations(shareLinks, ({ one }) => ({
+export const shareLinksRelations = relations(shareLinks, ({ one, many }) => ({
   file: one(files, {
     fields: [shareLinks.fileId],
     references: [files.id],
@@ -271,10 +293,22 @@ export const shareLinksRelations = relations(shareLinks, ({ one }) => ({
     fields: [shareLinks.createdBy],
     references: [user.id],
   }),
+  accessLogs: many(shareAccessLogs),
 }))
+
+export const shareAccessLogsRelations = relations(
+  shareAccessLogs,
+  ({ one }) => ({
+    shareLink: one(shareLinks, {
+      fields: [shareAccessLogs.shareLinkId],
+      references: [shareLinks.id],
+    }),
+  }),
+)
 
 export type User = typeof user.$inferSelect
 export type Folder = typeof folders.$inferSelect
 export type FileRecord = typeof files.$inferSelect
 export type FileVersion = typeof fileVersions.$inferSelect
 export type ShareLink = typeof shareLinks.$inferSelect
+export type ShareAccessLog = typeof shareAccessLogs.$inferSelect

@@ -123,6 +123,10 @@ export const revokeShareLinkSchema = z.object({
   shareId: z.string().uuid('Neplatné ID odkazu'),
 })
 
+export const listShareAccessLogsSchema = z.object({
+  shareId: z.string().uuid('Neplatné ID odkazu'),
+})
+
 export const shareTokenSchema = z
   .string()
   .trim()
