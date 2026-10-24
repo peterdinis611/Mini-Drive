@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '#/components/ui/dialog'
 import { getErrorMessage } from '#/lib/errors'
+import { formatIpFingerprint } from '#/lib/share-audit'
 import { listShareAccessLogs } from '#/server/functions/shares'
 
 type Props = {
@@ -69,7 +70,8 @@ export function ShareAccessLogDialog({
         <DialogHeader>
           <DialogTitle>Otvorenia odkazu</DialogTitle>
           <DialogDescription>
-            Audit log pre „{fileName}“ (posledných {limit}).
+            Audit log pre „{fileName}“ (posledných {limit}). IP je uložená
+            len ako otlačok (HMAC), nie v plaintexte.
           </DialogDescription>
         </DialogHeader>
 
@@ -94,7 +96,9 @@ export function ShareAccessLogDialog({
                 <p className="font-meta text-xs text-muted-foreground">
                   {formatDate(log.accessedAt)}
                 </p>
-                <p className="mt-0.5 text-sm font-medium">{log.ipAddress}</p>
+                <p className="mt-0.5 font-mono text-sm font-medium">
+                  {formatIpFingerprint(log.ipAddress)}
+                </p>
                 {log.userAgent ? (
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     {log.userAgent}

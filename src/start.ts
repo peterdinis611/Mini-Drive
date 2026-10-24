@@ -5,6 +5,8 @@ import {
 } from '@tanstack/react-start'
 import { setResponseHeader } from '@tanstack/react-start/server'
 
+import { buildContentSecurityPolicy } from '#/lib/csp'
+
 const csrfMiddleware = createCsrfMiddleware({
   filter: (ctx) => ctx.handlerType === 'serverFn',
   ...(process.env.APP_URL
@@ -24,6 +26,12 @@ const securityHeadersMiddleware = createMiddleware().server(
       'camera=(), microphone=(), geolocation=(), payment=()',
     )
     setResponseHeader('X-DNS-Prefetch-Control', 'on')
+    setResponseHeader(
+      'Content-Security-Policy',
+      buildContentSecurityPolicy(
+        process.env.NODE_ENV === 'production' ? 'production' : 'development',
+      ),
+    )
 
     if (process.env.NODE_ENV === 'production') {
       setResponseHeader(

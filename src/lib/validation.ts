@@ -39,6 +39,7 @@ export const emailSchema = z
   .email('Neplatný email')
   .max(254, 'Email je príliš dlhý')
 
+/** Registration / password change — strong minimum. */
 export const passwordSchema = z
   .string()
   .min(
@@ -50,9 +51,21 @@ export const passwordSchema = z
     `Heslo môže mať najviac ${AUTH_LIMITS.passwordMax} znakov`,
   )
 
+/**
+ * Login only — do not enforce new min length so existing accounts can still sign in.
+ * Server still verifies the hash; client just needs a non-empty secret.
+ */
+export const loginPasswordSchema = z
+  .string()
+  .min(1, 'Heslo je povinné')
+  .max(
+    AUTH_LIMITS.passwordMax,
+    `Heslo môže mať najviac ${AUTH_LIMITS.passwordMax} znakov`,
+  )
+
 export const loginSchema = z.object({
   email: emailSchema,
-  password: passwordSchema,
+  password: loginPasswordSchema,
 })
 
 export const registerSchema = z.object({

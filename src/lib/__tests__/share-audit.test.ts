@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { normalizeAuditIp, truncateUserAgent } from '#/lib/share-audit'
+import {
+  formatIpFingerprint,
+  normalizeAuditIp,
+  truncateUserAgent,
+} from '#/lib/share-audit'
+import { hashAuditIp } from '#/lib/share-audit-hash'
 import { CREATE_SHARE_RATE_LIMIT, SHARE_ACCESS_LOG_LIMIT } from '#/lib/constants'
 
 describe('truncateUserAgent', () => {
@@ -30,6 +35,38 @@ describe('normalizeAuditIp', () => {
 
   it('keeps and trims ip', () => {
     expect(normalizeAuditIp(' 1.2.3.4 ')).toBe('1.2.3.4')
+  })
+})
+
+describe('hashAuditIp', () => {
+  it('returns unknown for empty', () => {
+    expect(hashAuditIp(null, 'pepper')).toBe('unknown')
+  })
+
+  it('is deterministic and not the raw IP', () => {
+    const a = hashAuditIp('1.2.3.4', 'test-pepper-secret')
+    const b = hashAuditIp('1.2.3.4', 'test-pepper-secret')
+    expect(a).toBe(b)
+    expect(a).not.toContain('1.2.3.4')
+    expect(a).toHaveLength(32)
+  })
+
+  it('changes with pepper', () => {
+    expect(hashAuditIp('1.2.3.4', 'a'.repeat(16))).not.toBe(
+      hashAuditIp('1.2.3.4', 'b'.repeat(16)),
+    )
+  })
+})
+
+describe('formatIpFingerprint', () => {
+  it('shortens long hashes', () => {
+    expect(formatIpFingerprint('abcdef0123456789abcdef0123456789')).toBe(
+      'abcdef01…6789',
+    )
+  })
+
+  it('handles unknown', () => {
+    expect(formatIpFingerprint('unknown')).toBe('neznámy')
   })
 })
 

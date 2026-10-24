@@ -207,7 +207,7 @@ export const shareLinks = sqliteTable(
   ],
 )
 
-/** Audit log of successful public share opens (IP + UA truncated). */
+/** Audit log of successful public share opens (HMAC IP fingerprint + UA truncated). */
 export const shareAccessLogs = sqliteTable(
   'share_access_logs',
   {
@@ -220,6 +220,7 @@ export const shareAccessLogs = sqliteTable(
     accessedAt: integer('accessed_at', { mode: 'timestamp_ms' })
       .notNull()
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    /** HMAC-SHA256 fingerprint — never store raw IP. */
     ipAddress: text('ip_address').notNull(),
     userAgent: text('user_agent'),
   },

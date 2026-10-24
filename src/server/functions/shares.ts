@@ -13,7 +13,8 @@ import {
   SHARE_RATE_LIMIT,
   SHARE_SIGNED_URL_TTL_SECONDS,
 } from '#/lib/constants'
-import { normalizeAuditIp, truncateUserAgent } from '#/lib/share-audit'
+import { truncateUserAgent } from '#/lib/share-audit'
+import { hashAuditIp } from '#/lib/share-audit-hash'
 import {
   buildSharePath,
   generateShareToken,
@@ -27,6 +28,14 @@ import {
   revokeShareLinkSchema,
 } from '#/lib/validation'
 import { firstOrNull, firstOrThrow } from '#/server/db-helpers.server'
+
+function resolveAuditIpPepper(): string {
+  return (
+    process.env.AUDIT_IP_PEPPER?.trim() ||
+    process.env.BETTER_AUTH_SECRET?.trim() ||
+    ''
+  )
+}
 
 export const createShareLink = createServerFn({ method: 'POST' })
   .validator(createShareLinkSchema)
@@ -48,9 +57,15 @@ export const createShareLink = createServerFn({ method: 'POST' })
       )
     }
 
-    firstOrThrow(
+    const file = firstOrThrow(
       await db
-        .select({ id: files.id })
+        .select({
+          id: files.id,
+          name: files.name,
+          size: files.size,
+          mimeType: files.mimeType,
+          uploadthingKey: files.uploadthingKey,
+        })
         .from(files)
         .where(
           and(
@@ -62,6 +77,20 @@ export const createShareLink = createServerFn({ method: 'POST' })
         .limit(1),
       'Súbor neexistuje',
     )
+
+    const {
+      scanUploadThingFileForShare,
+      virusScanBlockMessage,
+    } = await import('#/server/virus-scan.server')
+    const scan = await scanUploadThingFileForShare({
+      uploadthingKey: file.uploadthingKey,
+      fileName: file.name,
+      mimeType: file.mimeType,
+      size: file.size,
+    })
+    if (scan.verdict === 'infected' || scan.verdict === 'error') {
+      throw new Error(virusScanBlockMessage(scan))
+    }
 
     const token = generateShareToken()
     const expiresAt = new Date(Date.now() + data.expiresIn * 1000)
@@ -308,9 +337,11 @@ export const resolvePublicShare = createServerFn({ method: 'GET' })
 
     // Fire-and-forget style: await so the row exists before response, but never fail the share.
     try {
+      const pepper =
+        resolveAuditIpPepper() || 'dev-insecure-audit-pepper'
       await db.insert(shareAccessLogs).values({
         shareLinkId: row.shareLinkId,
-        ipAddress: normalizeAuditIp(ip),
+        ipAddress: hashAuditIp(ip, pepper),
         userAgent,
       })
     } catch {

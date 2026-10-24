@@ -96,7 +96,8 @@ export function ShareDialog({
         <DialogHeader>
           <DialogTitle>Zdieľať súbor</DialogTitle>
           <DialogDescription>
-            Safe-url pre „{fileName}“. UploadThing kľúč nikdy nie je v odkaze.
+            Safe-url pre „{fileName}“. Pred vytvorením odkazu sa súbor skenuje
+            na malware. UploadThing kľúč nikdy nie je v odkaze.
           </DialogDescription>
         </DialogHeader>
 

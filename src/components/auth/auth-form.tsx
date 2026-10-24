@@ -183,7 +183,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
                 mode === 'login' ? 'current-password' : 'new-password'
               }
               required
-              minLength={AUTH_LIMITS.passwordMin}
+              minLength={mode === 'register' ? AUTH_LIMITS.passwordMin : 1}
               maxLength={AUTH_LIMITS.passwordMax}
               value={password}
               aria-invalid={Boolean(fieldErrors.password)}
@@ -197,7 +197,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
                   })
                 }
               }}
-              placeholder={`min. ${AUTH_LIMITS.passwordMin} znakov`}
+              placeholder={
+                mode === 'register'
+                  ? `min. ${AUTH_LIMITS.passwordMin} znakov`
+                  : 'tvoje heslo'
+              }
             />
             {fieldErrors.password ? (
               <p className="text-sm text-destructive" role="alert">

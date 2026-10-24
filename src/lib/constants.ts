@@ -21,7 +21,8 @@ export const UPLOAD_LIMITS = {
 } as const
 
 export const AUTH_LIMITS = {
-  passwordMin: 8,
+  /** Enforced on register / password change (Better Auth + Zod). */
+  passwordMin: 12,
   passwordMax: 128,
   nameMax: 100,
 } as const
