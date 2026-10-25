@@ -40,8 +40,8 @@ describe('buildSeoHead', () => {
   })
 
   it('builds auth heads for login and register', () => {
-    expect(authPageHead('login').links[0]?.href).toMatch(/\/login$/)
-    expect(authPageHead('register').links[0]?.href).toMatch(/\/register$/)
+    expect(authPageHead('login').links[0]?.href).toMatch(/\/sign-in$/)
+    expect(authPageHead('register').links[0]?.href).toMatch(/\/sign-up$/)
   })
 })
 

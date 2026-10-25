@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite'
-import { devtools } from '@tanstack/devtools-vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import rsc from '@vitejs/plugin-rsc'
@@ -20,6 +19,8 @@ const config = defineConfig({
   },
   optimizeDeps: {
     exclude: ['better-sqlite3'],
+    // Avoid RSC "inconsistently optimized" warn storms that balloon Vite memory.
+    include: ['radix-ui', '@clerk/tanstack-react-start'],
   },
   build: {
     target: 'es2022',
@@ -29,7 +30,8 @@ const config = defineConfig({
     minify: isProd ? 'esbuild' : false,
   },
   plugins: [
-    devtools(),
+    // Devtools Vite plugin is heavy; in-app panels still load via import.meta.env.DEV.
+    // devtools(),
     tailwindcss(),
     tanstackStart({
       rsc: { enabled: true },

@@ -1,3 +1,4 @@
+import { useClerk } from '@clerk/tanstack-react-start'
 import { Link, useRouterState } from '@tanstack/react-router'
 import {
   Clock3,
@@ -18,7 +19,6 @@ import { ScrollArea } from '#/components/ui/scroll-area'
 import type { FolderTreeNode } from '#/components/files/types'
 import { APP_NAME } from '#/lib/constants'
 import { formatFileSize } from '#/lib/format'
-import { authClient } from '#/lib/auth-client'
 import { cn } from '#/lib/utils'
 
 export type DriveStats = {
@@ -62,6 +62,7 @@ export function AppSidebar({
   onCollapse,
   className,
 }: Props) {
+  const { signOut } = useClerk()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const usedPct = Math.min(
     100,
@@ -181,8 +182,7 @@ export function AppSidebar({
             className="size-8"
             aria-label="Odhlásiť"
             onClick={async () => {
-              await authClient.signOut()
-              window.location.href = '/login'
+              await signOut({ redirectUrl: '/sign-in' })
             }}
           >
             <LogOut className="size-4" />

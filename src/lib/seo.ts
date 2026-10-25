@@ -159,13 +159,13 @@ export function authPageHead(
       title: 'Prihlásenie',
       description:
         'Prihlás sa do Mini Drive a spravuj súbory, priečinky, kôš a safe-url zdieľania v súkromnom archíve.',
-      path: '/login',
+      path: '/sign-in',
     })
   }
   return buildSeoHead({
     title: 'Registrácia',
     description:
       'Vytvor si účet v Mini Drive — súkromné cloud úložisko so safe-url zdieľaním, košom a verziami súborov.',
-    path: '/register',
+    path: '/sign-up',
   })
 }

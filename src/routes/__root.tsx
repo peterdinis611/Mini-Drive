@@ -1,5 +1,3 @@
-import { ClerkProvider } from '@clerk/tanstack-react-start'
-
 import { silenceClerkDevKeySpam } from '#/lib/clerk-dev-silence'
 
 silenceClerkDevKeySpam()
@@ -14,6 +12,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { NuqsAdapter } from 'nuqs/adapters/react'
 
+import { ThemedClerkProvider } from '#/components/clerk-provider'
 import { ThemeProvider } from '#/components/theme-provider'
 import { ThemeSync } from '#/components/theme-sync'
 import {
@@ -22,7 +21,6 @@ import {
   ServerErrorPage,
 } from '#/components/status/status-page'
 import { Toaster } from '#/components/toast/toaster'
-import { clerkAppearance } from '#/lib/clerk-appearance'
 import { APP_NAME } from '#/lib/constants'
 import { SITE } from '#/lib/site'
 import { appJsonLd, buildSeoHead } from '#/lib/seo'
@@ -139,32 +137,28 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="min-h-svh antialiased">
-        <ClerkProvider
-          afterSignOutUrl="/sign-in"
-          telemetry={false}
-          appearance={clerkAppearance}
-        >
-          <ThemeProvider>
+        <ThemeProvider>
+          <ThemedClerkProvider>
             <ThemeSync />
             {children}
             <Toaster />
-          </ThemeProvider>
-          {import.meta.env.DEV ? (
-            <TanStackDevtools
-              config={{
-                position: 'bottom-right',
-              }}
-              plugins={[
-                {
-                  name: 'Tanstack Router',
-                  render: <TanStackRouterDevtoolsPanel />,
-                },
-                TanStackQueryDevtools,
-              ]}
-            />
-          ) : null}
-          <Scripts />
-        </ClerkProvider>
+            {import.meta.env.DEV ? (
+              <TanStackDevtools
+                config={{
+                  position: 'bottom-right',
+                }}
+                plugins={[
+                  {
+                    name: 'Tanstack Router',
+                    render: <TanStackRouterDevtoolsPanel />,
+                  },
+                  TanStackQueryDevtools,
+                ]}
+              />
+            ) : null}
+            <Scripts />
+          </ThemedClerkProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

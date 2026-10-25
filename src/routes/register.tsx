@@ -1,18 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
-import { AuthForm } from '#/components/auth/auth-form'
-import { requireGuestSession } from '#/lib/route-guards'
-import { authPageHead } from '#/lib/seo'
-import { getAuthChromeRsc } from '#/server/rsc/public-pages'
-
+/** Legacy path — Clerk lives at /sign-up. */
 export const Route = createFileRoute('/register')({
-  beforeLoad: requireGuestSession,
-  loader: async () => getAuthChromeRsc({ data: { mode: 'register' } }),
-  head: () => authPageHead('register'),
-  component: RegisterPage,
+  beforeLoad: () => {
+    throw redirect({ href: '/sign-up' })
+  },
 })
-
-function RegisterPage() {
-  const { Renderable } = Route.useLoaderData()
-  return <AuthForm mode="register" intro={Renderable} />
-}

@@ -4,6 +4,7 @@ import { mkdirSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 
+import { ensureSqliteSchema } from './ensure-schema'
 import * as schema from './schema'
 
 // Load via Node require so Vite SSR eval does not break native bindings resolution.
@@ -15,7 +16,7 @@ const nativeBinding = require.resolve(
 
 config({ path: ['.env.local', '.env'] })
 
-const databaseUrl = process.env.DATABASE_URL ?? 'dev.db'
+const databaseUrl = (process.env.DATABASE_URL ?? 'dev.db').trim()
 const dbPath =
   databaseUrl === ':memory:' ? ':memory:' : resolve(process.cwd(), databaseUrl)
 
@@ -26,5 +27,7 @@ if (dbPath !== ':memory:') {
 const sqlite = new Database(dbPath, { nativeBinding })
 sqlite.pragma('journal_mode = WAL')
 sqlite.pragma('foreign_keys = ON')
+ensureSqliteSchema(sqlite)
 
 export const db = drizzle(sqlite, { schema })
+export { sqlite }

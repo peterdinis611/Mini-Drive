@@ -5,10 +5,7 @@ import { APP_NAME } from '#/lib/constants'
 /** Public site origin — never put secrets here. */
 export const getSiteUrl = createIsomorphicFn()
   .server(() => {
-    const raw =
-      process.env.APP_URL ??
-      process.env.BETTER_AUTH_URL ??
-      'http://localhost:3000'
+    const raw = process.env.APP_URL ?? 'http://localhost:3000'
     return raw.replace(/\/$/, '')
   })
   .client(() => window.location.origin)
@@ -38,7 +35,7 @@ export const SITE = {
 } as const
 
 /** Indexable marketing / auth surfaces. */
-export const PUBLIC_PATHS = ['/', '/login', '/register'] as const
+export const PUBLIC_PATHS = ['/', '/sign-in', '/sign-up'] as const
 
 /** Private app + APIs — blocked in robots.txt. */
 export const DISALLOW_PATHS = [

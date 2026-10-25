@@ -1,28 +1,35 @@
+import { useAuth } from '@clerk/tanstack-react-start'
 import { useEffect, useRef } from 'react'
 import { useTheme } from 'next-themes'
 
-import { authClient } from '#/lib/auth-client'
+import { getSession } from '#/server/session'
 
 /**
- * Once per session, apply the user's saved themePreference from Better Auth.
- * Does not fight later manual toggles.
+ * Once per signed-in session, apply saved themePreference.
+ * Skips the server round-trip on guest/auth pages.
  */
 export function ThemeSync() {
   const { setTheme } = useTheme()
-  const { data } = authClient.useSession()
+  const { isLoaded, isSignedIn } = useAuth()
   const applied = useRef(false)
 
   useEffect(() => {
-    if (applied.current) return
-    const pref = (
-      data?.user as { themePreference?: string } | undefined
-    )?.themePreference
-    if (!pref) return
-    if (pref === 'light' || pref === 'dark' || pref === 'system') {
-      setTheme(pref)
-      applied.current = true
+    if (applied.current || !isLoaded || !isSignedIn) return
+    let cancelled = false
+
+    void getSession().then((session) => {
+      if (cancelled || applied.current) return
+      const pref = session?.user.themePreference
+      if (pref === 'light' || pref === 'dark' || pref === 'system') {
+        setTheme(pref)
+        applied.current = true
+      }
+    })
+
+    return () => {
+      cancelled = true
     }
-  }, [data?.user, setTheme])
+  }, [isLoaded, isSignedIn, setTheme])
 
   return null
 }

@@ -9,7 +9,7 @@ export const Route = createFileRoute('/onboarding')({
   beforeLoad: async () => {
     const session = await getSession()
     if (!session) {
-      throw redirect({ to: '/login' })
+      throw redirect({ href: '/sign-in' })
     }
     if (session.user.onboardedAt) {
       throw redirect({ to: '/files' })

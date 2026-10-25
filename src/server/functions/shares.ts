@@ -32,7 +32,7 @@ import { firstOrNull, firstOrThrow } from '#/server/db-helpers.server'
 function resolveAuditIpPepper(): string {
   return (
     process.env.AUDIT_IP_PEPPER?.trim() ||
-    process.env.BETTER_AUTH_SECRET?.trim() ||
+    process.env.CLERK_SECRET_KEY?.trim() ||
     ''
   )
 }

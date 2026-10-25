@@ -1,82 +1,12 @@
-import { drizzleAdapter } from '@better-auth/drizzle-adapter'
-import { betterAuth } from 'better-auth'
-import { haveIBeenPwned } from 'better-auth/plugins'
-import { tanstackStartCookies } from 'better-auth/tanstack-start'
+import type { user } from '#/db/schema'
 
-import { db } from '#/db'
-import * as schema from '#/db/schema'
-import { AUTH_LIMITS } from '#/lib/constants'
+/** Local app user row (synced from Clerk on first request). */
+export type AuthUser = typeof user.$inferSelect
 
-const baseURL = process.env.BETTER_AUTH_URL ?? 'http://localhost:3000'
-
-export const auth = betterAuth({
-  database: drizzleAdapter(db, {
-    provider: 'sqlite',
-    schema,
-  }),
-  baseURL,
-  secret: process.env.BETTER_AUTH_SECRET,
-  trustedOrigins: [
-    baseURL,
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3001',
-  ],
-  emailAndPassword: {
-    enabled: true,
-    minPasswordLength: AUTH_LIMITS.passwordMin,
-    maxPasswordLength: AUTH_LIMITS.passwordMax,
-  },
-  user: {
-    additionalFields: {
-      onboardedAt: {
-        type: 'date',
-        required: false,
-        input: false,
-      },
-      viewPreference: {
-        type: 'string',
-        required: false,
-        defaultValue: 'list',
-        input: true,
-      },
-      themePreference: {
-        type: 'string',
-        required: false,
-        defaultValue: 'system',
-        input: true,
-      },
-      defaultShareExpiresIn: {
-        type: 'number',
-        required: false,
-        defaultValue: 3600,
-        input: true,
-      },
-      confirmDelete: {
-        type: 'boolean',
-        required: false,
-        defaultValue: true,
-        input: true,
-      },
-      onboardingStep: {
-        type: 'number',
-        required: false,
-        defaultValue: 1,
-        input: false,
-      },
-    },
-  },
-  plugins: [
-    tanstackStartCookies(),
-    haveIBeenPwned({
-      // Skip network HIBP checks in automated tests.
-      enabled: process.env.VITEST !== 'true',
-      customPasswordCompromisedMessage:
-        'Toto heslo uniklo v úniku dát. Zvol iné, silnejšie heslo.',
-    }),
-  ],
-})
-
-export type Session = typeof auth.$Infer.Session
-export type AuthUser = Session['user']
+export type Session = {
+  user: AuthUser
+  session: {
+    id: string
+    userId: string
+  }
+}

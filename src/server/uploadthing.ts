@@ -5,7 +5,6 @@ import { and, eq, isNull } from 'drizzle-orm'
 
 import { db } from '#/db'
 import { files, folders } from '#/db/schema'
-import { auth } from '#/lib/auth'
 import { UPLOAD_LIMITS } from '#/lib/constants'
 import { resolveStoredMimeType } from '#/lib/mime'
 import { fileNameSchema } from '#/lib/validation'
@@ -59,8 +58,9 @@ export const uploadRouter = {
     { awaitServerData: true },
   )
     .input(uploadInputSchema)
-    .middleware(async ({ req, input, files: incoming }) => {
-      const session = await auth.api.getSession({ headers: req.headers })
+    .middleware(async ({ input, files: incoming }) => {
+      const { getSessionFromRequest } = await import('#/server/auth.server')
+      const session = await getSessionFromRequest()
       if (!session) {
         throw new UploadThingError('Musíš byť prihlásený')
       }

@@ -1,3 +1,4 @@
+import { useClerk } from '@clerk/tanstack-react-start'
 import { useState, useTransition } from 'react'
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import {
@@ -23,7 +24,6 @@ import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { Switch } from '#/components/ui/switch'
-import { authClient } from '#/lib/auth-client'
 import {
   AUTH_LIMITS,
   SHARE_EXPIRY_PRESETS,
@@ -39,7 +39,6 @@ import { privateAppHead } from '#/lib/seo'
 import { toast } from '#/lib/toast'
 import { cn } from '#/lib/utils'
 import {
-  changePasswordSchema,
   themePreferenceSchema,
   updateSettingsSchema,
   viewPreferenceSchema,
@@ -63,6 +62,7 @@ function SettingsPage() {
   const router = useRouter()
   const reduce = useReducedMotion()
   const { setTheme } = useTheme()
+  const { openUserProfile } = useClerk()
 
   const [name, setName] = useState(chrome.user.name)
   const [viewPreference, setViewPreference] = useState<ViewPreference>(
@@ -79,11 +79,6 @@ function SettingsPage() {
   )
   const [pending, startTransition] = useTransition()
   const [nameError, setNameError] = useState<string | null>(null)
-
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordPending, setPasswordPending] = useState(false)
 
   const fill = Math.min(
     1,
@@ -117,40 +112,6 @@ function SettingsPage() {
         toast.error(getErrorMessage(error, 'Uloženie zlyhalo'))
       }
     })
-  }
-
-  async function handleChangePassword() {
-    const parsed = changePasswordSchema.safeParse({
-      currentPassword,
-      newPassword,
-      confirmPassword,
-    })
-    if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? 'Neplatné heslo')
-      return
-    }
-    setPasswordPending(true)
-    try {
-      const result = await authClient.changePassword({
-        currentPassword: parsed.data.currentPassword,
-        newPassword: parsed.data.newPassword,
-        revokeOtherSessions: true,
-      })
-      if (result.error) {
-        toast.error(result.error.message ?? 'Zmena hesla zlyhala')
-        return
-      }
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
-      toast.success('Heslo zmenené', {
-        description: 'Ostatné session boli odhlásené.',
-      })
-    } catch (error) {
-      toast.error(getErrorMessage(error, 'Zmena hesla zlyhala'))
-    } finally {
-      setPasswordPending(false)
-    }
   }
 
   return (
@@ -390,55 +351,20 @@ function SettingsPage() {
                   <KeyRound className="size-4" aria-hidden />
                 </span>
                 <div>
-                  <h2 className="font-display text-xl">Heslo</h2>
+                  <h2 className="font-display text-xl">Účet a heslo</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Min. {AUTH_LIMITS.passwordMin} znakov · kontrola uniknutých
-                    hesiel (HIBP).
+                    Heslo, e-mail a bezpečnostné nastavenia spravuješ v Clerk
+                    profile.
                   </p>
                 </div>
               </div>
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="settings-current-password">Aktuálne heslo</Label>
-                  <Input
-                    id="settings-current-password"
-                    type="password"
-                    autoComplete="current-password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="settings-new-password">Nové heslo</Label>
-                  <Input
-                    id="settings-new-password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="settings-confirm-password">
-                    Potvrdiť nové heslo
-                  </Label>
-                  <Input
-                    id="settings-confirm-password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={passwordPending}
-                  onClick={() => void handleChangePassword()}
-                >
-                  {passwordPending ? 'Mením…' : 'Zmeniť heslo'}
-                </Button>
-              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => openUserProfile()}
+              >
+                Otvoriť Clerk účet
+              </Button>
             </section>
           </StaggerItem>
 

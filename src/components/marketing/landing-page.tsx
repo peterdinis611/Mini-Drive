@@ -47,10 +47,10 @@ export function LandingPage() {
         </div>
         <div className="flex gap-2">
           <Button asChild variant="ghost" size="sm" className="rounded-sm">
-            <a href="/login">Prihlásenie</a>
+            <a href="/sign-in">Prihlásenie</a>
           </Button>
           <Button asChild size="sm" className="rounded-sm">
-            <a href="/register">Registrácia</a>
+            <a href="/sign-up">Registrácia</a>
           </Button>
         </div>
       </header>
@@ -68,10 +68,10 @@ export function LandingPage() {
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Button asChild size="lg" className="rounded-sm">
-              <a href="/register">Začať zadarmo</a>
+              <a href="/sign-up">Začať zadarmo</a>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-sm">
-              <a href="/login">Prihlásenie</a>
+              <a href="/sign-in">Prihlásenie</a>
             </Button>
           </div>
         </div>
