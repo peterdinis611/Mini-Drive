@@ -1,3 +1,4 @@
+import { ClerkProvider } from '@clerk/tanstack-react-start'
 import {
   HeadContent,
   Outlet,
@@ -133,26 +134,28 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="min-h-svh antialiased">
-        <ThemeProvider>
-          <ThemeSync />
-          {children}
-          <Toaster />
-        </ThemeProvider>
-        {import.meta.env.DEV ? (
-          <TanStackDevtools
-            config={{
-              position: 'bottom-right',
-            }}
-            plugins={[
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-              TanStackQueryDevtools,
-            ]}
-          />
-        ) : null}
-        <Scripts />
+        <ClerkProvider>
+          <ThemeProvider>
+            <ThemeSync />
+            {children}
+            <Toaster />
+          </ThemeProvider>
+          {import.meta.env.DEV ? (
+            <TanStackDevtools
+              config={{
+                position: 'bottom-right',
+              }}
+              plugins={[
+                {
+                  name: 'Tanstack Router',
+                  render: <TanStackRouterDevtoolsPanel />,
+                },
+                TanStackQueryDevtools,
+              ]}
+            />
+          ) : null}
+          <Scripts />
+        </ClerkProvider>
       </body>
     </html>
   )
