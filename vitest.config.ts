@@ -19,12 +19,13 @@ export default defineConfig({
       reporter: ['text', 'html'],
       include: [
         'src/lib/**/*.ts',
+        'src/db/ensure-schema.ts',
+        'src/db/rekey-user.ts',
         'src/components/onboarding/**/*.tsx',
       ],
       exclude: [
         'src/**/__tests__/**',
         'src/lib/auth.ts',
-        'src/lib/auth-client.ts',
         'src/lib/uploadthing.ts',
         // SSR session + canvas export — covered indirectly / hard in jsdom
         'src/lib/route-guards.ts',

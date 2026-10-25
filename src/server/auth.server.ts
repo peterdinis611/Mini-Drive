@@ -2,6 +2,7 @@ import { auth, clerkClient } from '@clerk/tanstack-react-start/server'
 import { eq } from 'drizzle-orm'
 
 import { db, sqlite } from '#/db'
+import { rekeyUserId } from '#/db/rekey-user'
 import { user } from '#/db/schema'
 
 export type AppUser = typeof user.$inferSelect
@@ -44,37 +45,6 @@ async function findUserByEmail(email: string): Promise<AppUser | undefined> {
     .then((rows) => rows[0])
 }
 
-/**
- * Migrate a legacy better-auth user row to the Clerk user id.
- * Updates PK + ownership FKs so existing files stay linked.
- */
-function rekeyUserId(oldId: string, newId: string) {
-  if (oldId === newId) return
-
-  sqlite.pragma('foreign_keys = OFF')
-  try {
-    const tx = sqlite.transaction(() => {
-      sqlite.prepare(`UPDATE "user" SET id = ? WHERE id = ?`).run(newId, oldId)
-      sqlite
-        .prepare(`UPDATE folders SET user_id = ? WHERE user_id = ?`)
-        .run(newId, oldId)
-      sqlite.prepare(`UPDATE files SET user_id = ? WHERE user_id = ?`).run(newId, oldId)
-      sqlite
-        .prepare(`UPDATE share_links SET created_by = ? WHERE created_by = ?`)
-        .run(newId, oldId)
-      sqlite
-        .prepare(`UPDATE session SET user_id = ? WHERE user_id = ?`)
-        .run(newId, oldId)
-      sqlite
-        .prepare(`UPDATE account SET user_id = ? WHERE user_id = ?`)
-        .run(newId, oldId)
-    })
-    tx()
-  } finally {
-    sqlite.pragma('foreign_keys = ON')
-  }
-}
-
 /** Ensure a local SQLite user row exists for the Clerk user (app prefs / ownership). */
 async function ensureLocalUser(clerkUserId: string): Promise<AppUser> {
   const existing = await findUserById(clerkUserId)
@@ -105,7 +75,7 @@ async function ensureLocalUser(clerkUserId: string): Promise<AppUser> {
   // Legacy better-auth row with same email but different id → re-key to Clerk.
   const byEmail = await findUserByEmail(primaryEmail)
   if (byEmail && byEmail.id !== clerkUserId) {
-    rekeyUserId(byEmail.id, clerkUserId)
+    rekeyUserId(sqlite, byEmail.id, clerkUserId)
     await db
       .update(user)
       .set({
@@ -134,7 +104,7 @@ async function ensureLocalUser(clerkUserId: string): Promise<AppUser> {
       (await findUserByEmail(primaryEmail))
     if (raced) {
       if (raced.id !== clerkUserId) {
-        rekeyUserId(raced.id, clerkUserId)
+        rekeyUserId(sqlite, raced.id, clerkUserId)
         const linked = await findUserById(clerkUserId)
         if (linked) return linked
       }
