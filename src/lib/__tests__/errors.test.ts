@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 
-import { AppError, formatZodError, getErrorMessage } from '#/lib/errors'
+import {
+  AppError,
+  firstZodFieldErrors,
+  formatZodError,
+  getErrorMessage,
+} from '#/lib/errors'
 
 describe('getErrorMessage', () => {
   it('maps known auth and network errors', () => {
@@ -11,12 +16,33 @@ describe('getErrorMessage', () => {
     expect(getErrorMessage(new TypeError('Failed to fetch'))).toBe(
       'Server neodpovedá. Skontroluj pripojenie.',
     )
+    expect(getErrorMessage(new Error('connection timeout'))).toBe(
+      'Požiadavka vypršala. Skús to znova.',
+    )
+  })
+
+  it('maps UploadThing nested data.error', () => {
+    const error = new Error('wrapper') as Error & {
+      data: { error: string }
+    }
+    error.data = { error: 'UPLOADTHING_TOKEN missing' }
+    expect(getErrorMessage(error)).toBe(
+      'Úložisko nie je nakonfigurované (chýba token).',
+    )
+  })
+
+  it('maps string and message-shaped objects', () => {
+    expect(getErrorMessage('Unauthorized')).toBe('Musíš byť prihlásený')
+    expect(getErrorMessage({ message: 'Failed to fetch' })).toBe(
+      'Server neodpovedá. Skontroluj pripojenie.',
+    )
   })
 
   it('keeps AppError messages', () => {
     expect(getErrorMessage(new AppError('Priečinok neexistuje'))).toBe(
       'Priečinok neexistuje',
     )
+    expect(new AppError('x', 'NOT_FOUND').code).toBe('NOT_FOUND')
   })
 
   it('formats zod errors', () => {
@@ -30,5 +56,23 @@ describe('getErrorMessage', () => {
 
   it('falls back for unknown values', () => {
     expect(getErrorMessage(null, 'fallback')).toBe('fallback')
+    expect(getErrorMessage(new Error('   '))).toBe('Niečo sa pokazilo')
+  })
+})
+
+describe('firstZodFieldErrors', () => {
+  it('maps the first issue per field', () => {
+    const schema = z.object({
+      email: z.string().email('Neplatný e-mail'),
+      password: z.string().min(12, 'Príliš krátke'),
+    })
+    const result = schema.safeParse({ email: 'x', password: 'short' })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(firstZodFieldErrors(result.error)).toEqual({
+        email: 'Neplatný e-mail',
+        password: 'Príliš krátke',
+      })
+    }
   })
 })

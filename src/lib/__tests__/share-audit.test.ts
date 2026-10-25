@@ -56,6 +56,12 @@ describe('hashAuditIp', () => {
       hashAuditIp('1.2.3.4', 'b'.repeat(16)),
     )
   })
+
+  it('requires a pepper when hashing a real IP', () => {
+    expect(() => hashAuditIp('1.2.3.4', '')).toThrow(
+      /CLERK_SECRET_KEY|AUDIT_IP_PEPPER/,
+    )
+  })
 })
 
 describe('formatIpFingerprint', () => {
