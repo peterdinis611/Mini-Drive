@@ -13,6 +13,14 @@ const config = defineConfig({
     port: 3000,
     strictPort: true,
   },
+  // Native addons must load via Node, not Vite's SSR module runner
+  // (bindings breaks under eval: "Cannot read properties of undefined (reading 'indexOf')").
+  ssr: {
+    external: ['better-sqlite3'],
+  },
+  optimizeDeps: {
+    exclude: ['better-sqlite3'],
+  },
   build: {
     target: 'es2022',
     cssCodeSplit: true,

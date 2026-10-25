@@ -12,6 +12,8 @@ describe('buildContentSecurityPolicy', () => {
     expect(csp).toContain('upgrade-insecure-requests')
     expect(csp).toContain('https://fonts.googleapis.com')
     expect(csp).toContain('https://*.ufs.sh')
+    expect(csp).toContain('https://*.clerk.accounts.dev')
+    expect(csp).toContain('https://img.clerk.com')
     expect(csp).not.toContain("'unsafe-eval'")
   })
 

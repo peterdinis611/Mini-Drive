@@ -1,5 +1,5 @@
 /**
- * Content-Security-Policy tuned for TanStack Start + Vite + UploadThing + Google Fonts.
+ * Content-Security-Policy tuned for TanStack Start + Vite + Clerk + UploadThing + Google Fonts.
  * Dev relaxes script/connect for HMR; production stays stricter.
  */
 export function buildContentSecurityPolicy(
@@ -7,14 +7,23 @@ export function buildContentSecurityPolicy(
 ): string {
   const isDev = env === 'development'
 
+  const clerkHosts = [
+    'https://*.clerk.accounts.dev',
+    'https://*.clerk.com',
+    'https://clerk.com',
+    'https://api.clerk.com',
+  ]
+
   const scriptSrc = [
     "'self'",
+    ...clerkHosts,
     // React / Vite hydration & HMR need these in development.
     ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : ["'unsafe-inline'"]),
   ]
 
   const connectSrc = [
     "'self'",
+    ...clerkHosts,
     'https://*.uploadthing.com',
     'https://uploadthing.com',
     'https://*.ufs.sh',
@@ -35,7 +44,10 @@ export function buildContentSecurityPolicy(
   const directives: Array<[string, string[]]> = [
     ['default-src', ["'self'"]],
     ['base-uri', ["'self'"]],
-    ['form-action', ["'self'"]],
+    [
+      'form-action',
+      ["'self'", ...clerkHosts, 'https://accounts.google.com'],
+    ],
     ['frame-ancestors', ["'none'"]],
     ['object-src', ["'none'"]],
     ['script-src', scriptSrc],
@@ -50,6 +62,8 @@ export function buildContentSecurityPolicy(
         "'self'",
         'data:',
         'blob:',
+        'https://img.clerk.com',
+        'https://*.clerk.com',
         'https://*.ufs.sh',
         'https://utfs.io',
         'https://*.uploadthing.com',
@@ -67,7 +81,15 @@ export function buildContentSecurityPolicy(
     ],
     ['connect-src', connectSrc],
     ['worker-src', ["'self'", 'blob:']],
-    ['frame-src', ["'self'", 'blob:']],
+    [
+      'frame-src',
+      [
+        "'self'",
+        'blob:',
+        ...clerkHosts,
+        'https://challenges.cloudflare.com',
+      ],
+    ],
     ['upgrade-insecure-requests', []],
   ]
 

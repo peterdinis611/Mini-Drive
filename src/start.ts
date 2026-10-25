@@ -6,7 +6,10 @@ import {
 } from '@tanstack/react-start'
 import { setResponseHeader } from '@tanstack/react-start/server'
 
+import { silenceClerkDevKeySpam } from '#/lib/clerk-dev-silence'
 import { buildContentSecurityPolicy } from '#/lib/csp'
+
+silenceClerkDevKeySpam()
 
 const csrfMiddleware = createCsrfMiddleware({
   filter: (ctx) => ctx.handlerType === 'serverFn',

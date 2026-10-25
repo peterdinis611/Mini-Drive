@@ -1,4 +1,8 @@
 import { ClerkProvider } from '@clerk/tanstack-react-start'
+
+import { silenceClerkDevKeySpam } from '#/lib/clerk-dev-silence'
+
+silenceClerkDevKeySpam()
 import {
   HeadContent,
   Outlet,
@@ -18,6 +22,7 @@ import {
   ServerErrorPage,
 } from '#/components/status/status-page'
 import { Toaster } from '#/components/toast/toaster'
+import { clerkAppearance } from '#/lib/clerk-appearance'
 import { APP_NAME } from '#/lib/constants'
 import { SITE } from '#/lib/site'
 import { appJsonLd, buildSeoHead } from '#/lib/seo'
@@ -134,7 +139,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="min-h-svh antialiased">
-        <ClerkProvider>
+        <ClerkProvider
+          afterSignOutUrl="/sign-in"
+          telemetry={false}
+          appearance={clerkAppearance}
+        >
           <ThemeProvider>
             <ThemeSync />
             {children}

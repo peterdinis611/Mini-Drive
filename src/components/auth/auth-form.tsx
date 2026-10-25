@@ -95,7 +95,10 @@ export function AuthForm({ mode, intro }: Props) {
         animate="show"
       >
         {intro ? (
-          <motion.div variants={reduce ? undefined : fadeUp}>{intro}</motion.div>
+          // RSC payloads trip motion's isMotionValue check if used as direct children.
+          <motion.div variants={reduce ? undefined : fadeUp}>
+            <div>{intro}</div>
+          </motion.div>
         ) : (
           <motion.div
             className="mb-8 space-y-2 text-center"
