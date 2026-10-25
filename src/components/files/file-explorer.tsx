@@ -109,6 +109,8 @@ type Props = {
     breadcrumbs: Crumb[]
     allFolders: FolderTreeNode[]
     viewPreference: 'grid' | 'list'
+    defaultShareExpiresIn?: number
+    confirmDelete?: boolean
   }
 }
 
@@ -271,14 +273,29 @@ export function FileExplorer({
     })
   }, [])
 
+  const confirmTrash = useCallback(
+    (message: string) => {
+      if (initial.confirmDelete === false) return true
+      return window.confirm(message)
+    },
+    [initial.confirmDelete],
+  )
+
   const handleBulkDelete = useCallback(() => {
     const fileIds = [...selectedIds]
     if (fileIds.length === 0) return
+    if (
+      !confirmTrash(
+        `Presunúť ${fileIds.length} súborov do koša?`,
+      )
+    ) {
+      return
+    }
     void run(
       () => bulkDeleteFiles({ data: { fileIds } }),
       'Presunuté do koša',
     ).then(clearSelection)
-  }, [clearSelection, run, selectedIds])
+  }, [clearSelection, confirmTrash, run, selectedIds])
 
   const handleBulkShare = useCallback(() => {
     if (selectedIds.size !== 1) return
@@ -444,12 +461,19 @@ export function FileExplorer({
                     window.open(result.url, '_blank', 'noopener,noreferrer')
                   }, 'Odkaz na stiahnutie pripravený')
                 }
-                onDelete={() =>
-                  run(
+                onDelete={() => {
+                  if (
+                    !confirmTrash(
+                      `Presunúť „${file.name}“ do koša?`,
+                    )
+                  ) {
+                    return
+                  }
+                  void run(
                     () => deleteFile({ data: { fileId: file.id } }),
                     'Presunuté do koša',
                   )
-                }
+                }}
                 onShare={() => setDialog({ type: 'share-file', file })}
               />
             )
@@ -463,6 +487,7 @@ export function FileExplorer({
       ]),
     [
       allFilteredSelected,
+      confirmTrash,
       filteredFiles,
       handleUpload,
       isUploading,
@@ -739,12 +764,19 @@ export function FileExplorer({
                             )
                           }, 'Odkaz na stiahnutie pripravený')
                         }
-                        onDelete={() =>
-                          run(
+                        onDelete={() => {
+                          if (
+                            !confirmTrash(
+                              `Presunúť „${file.name}“ do koša?`,
+                            )
+                          ) {
+                            return
+                          }
+                          void run(
                             () => deleteFile({ data: { fileId: file.id } }),
                             'Presunuté do koša',
                           )
-                        }
+                        }}
                         onShare={() =>
                           setDialog({ type: 'share-file', file })
                         }
@@ -932,12 +964,14 @@ export function FileExplorer({
         open={dialog?.type === 'share-file'}
         fileId={dialog?.type === 'share-file' ? dialog.file.id : null}
         fileName={dialog?.type === 'share-file' ? dialog.file.name : ''}
+        defaultExpiresIn={initial.defaultShareExpiresIn}
         onOpenChange={(open) => !open && setDialog(null)}
       />
 
       <FilePreviewDialog
         open={Boolean(previewFile)}
         file={previewFile}
+        defaultShareExpiresIn={initial.defaultShareExpiresIn}
         onOpenChange={(open) => {
           if (!open) void setUrlState({ preview: null })
         }}

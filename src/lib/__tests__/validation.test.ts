@@ -62,6 +62,20 @@ describe('updateSettingsSchema', () => {
       updateSettingsSchema.parse({ name: 'Peter', viewPreference: 'list' }),
     ).toEqual({ name: 'Peter', viewPreference: 'list' })
   })
+
+  it('accepts theme, share expiry and confirmDelete', () => {
+    expect(
+      updateSettingsSchema.parse({
+        themePreference: 'dark',
+        defaultShareExpiresIn: 3600,
+        confirmDelete: false,
+      }),
+    ).toEqual({
+      themePreference: 'dark',
+      defaultShareExpiresIn: 3600,
+      confirmDelete: false,
+    })
+  })
 })
 
 describe('validateFilesForUpload', () => {

@@ -10,6 +10,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { NuqsAdapter } from 'nuqs/adapters/react'
 
 import { ThemeProvider } from '#/components/theme-provider'
+import { ThemeSync } from '#/components/theme-sync'
 import {
   NotFoundPage,
   RoutePending,
@@ -123,6 +124,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="min-h-svh antialiased">
         <ThemeProvider>
+          <ThemeSync />
           {children}
           <Toaster />
         </ThemeProvider>

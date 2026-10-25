@@ -26,6 +26,18 @@ export const user = sqliteTable('user', {
   viewPreference: text('view_preference', { enum: ['grid', 'list'] })
     .notNull()
     .default('list'),
+  themePreference: text('theme_preference', {
+    enum: ['light', 'dark', 'system'],
+  })
+    .notNull()
+    .default('system'),
+  /** Default share link TTL (seconds) — must match SHARE_EXPIRY_PRESETS. */
+  defaultShareExpiresIn: integer('default_share_expires_in')
+    .notNull()
+    .default(3600),
+  confirmDelete: integer('confirm_delete', { mode: 'boolean' })
+    .notNull()
+    .default(true),
   onboardingStep: integer('onboarding_step').notNull().default(1),
 })
 

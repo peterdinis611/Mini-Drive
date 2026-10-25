@@ -25,6 +25,7 @@ type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSavedToDrive?: () => void
+  defaultShareExpiresIn?: number
 }
 
 export function FilePreviewDialog({
@@ -32,6 +33,7 @@ export function FilePreviewDialog({
   open,
   onOpenChange,
   onSavedToDrive,
+  defaultShareExpiresIn,
 }: Props) {
   const { resolvedTheme } = useTheme()
   const [url, setUrl] = useState<string | null>(null)
@@ -136,6 +138,7 @@ export function FilePreviewDialog({
         open={shareOpen}
         fileId={file?.id ?? null}
         fileName={file?.name ?? ''}
+        defaultExpiresIn={defaultShareExpiresIn}
         onOpenChange={setShareOpen}
       />
     </>

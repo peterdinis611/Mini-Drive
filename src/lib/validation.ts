@@ -26,6 +26,8 @@ const RESERVED_NAMES = new Set([
 
 export const viewPreferenceSchema = z.enum(['grid', 'list'])
 
+export const themePreferenceSchema = z.enum(['light', 'dark', 'system'])
+
 export const displayNameSchema = z
   .string()
   .trim()
@@ -109,15 +111,6 @@ export const onboardingPreferencesSchema = z.object({
   viewPreference: viewPreferenceSchema,
 })
 
-export const updateSettingsSchema = z
-  .object({
-    name: displayNameSchema.optional(),
-    viewPreference: viewPreferenceSchema.optional(),
-  })
-  .refine((data) => data.name !== undefined || data.viewPreference !== undefined, {
-    message: 'Nie je čo uložiť',
-  })
-
 export const expiresInSchema = z
   .number()
   .int()
@@ -126,6 +119,35 @@ export const expiresInSchema = z
     (value) => SHARE_EXPIRY_PRESETS.some((preset) => preset.value === value),
     { message: 'Neplatná platnosť odkazu' },
   )
+
+export const updateSettingsSchema = z
+  .object({
+    name: displayNameSchema.optional(),
+    viewPreference: viewPreferenceSchema.optional(),
+    themePreference: themePreferenceSchema.optional(),
+    defaultShareExpiresIn: expiresInSchema.optional(),
+    confirmDelete: z.boolean().optional(),
+  })
+  .refine(
+    (data) =>
+      data.name !== undefined ||
+      data.viewPreference !== undefined ||
+      data.themePreference !== undefined ||
+      data.defaultShareExpiresIn !== undefined ||
+      data.confirmDelete !== undefined,
+    { message: 'Nie je čo uložiť' },
+  )
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: loginPasswordSchema,
+    newPassword: passwordSchema,
+    confirmPassword: passwordSchema,
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Heslá sa nezhodujú',
+    path: ['confirmPassword'],
+  })
 
 export const createShareLinkSchema = z.object({
   fileId: z.string().uuid('Neplatné ID súboru'),

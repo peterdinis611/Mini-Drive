@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { downloadBlob, rotateSize, withCroppedName } from '#/lib/crop-image'
+import {
+  clampViewZoom,
+  downloadBlob,
+  rotateSize,
+  withCroppedName,
+  withEditedName,
+} from '#/lib/crop-image'
 
 describe('withCroppedName', () => {
   it('inserts -cropped before extension', () => {
@@ -32,6 +38,23 @@ describe('rotateSize', () => {
     const size = rotateSize(100, 100, 45)
     expect(size.width).toBeGreaterThan(100)
     expect(size.height).toBeGreaterThan(100)
+  })
+})
+
+describe('withEditedName', () => {
+  it('inserts suffix before extension', () => {
+    expect(withEditedName('photo.png')).toBe('photo-edited.png')
+    expect(withEditedName('photo.png', 'annotated')).toBe(
+      'photo-annotated.png',
+    )
+  })
+})
+
+describe('clampViewZoom', () => {
+  it('clamps to range', () => {
+    expect(clampViewZoom(0.01)).toBe(0.25)
+    expect(clampViewZoom(99)).toBe(5)
+    expect(clampViewZoom(1.26)).toBe(1.26)
   })
 })
 

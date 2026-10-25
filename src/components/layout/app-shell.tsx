@@ -4,6 +4,10 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
 import { AppSidebar } from '#/components/layout/app-sidebar'
 import type { DriveStats } from '#/components/layout/app-sidebar'
+import {
+  ScrollToTopButton,
+  ScrollToTopOnNavigate,
+} from '#/components/layout/scroll-to-top'
 import type { FolderTreeNode } from '#/components/files/types'
 import { Button } from '#/components/ui/button'
 import {
@@ -159,6 +163,9 @@ export function AppShell({
             {children}
           </motion.main>
         </div>
+
+        <ScrollToTopOnNavigate />
+        <ScrollToTopButton />
       </div>
     </TooltipProvider>
   )

@@ -34,6 +34,8 @@ function FilesRootPage() {
         breadcrumbs: contents.breadcrumbs,
         allFolders: chrome.folders,
         viewPreference: chrome.user.viewPreference,
+        defaultShareExpiresIn: chrome.user.defaultShareExpiresIn,
+        confirmDelete: chrome.user.confirmDelete,
       }}
     />
   )

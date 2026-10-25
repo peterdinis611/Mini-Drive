@@ -24,6 +24,18 @@ type Props = {
   fileName: string
   onOpenChange: (open: boolean) => void
   onCreated?: () => void
+  /** From user settings — falls back to 1 hour. */
+  defaultExpiresIn?: number
+}
+
+function resolveDefaultExpiresIn(value: number | undefined) {
+  if (
+    value != null &&
+    SHARE_EXPIRY_PRESETS.some((preset) => preset.value === value)
+  ) {
+    return value
+  }
+  return SHARE_EXPIRY_PRESETS[1].value
 }
 
 export function ShareDialog({
@@ -32,9 +44,10 @@ export function ShareDialog({
   fileName,
   onOpenChange,
   onCreated,
+  defaultExpiresIn,
 }: Props) {
-  const [expiresIn, setExpiresIn] = useState<number>(
-    SHARE_EXPIRY_PRESETS[1].value,
+  const [expiresIn, setExpiresIn] = useState<number>(() =>
+    resolveDefaultExpiresIn(defaultExpiresIn),
   )
   const [pending, setPending] = useState(false)
   const [createdPath, setCreatedPath] = useState<string | null>(null)
@@ -44,9 +57,9 @@ export function ShareDialog({
     if (open) {
       setCreatedPath(null)
       setCopied(false)
-      setExpiresIn(SHARE_EXPIRY_PRESETS[1].value)
+      setExpiresIn(resolveDefaultExpiresIn(defaultExpiresIn))
     }
-  }, [open, fileId])
+  }, [open, fileId, defaultExpiresIn])
 
   async function handleCreate() {
     if (!fileId) {

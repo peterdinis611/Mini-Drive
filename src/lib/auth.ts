@@ -41,6 +41,24 @@ export const auth = betterAuth({
         defaultValue: 'list',
         input: true,
       },
+      themePreference: {
+        type: 'string',
+        required: false,
+        defaultValue: 'system',
+        input: true,
+      },
+      defaultShareExpiresIn: {
+        type: 'number',
+        required: false,
+        defaultValue: 3600,
+        input: true,
+      },
+      confirmDelete: {
+        type: 'boolean',
+        required: false,
+        defaultValue: true,
+        input: true,
+      },
       onboardingStep: {
         type: 'number',
         required: false,
