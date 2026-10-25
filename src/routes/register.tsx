@@ -2,20 +2,17 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { AuthForm } from '#/components/auth/auth-form'
 import { requireGuestSession } from '#/lib/route-guards'
-import { buildSeoHead } from '#/lib/seo'
+import { authPageHead } from '#/lib/seo'
+import { getAuthChromeRsc } from '#/server/rsc/public-pages'
 
 export const Route = createFileRoute('/register')({
   beforeLoad: requireGuestSession,
-  head: () =>
-    buildSeoHead({
-      title: 'Registrácia',
-      description:
-        'Vytvor si účet v Mini Drive — súkromné úložisko súborov so safe-url zdieľaním.',
-      path: '/register',
-    }),
+  loader: async () => getAuthChromeRsc({ data: { mode: 'register' } }),
+  head: () => authPageHead('register'),
   component: RegisterPage,
 })
 
 function RegisterPage() {
-  return <AuthForm mode="register" />
+  const { Renderable } = Route.useLoaderData()
+  return <AuthForm mode="register" intro={Renderable} />
 }

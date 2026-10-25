@@ -44,8 +44,8 @@ export const Route = createFileRoute('/s/$token')({
     return buildSeoHead({
       title,
       description: fileName
-        ? `Safe-url odkaz na súbor „${fileName}“ v ${APP_NAME}.`
-        : `Dočasný safe-url odkaz v ${APP_NAME}.`,
+        ? `Dočasný safe-url na súbor „${fileName}“ v ${APP_NAME}. Odkaz neodhaľuje interný kľúč úložiska.`
+        : `Dočasný safe-url odkaz v ${APP_NAME}. Vyžaduje platný token; nie je určený na indexáciu.`,
       path: `/s/${params.token}`,
       noIndex: true,
     })
@@ -55,6 +55,7 @@ export const Route = createFileRoute('/s/$token')({
 
 function PublicSharePage() {
   const data = Route.useLoaderData()
+  if (!data) return null
 
   if (data.status === 'ok') {
     return (

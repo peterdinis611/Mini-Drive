@@ -26,13 +26,15 @@ export const Route = createFileRoute('/sitemap.xml')({
         const siteUrl = getSiteUrl()
         const lastmod = new Date().toISOString().slice(0, 10)
 
-        const urls = PUBLIC_PATHS.map((path, index) => {
-          const loc = `${siteUrl}${path}`
-          const priority = index === 0 ? '1.0' : '0.8'
+        const urls = PUBLIC_PATHS.map((path) => {
+          const loc = path === '/' ? siteUrl : `${siteUrl}${path}`
+          const priority =
+            path === '/' ? '1.0' : path === '/register' ? '0.9' : '0.8'
+          const changefreq = path === '/' ? 'weekly' : 'monthly'
           return `  <url>
     <loc>${escapeXml(loc)}</loc>
     <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>
   </url>`
         }).join('\n')

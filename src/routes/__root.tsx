@@ -50,7 +50,13 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         },
         {
           name: 'theme-color',
-          content: '#2383e2',
+          content: SITE.themeColorLight,
+          media: '(prefers-color-scheme: light)',
+        },
+        {
+          name: 'theme-color',
+          content: SITE.themeColorDark,
+          media: '(prefers-color-scheme: dark)',
         },
         {
           name: 'color-scheme',
@@ -59,6 +65,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         {
           name: 'format-detection',
           content: 'telephone=no',
+        },
+        {
+          name: 'referrer',
+          content: 'strict-origin-when-cross-origin',
         },
         ...defaultSeo.meta,
       ],

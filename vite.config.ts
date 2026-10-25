@@ -1,9 +1,8 @@
 import { defineConfig } from 'vite'
 import { devtools } from '@tanstack/devtools-vite'
-
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
-
 import viteReact from '@vitejs/plugin-react'
+import rsc from '@vitejs/plugin-rsc'
 import tailwindcss from '@tailwindcss/vite'
 
 const isProd = process.env.NODE_ENV === 'production'
@@ -25,11 +24,13 @@ const config = defineConfig({
     devtools(),
     tailwindcss(),
     tanstackStart({
+      rsc: { enabled: true },
       // Public auth pages can be warm-started; private app stays SSR via loaders.
       prerender: {
         enabled: false,
       },
     }),
+    rsc(),
     viteReact(),
   ],
 })

@@ -16,7 +16,13 @@ import { loginSchema, registerSchema } from '#/lib/validation'
 
 type Mode = 'login' | 'register'
 
-export function AuthForm({ mode }: { mode: Mode }) {
+type Props = {
+  mode: Mode
+  /** Optional server-rendered intro (RSC) above the form. */
+  intro?: React.ReactNode
+}
+
+export function AuthForm({ mode, intro }: Props) {
   const navigate = useNavigate()
   const reduce = useReducedMotion()
   const [name, setName] = useState('')
@@ -88,25 +94,29 @@ export function AuthForm({ mode }: { mode: Mode }) {
         initial={reduce ? false : 'hidden'}
         animate="show"
       >
-        <motion.div
-          className="mb-8 space-y-2 text-center"
-          variants={reduce ? undefined : fadeUp}
-        >
+        {intro ? (
+          <motion.div variants={reduce ? undefined : fadeUp}>{intro}</motion.div>
+        ) : (
           <motion.div
-            className="mx-auto flex size-10 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground"
-            whileHover={reduce ? undefined : { scale: 1.08, rotate: -4 }}
-            whileTap={reduce ? undefined : { scale: 0.95 }}
-            transition={riseTransition}
+            className="mb-8 space-y-2 text-center"
+            variants={reduce ? undefined : fadeUp}
           >
-            M
+            <motion.div
+              className="mx-auto flex size-10 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground"
+              whileHover={reduce ? undefined : { scale: 1.08, rotate: -4 }}
+              whileTap={reduce ? undefined : { scale: 0.95 }}
+              transition={riseTransition}
+            >
+              M
+            </motion.div>
+            <h1 className="font-display text-3xl">{APP_NAME}</h1>
+            <p className="text-sm text-muted-foreground">
+              {mode === 'login'
+                ? 'Prihlás sa do svojho úložiska'
+                : 'Vytvor si účet'}
+            </p>
           </motion.div>
-          <h1 className="font-display text-3xl">{APP_NAME}</h1>
-          <p className="text-sm text-muted-foreground">
-            {mode === 'login'
-              ? 'Prihlás sa do svojho úložiska'
-              : 'Vytvor si účet'}
-          </p>
-        </motion.div>
+        )}
 
         <motion.form
           className="space-y-4"
