@@ -28,8 +28,8 @@ export const SITE = {
     'UploadThing',
     'TanStack Start',
   ] as const,
-  themeColorLight: '#f3faf6',
-  themeColorDark: '#0b1f2a',
+  themeColorLight: '#f6faf7',
+  themeColorDark: '#14161f',
   author: APP_NAME,
   category: 'BusinessApplication',
 } as const

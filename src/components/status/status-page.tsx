@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { ArrowLeft, Home, RefreshCw } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 
+import { BrandMark } from '#/components/brand-mark'
 import { AtmosphereBackdrop } from '#/components/layout/atmosphere-backdrop'
 import { ThemeToggle } from '#/components/theme-toggle'
 import { Button } from '#/components/ui/button'
@@ -33,13 +34,13 @@ export function StatusPage({
   return (
     <div
       className={cn(
-        'status-page relative flex min-h-svh flex-col overflow-hidden',
+        'status-page app-frame',
         isNotFound ? 'status-page--404' : 'status-page--500',
       )}
     >
+      <div className="app-frame-inner relative flex min-h-[inherit] flex-col overflow-hidden">
       <AtmosphereBackdrop intensity="bold" />
       <div className="status-page-scan" aria-hidden />
-      <div className="status-page-rail" aria-hidden />
 
       <motion.header
         className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10"
@@ -47,20 +48,7 @@ export function StatusPage({
         animate={{ opacity: 1, y: 0 }}
         transition={riseTransition}
       >
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2.5 text-sm font-semibold tracking-tight text-foreground transition hover:text-primary"
-        >
-          <motion.span
-            className="flex size-8 items-center justify-center rounded-sm bg-primary font-mono text-xs font-bold text-primary-foreground"
-            whileHover={reduce ? undefined : { scale: 1.06, rotate: -4 }}
-            whileTap={reduce ? undefined : { scale: 0.96 }}
-            transition={springSnappy}
-          >
-            M
-          </motion.span>
-          {APP_NAME}
-        </Link>
+        <BrandMark />
         <ThemeToggle />
       </motion.header>
 
@@ -68,12 +56,12 @@ export function StatusPage({
         {/* One composition: brand-scale code + copy + CTAs */}
         <div className="relative">
           <motion.p
-            className="mb-3 font-mono text-[11px] tracking-[0.28em] text-muted-foreground uppercase"
+            className="mb-3 text-sm font-medium text-muted-foreground"
             initial={reduce ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...riseTransition, delay: 0.05 }}
           >
-            {isNotFound ? 'Fault · missing_path' : 'Fault · runtime'}
+            {isNotFound ? 'Táto cesta neexistuje' : 'Niečo sa pokazilo'}
           </motion.p>
 
           <div
@@ -84,7 +72,7 @@ export function StatusPage({
               <motion.span
                 key={`${digit}-${i}`}
                 className={cn(
-                  'font-mono text-[clamp(6.5rem,28vw,11rem)] leading-[0.82] font-medium tracking-[-0.06em]',
+                  'font-display text-[clamp(6.5rem,28vw,11rem)] leading-[0.82] font-bold tracking-[-0.06em]',
                   isNotFound ? 'text-primary' : 'text-destructive',
                 )}
                 initial={
@@ -164,7 +152,7 @@ export function StatusPage({
             whileTap={reduce ? undefined : { scale: 0.98 }}
             transition={springSnappy}
           >
-            <Button asChild size="lg" className="rounded-sm">
+            <Button asChild size="lg">
               <Link to="/">
                 <Home />
                 Domov
@@ -182,7 +170,6 @@ export function StatusPage({
                 type="button"
                 size="lg"
                 variant="outline"
-                className="rounded-sm"
                 onClick={onRetry}
               >
                 <RefreshCw />
@@ -195,7 +182,7 @@ export function StatusPage({
               whileTap={reduce ? undefined : { scale: 0.98 }}
               transition={springSnappy}
             >
-              <Button asChild size="lg" variant="outline" className="rounded-sm">
+              <Button asChild size="lg" variant="outline">
                 <Link to="/files">
                   <ArrowLeft />
                   Späť do súborov
@@ -206,7 +193,7 @@ export function StatusPage({
         </motion.div>
 
         <motion.p
-          className="mt-10 font-mono text-[11px] tracking-wide text-muted-foreground/70"
+          className="mt-10 text-sm text-muted-foreground/70"
           initial={reduce ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ ...riseTransition, delay: 0.55 }}
@@ -214,6 +201,7 @@ export function StatusPage({
           {APP_NAME} · HTTP {code}
         </motion.p>
       </main>
+      </div>
     </div>
   )
 }

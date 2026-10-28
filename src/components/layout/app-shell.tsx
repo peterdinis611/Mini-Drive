@@ -49,123 +49,125 @@ export function AppShell({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="flex min-h-svh bg-background">
-        <AnimatePresence initial={false}>
-          {!desktopCollapsed ? (
-            <motion.div
-              key="sidebar"
-              className="hidden lg:block"
-              initial={reduce ? false : { width: 0, opacity: 0 }}
-              animate={{ width: 'auto', opacity: 1 }}
-              exit={reduce ? undefined : { width: 0, opacity: 0 }}
-              transition={riseTransition}
+      <div className="app-frame">
+        <div className="app-frame-inner flex min-h-[inherit]">
+          <AnimatePresence initial={false}>
+            {!desktopCollapsed ? (
+              <motion.div
+                key="sidebar"
+                className="hidden lg:block"
+                initial={reduce ? false : { width: 0, opacity: 0 }}
+                animate={{ width: 'auto', opacity: 1 }}
+                exit={reduce ? undefined : { width: 0, opacity: 0 }}
+                transition={riseTransition}
+              >
+                <div className="sticky top-0 h-[calc(100svh-2*clamp(0.45rem,1.2vw,0.85rem))]">
+                  <AppSidebar
+                    userName={userName}
+                    userEmail={userEmail}
+                    folders={folders}
+                    activeFolderId={activeFolderId}
+                    stats={stats}
+                    onCollapse={() => setDesktopCollapsed(true)}
+                  />
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetContent
+              side="left"
+              className="w-[260px] border-sidebar-border bg-sidebar p-0 sm:max-w-[260px]"
             >
-              <div className="sticky top-0 h-svh">
-                <AppSidebar
-                  userName={userName}
-                  userEmail={userEmail}
-                  folders={folders}
-                  activeFolderId={activeFolderId}
-                  stats={stats}
-                  onCollapse={() => setDesktopCollapsed(true)}
-                />
-              </div>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+              <SheetHeader className="sr-only">
+                <SheetTitle>{APP_NAME}</SheetTitle>
+              </SheetHeader>
+              <AppSidebar
+                userName={userName}
+                userEmail={userEmail}
+                folders={folders}
+                activeFolderId={activeFolderId}
+                stats={stats}
+                onNavigate={() => setMobileOpen(false)}
+                className="w-full border-0"
+              />
+            </SheetContent>
+          </Sheet>
 
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent
-            side="left"
-            className="w-[260px] border-sidebar-border bg-sidebar p-0 sm:max-w-[260px]"
-          >
-            <SheetHeader className="sr-only">
-              <SheetTitle>{APP_NAME}</SheetTitle>
-            </SheetHeader>
-            <AppSidebar
-              userName={userName}
-              userEmail={userEmail}
-              folders={folders}
-              activeFolderId={activeFolderId}
-              stats={stats}
-              onNavigate={() => setMobileOpen(false)}
-              className="w-full border-0"
-            />
-          </SheetContent>
-        </Sheet>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-20 border-b border-border/80 bg-background/85 backdrop-blur-md">
-            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-8">
-              <div className="flex min-w-0 items-center gap-2">
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="lg:hidden"
-                  aria-label="Menu"
-                  onClick={() => setMobileOpen(true)}
-                >
-                  <Menu />
-                </Button>
-                {desktopCollapsed ? (
+          <div className="flex min-w-0 flex-1 flex-col">
+            <header className="sticky top-0 z-20 border-b border-border/80 bg-background/85 backdrop-blur-md">
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-8">
+                <div className="flex min-w-0 items-center gap-2">
                   <Button
                     type="button"
                     size="icon"
                     variant="ghost"
-                    className="hidden lg:inline-flex"
-                    aria-label="Sidebar"
-                    onClick={() => setDesktopCollapsed(false)}
+                    className="lg:hidden"
+                    aria-label="Menu"
+                    onClick={() => setMobileOpen(true)}
                   >
-                    <PanelLeft />
+                    <Menu />
                   </Button>
-                ) : null}
-                <div className="min-w-0 overflow-hidden">
-                  <AnimatePresence mode="wait" initial={false}>
-                    <motion.div
-                      key={title}
-                      initial={reduce ? false : { opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={reduce ? undefined : { opacity: 0, y: -6 }}
-                      transition={riseTransition}
+                  {desktopCollapsed ? (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="hidden lg:inline-flex"
+                      aria-label="Sidebar"
+                      onClick={() => setDesktopCollapsed(false)}
                     >
-                      <h1 className="font-display truncate text-[28px] leading-tight text-foreground sm:text-[32px]">
-                        {title}
-                      </h1>
-                      {subtitle ? (
-                        <p className="truncate text-sm text-muted-foreground">
-                          {subtitle}
-                        </p>
-                      ) : null}
-                    </motion.div>
-                  </AnimatePresence>
+                      <PanelLeft />
+                    </Button>
+                  ) : null}
+                  <div className="min-w-0 overflow-hidden">
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.div
+                        key={title}
+                        initial={reduce ? false : { opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={reduce ? undefined : { opacity: 0, y: -6 }}
+                        transition={riseTransition}
+                      >
+                        <h1 className="font-display truncate text-[28px] leading-tight text-foreground sm:text-[32px]">
+                          {title}
+                        </h1>
+                        {subtitle ? (
+                          <p className="truncate text-sm text-muted-foreground">
+                            {subtitle}
+                          </p>
+                        ) : null}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
                 </div>
+                {actions ? (
+                  <motion.div
+                    className="flex flex-wrap items-center gap-2"
+                    initial={reduce ? false : { opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...riseTransition, delay: 0.05 }}
+                  >
+                    {actions}
+                  </motion.div>
+                ) : null}
               </div>
-              {actions ? (
-                <motion.div
-                  className="flex flex-wrap items-center gap-2"
-                  initial={reduce ? false : { opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ ...riseTransition, delay: 0.05 }}
-                >
-                  {actions}
-                </motion.div>
-              ) : null}
-            </div>
-          </header>
+            </header>
 
-          <motion.main
-            className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-8"
-            initial={reduce ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...riseTransition, delay: 0.04 }}
-          >
-            {children}
-          </motion.main>
+            <motion.main
+              className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-8"
+              initial={reduce ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...riseTransition, delay: 0.04 }}
+            >
+              {children}
+            </motion.main>
+          </div>
+
+          <ScrollToTopOnNavigate />
+          <ScrollToTopButton />
         </div>
-
-        <ScrollToTopOnNavigate />
-        <ScrollToTopButton />
       </div>
     </TooltipProvider>
   )

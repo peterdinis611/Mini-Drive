@@ -24,7 +24,7 @@ export function LandingPage() {
             </nav>
             <LandingThemeToggle />
             <a className="landing-start" href="/sign-up">
-              Začať
+              <span className="landing-start-label">Začať</span>
               <span className="landing-start-arrow" aria-hidden>
                 →
               </span>
@@ -34,47 +34,6 @@ export function LandingPage() {
 
         <section className="landing-hero" aria-label="Úvod">
           <div className="landing-bloom" aria-hidden />
-
-          <figure className="landing-card landing-card--a">
-            <div className="landing-card-art" aria-hidden>
-              <ArtFolders />
-            </div>
-            <figcaption>Priečinky v poriadku</figcaption>
-          </figure>
-
-          <figure className="landing-card landing-card--b">
-            <div className="landing-card-art" aria-hidden>
-              <ArtSafeUrl />
-            </div>
-            <figcaption>Safe-url zdieľanie</figcaption>
-          </figure>
-
-          <figure className="landing-card landing-card--c">
-            <div className="landing-card-art" aria-hidden>
-              <ArtStack />
-            </div>
-            <figcaption>Viac miesta, menej chaosu</figcaption>
-          </figure>
-
-          <figure className="landing-card landing-card--d">
-            <div className="landing-card-art">
-              <img
-                src="/marketing/filing-cabinet.jpg"
-                alt=""
-                width={400}
-                height={420}
-                loading="eager"
-              />
-            </div>
-            <figcaption>Skutočný archív</figcaption>
-          </figure>
-
-          <figure className="landing-card landing-card--e">
-            <div className="landing-card-art" aria-hidden>
-              <ArtLock />
-            </div>
-            <figcaption>Private by default</figcaption>
-          </figure>
 
           <div className="landing-center">
             <p className="landing-badge">Nahraj. Zoraď. Pošli safe-url.</p>
@@ -89,6 +48,49 @@ export function LandingPage() {
                 →
               </span>
             </a>
+          </div>
+
+          <div className="landing-card-rail">
+            <figure className="landing-card landing-card--a">
+              <div className="landing-card-art" aria-hidden>
+                <ArtFolders />
+              </div>
+              <figcaption>Priečinky v poriadku</figcaption>
+            </figure>
+
+            <figure className="landing-card landing-card--b">
+              <div className="landing-card-art" aria-hidden>
+                <ArtSafeUrl />
+              </div>
+              <figcaption>Safe-url zdieľanie</figcaption>
+            </figure>
+
+            <figure className="landing-card landing-card--c">
+              <div className="landing-card-art" aria-hidden>
+                <ArtStack />
+              </div>
+              <figcaption>Viac miesta, menej chaosu</figcaption>
+            </figure>
+
+            <figure className="landing-card landing-card--d">
+              <div className="landing-card-art">
+                <img
+                  src="/marketing/filing-cabinet.jpg"
+                  alt=""
+                  width={400}
+                  height={420}
+                  loading="eager"
+                />
+              </div>
+              <figcaption>Skutočný archív</figcaption>
+            </figure>
+
+            <figure className="landing-card landing-card--e">
+              <div className="landing-card-art" aria-hidden>
+                <ArtLock />
+              </div>
+              <figcaption>Private by default</figcaption>
+            </figure>
           </div>
         </section>
 

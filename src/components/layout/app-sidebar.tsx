@@ -10,6 +10,7 @@ import {
   Trash2,
 } from 'lucide-react'
 
+import { BrandMark } from '#/components/brand-mark'
 import { FolderTree } from '#/components/layout/folder-tree'
 import { ThemeToggle } from '#/components/theme-toggle'
 import { Avatar, AvatarFallback } from '#/components/ui/avatar'
@@ -17,7 +18,6 @@ import { Button } from '#/components/ui/button'
 import { Progress } from '#/components/ui/progress'
 import { ScrollArea } from '#/components/ui/scroll-area'
 import type { FolderTreeNode } from '#/components/files/types'
-import { APP_NAME } from '#/lib/constants'
 import { formatFileSize } from '#/lib/format'
 import { cn } from '#/lib/utils'
 
@@ -83,16 +83,12 @@ export function AppSidebar({
       )}
     >
       <div className="flex items-center justify-between gap-2 px-3 py-3">
-        <Link
+        <BrandMark
           to="/files"
+          compact
           onClick={onNavigate}
-          className="flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1 hover:bg-sidebar-accent"
-        >
-          <span className="flex size-6 items-center justify-center rounded bg-primary text-[11px] font-semibold text-primary-foreground">
-            M
-          </span>
-          <span className="truncate text-sm font-semibold">{APP_NAME}</span>
-        </Link>
+          className="min-w-0 rounded-xl px-1.5 py-1 hover:bg-sidebar-accent"
+        />
         <div className="flex items-center">
           <ThemeToggle />
           {onCollapse ? (
@@ -122,9 +118,9 @@ export function AppSidebar({
               to={item.to}
               onClick={onNavigate}
               className={cn(
-                'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition',
+                'flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition',
                 active
-                  ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
+                  ? 'bg-primary font-medium text-primary-foreground'
                   : 'text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground',
               )}
             >

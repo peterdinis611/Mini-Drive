@@ -4,79 +4,87 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Industrial / utilitarian archive — graphite + electric cyan */
+/* Playful archive — mint + navy + lime (light) / slate + violet (dark) */
 :root {
-  --background: #e6e8ec;
-  --foreground: #12141a;
-  --card: #f1f2f4;
-  --card-foreground: #12141a;
-  --popover: #f7f8fa;
-  --popover-foreground: #12141a;
-  --primary: #008ea8;
-  --primary-foreground: #f4fdff;
-  --secondary: #d4d7de;
-  --secondary-foreground: #1a1d24;
-  --muted: #d8dbe2;
-  --muted-foreground: #5c6370;
-  --accent: #c8f0f7;
-  --accent-foreground: #005f70;
-  --destructive: #c62828;
+  --background: #f6faf7;
+  --foreground: #071820;
+  --card: #ffffff;
+  --card-foreground: #071820;
+  --popover: #ffffff;
+  --popover-foreground: #071820;
+  --primary: #b6ec2e;
+  --primary-foreground: #071820;
+  --secondary: #dff0e6;
+  --secondary-foreground: #071820;
+  --muted: #e4efe8;
+  --muted-foreground: #2f4552;
+  --accent: #dccff8;
+  --accent-foreground: #071820;
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #b4b9c4;
-  --input: #b4b9c4;
-  --ring: #008ea8;
-  --radius: 0.25rem;
-  --surface-panel: #f1f2f4;
-  --sidebar: #eef0f3;
-  --sidebar-foreground: #12141a;
-  --sidebar-primary: #008ea8;
-  --sidebar-primary-foreground: #f4fdff;
-  --sidebar-accent: #dde1e8;
-  --sidebar-accent-foreground: #12141a;
-  --sidebar-border: #c5cad3;
-  --sidebar-ring: #008ea8;
-  --chart-1: #008ea8;
-  --chart-2: #0f7b6c;
-  --chart-3: #d9730d;
-  --chart-4: #5c6bc0;
-  --chart-5: #c62828;
+  --border: #c5d4cb;
+  --input: #c5d4cb;
+  --ring: #b6ec2e;
+  --radius: 0.9rem;
+  --surface-panel: #ffffff;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #071820;
+  --sidebar-primary: #b6ec2e;
+  --sidebar-primary-foreground: #071820;
+  --sidebar-accent: #eef8f1;
+  --sidebar-accent-foreground: #071820;
+  --sidebar-border: #c5d4cb;
+  --sidebar-ring: #b6ec2e;
+  --chart-1: #b6ec2e;
+  --chart-2: #178a45;
+  --chart-3: #b9a6ff;
+  --chart-4: #9ad7ff;
+  --chart-5: #dc2626;
+  --app-outer: #071820;
   --font-mono-meta: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-script: 'Great Vibes', cursive;
 }
 
 .dark {
-  --background: #0e1014;
-  --foreground: #e8eaed;
-  --card: #161a22;
-  --card-foreground: #e8eaed;
-  --popover: #1a1f28;
-  --popover-foreground: #e8eaed;
-  --primary: #22d3ee;
-  --primary-foreground: #041016;
-  --secondary: #222833;
-  --secondary-foreground: #e8eaed;
-  --muted: #1c212b;
-  --muted-foreground: #8b93a3;
-  --accent: #123039;
-  --accent-foreground: #7ee7f5;
+  --background: #14161f;
+  --foreground: #f2efe8;
+  --card: #1c1f2c;
+  --card-foreground: #f2efe8;
+  --popover: #1c1f2c;
+  --popover-foreground: #f2efe8;
+  --primary: #b9a6ff;
+  --primary-foreground: #0c0a14;
+  --secondary: #252836;
+  --secondary-foreground: #f2efe8;
+  --muted: #1e2233;
+  --muted-foreground: #9b97a8;
+  --accent: #2a2440;
+  --accent-foreground: #f2efe8;
   --destructive: #ef5350;
   --destructive-foreground: #ffffff;
-  --border: #2a303c;
-  --input: #2a303c;
-  --ring: #22d3ee;
-  --surface-panel: #161a22;
-  --sidebar: #0a0c10;
-  --sidebar-foreground: #e8eaed;
-  --sidebar-primary: #22d3ee;
-  --sidebar-primary-foreground: #041016;
-  --sidebar-accent: #181c25;
-  --sidebar-accent-foreground: #e8eaed;
-  --sidebar-border: #222833;
-  --sidebar-ring: #22d3ee;
+  --border: color-mix(in srgb, #b9a6ff 55%, transparent);
+  --input: #2a2e3d;
+  --ring: #b9a6ff;
+  --surface-panel: #1c1f2c;
+  --sidebar: #10121a;
+  --sidebar-foreground: #f2efe8;
+  --sidebar-primary: #b9a6ff;
+  --sidebar-primary-foreground: #0c0a14;
+  --sidebar-accent: #1e2233;
+  --sidebar-accent-foreground: #f2efe8;
+  --sidebar-border: color-mix(in srgb, #b9a6ff 40%, transparent);
+  --sidebar-ring: #b9a6ff;
+  --chart-1: #b9a6ff;
+  --chart-2: #86efac;
+  --chart-3: #b6ec2e;
+  --chart-4: #9ad7ff;
+  --chart-5: #ef5350;
+  --app-outer: #090a0f;
 }
 
 @theme inline {
-  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Sora', 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Sora', 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -133,10 +141,34 @@ body {
 
 .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.03em;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.95em;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.font-script {
+  font-family: var(--font-script);
+  letter-spacing: 0.01em;
+  font-weight: 400;
+  text-transform: none;
+}
+
+.app-frame {
+  min-height: 100svh;
+  padding: clamp(0.45rem, 1.2vw, 0.85rem);
+  background: var(--app-outer);
+}
+
+.app-frame-inner {
+  min-height: calc(100svh - 2 * clamp(0.45rem, 1.2vw, 0.85rem));
+  border: 2.5px solid var(--foreground);
+  border-radius: 1.25rem;
+  background: var(--background);
+  overflow: clip;
+}
+
+.dark .app-frame-inner {
+  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
 }
 
 .font-meta {
@@ -183,28 +215,9 @@ body {
 .status-page-mesh {
   background:
     radial-gradient(
-      ellipse 70% 55% at 85% 20%,
-      color-mix(in oklab, var(--primary) 16%, transparent),
-      transparent 58%
-    ),
-    linear-gradient(
-      135deg,
-      color-mix(in oklab, var(--primary) 8%, transparent) 0%,
-      transparent 42%
-    ),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 23px,
-      color-mix(in oklab, var(--border) 55%, transparent) 23px,
-      color-mix(in oklab, var(--border) 55%, transparent) 24px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 23px,
-      color-mix(in oklab, var(--border) 35%, transparent) 23px,
-      color-mix(in oklab, var(--border) 35%, transparent) 24px
+      ellipse 60% 50% at 50% 40%,
+      color-mix(in oklab, var(--primary) 18%, transparent),
+      transparent 70%
     ),
     var(--background);
 }
@@ -212,28 +225,9 @@ body {
 .status-page--500 .status-page-mesh {
   background:
     radial-gradient(
-      ellipse 70% 55% at 85% 20%,
-      color-mix(in oklab, var(--destructive) 14%, transparent),
-      transparent 58%
-    ),
-    linear-gradient(
-      135deg,
-      color-mix(in oklab, var(--destructive) 7%, transparent) 0%,
-      transparent 42%
-    ),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 23px,
-      color-mix(in oklab, var(--border) 55%, transparent) 23px,
-      color-mix(in oklab, var(--border) 55%, transparent) 24px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 23px,
-      color-mix(in oklab, var(--border) 35%, transparent) 23px,
-      color-mix(in oklab, var(--border) 35%, transparent) 24px
+      ellipse 60% 50% at 50% 40%,
+      color-mix(in oklab, var(--destructive) 16%, transparent),
+      transparent 70%
     ),
     var(--background);
 }
