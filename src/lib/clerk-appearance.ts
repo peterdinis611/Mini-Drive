@@ -1,7 +1,7 @@
 /**
  * Explicit hex tokens only — never Tailwind semantic classes
  * (`bg-card`, `text-foreground`) that flip under `.dark` and break Clerk.
- * Matched to Mini Drive landing palette.
+ * Light = day cobalt · Dark = slate + soft blue.
  */
 export const clerkAppearanceDark = {
   variables: {
@@ -15,7 +15,7 @@ export const clerkAppearanceDark = {
     colorInputBackground: '#12161f',
     colorInputText: '#eef3f8',
     colorNeutral: '#8b97a8',
-    borderRadius: '0.9rem',
+    borderRadius: '0.85rem',
   },
   elements: {
     rootBox: 'mx-auto w-full max-w-[400px]',
@@ -44,39 +44,39 @@ export const clerkAppearanceDark = {
 
 export const clerkAppearanceLight = {
   variables: {
-    colorPrimary: '#b6ec2e',
-    colorDanger: '#dc2626',
-    colorSuccess: '#178a45',
-    colorWarning: '#d9730d',
-    colorText: '#071820',
-    colorTextSecondary: '#2f4552',
+    colorPrimary: '#2f6fed',
+    colorDanger: '#e11d48',
+    colorSuccess: '#0f7a4a',
+    colorWarning: '#d97706',
+    colorText: '#101828',
+    colorTextSecondary: '#667085',
     colorBackground: '#ffffff',
-    colorInputBackground: '#f6faf7',
-    colorInputText: '#071820',
-    colorNeutral: '#2f4552',
-    borderRadius: '0.9rem',
+    colorInputBackground: '#f5f7fb',
+    colorInputText: '#101828',
+    colorNeutral: '#667085',
+    borderRadius: '0.85rem',
   },
   elements: {
     rootBox: 'mx-auto w-full max-w-[400px]',
     cardBox: 'shadow-none',
-    card: 'border-2 border-[#071820] bg-[#ffffff] shadow-none rounded-2xl',
-    headerTitle: '!text-[#071820]',
-    headerSubtitle: '!text-[#2f4552]',
+    card: 'border-2 border-[#101828]/15 bg-[#ffffff] shadow-none rounded-2xl',
+    headerTitle: '!text-[#101828]',
+    headerSubtitle: '!text-[#667085]',
     socialButtonsBlockButton:
-      'border-2 border-[#071820] !bg-[#f6faf7] !text-[#071820] hover:!bg-[#eef8f1] rounded-xl',
-    socialButtonsBlockButtonText: '!text-[#071820]',
-    dividerLine: 'bg-[#071820]/20',
-    dividerText: '!text-[#2f4552]',
-    formFieldLabel: '!text-[#2f4552]',
+      'border-2 border-[#101828]/15 !bg-[#f5f7fb] !text-[#101828] hover:!bg-[#e8eef8] rounded-xl',
+    socialButtonsBlockButtonText: '!text-[#101828]',
+    dividerLine: 'bg-[#101828]/12',
+    dividerText: '!text-[#667085]',
+    formFieldLabel: '!text-[#667085]',
     formFieldInput:
-      '!bg-[#f6faf7] !text-[#071820] border-[#071820]/25 placeholder:!text-[#7a8f9a] rounded-xl',
+      '!bg-[#f5f7fb] !text-[#101828] border-[#101828]/15 placeholder:!text-[#98a2b3] rounded-xl',
     formButtonPrimary:
-      '!bg-[#b6ec2e] !text-[#071820] hover:!bg-[#c8f135] shadow-none rounded-full font-semibold',
-    footerActionText: '!text-[#2f4552]',
-    footerActionLink: '!text-[#178a45] hover:!text-[#071820]',
-    identityPreviewText: '!text-[#071820]',
-    identityPreviewEditButton: '!text-[#178a45]',
-    formFieldAction: '!text-[#178a45]',
+      '!bg-[#2f6fed] !text-[#ffffff] hover:!bg-[#2563d9] shadow-none rounded-full font-semibold',
+    footerActionText: '!text-[#667085]',
+    footerActionLink: '!text-[#2f6fed] hover:!text-[#101828]',
+    identityPreviewText: '!text-[#101828]',
+    identityPreviewEditButton: '!text-[#2f6fed]',
+    formFieldAction: '!text-[#2f6fed]',
     footer: '!bg-[#ffffff]',
   },
 } as const

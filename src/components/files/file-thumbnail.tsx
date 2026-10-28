@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { Image, DEFAULT_BLUR_DATA_URL } from '#/components/ui/image'
 import { fileKindIcon, getFileKind } from '#/lib/file-kind'
 import { cn } from '#/lib/utils'
 
@@ -28,23 +29,26 @@ export function FileThumbnail({
 
   const box = size === 'sm' ? 'size-8 rounded' : 'size-11 rounded-md'
   const iconClass = size === 'sm' ? 'size-3.5' : 'size-4'
+  const px = size === 'sm' ? 32 : 44
 
   if (showPreview && previewUrl) {
     return (
       <span
         className={cn(
-          'relative inline-flex shrink-0 overflow-hidden bg-muted ring-1 ring-border/80',
+          'relative inline-block shrink-0 overflow-hidden bg-muted ring-1 ring-border/80',
           box,
           className,
         )}
       >
-        <img
+        <Image
           src={previewUrl}
           alt=""
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          className="size-full object-cover"
+          fill
+          sizes={`${px}px`}
+          objectFit="cover"
+          placeholder="blur"
+          blurDataURL={DEFAULT_BLUR_DATA_URL}
+          unoptimized
           onError={() => setFailed(true)}
         />
       </span>

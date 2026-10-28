@@ -1,11 +1,15 @@
+'use client'
+
 import { Moon, Sun } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useTheme } from 'next-themes'
 
 import { Button } from '#/components/ui/button'
+import { usePersistTheme } from '#/hooks/use-persist-theme'
 
 export function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme()
+  const { resolvedTheme } = useTheme()
+  const applyTheme = usePersistTheme()
   const reduce = useReducedMotion()
   const isDark = resolvedTheme !== 'light'
 
@@ -16,7 +20,7 @@ export function ThemeToggle() {
       size="icon"
       className="size-10 border-2"
       aria-label={isDark ? 'Zapnúť svetlý režim' : 'Zapnúť tmavý režim'}
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      onClick={() => applyTheme(isDark ? 'light' : 'dark')}
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span

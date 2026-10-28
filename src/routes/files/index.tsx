@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { FileExplorer } from '#/components/files/file-explorer'
+import { AppShellPending } from '#/components/ui/preload-spinner'
 import { requireOnboardedSession } from '#/lib/route-guards'
 import { privateAppHead } from '#/lib/seo'
 import { getAppChrome } from '#/server/functions/drive'
@@ -16,6 +17,9 @@ export const Route = createFileRoute('/files/')({
     return { chrome, contents }
   },
   head: () => privateAppHead('Súbory'),
+  pendingComponent: function FilesPending() {
+    return <AppShellPending label="Načítavam súbory…" />
+  },
   component: FilesRootPage,
 })
 

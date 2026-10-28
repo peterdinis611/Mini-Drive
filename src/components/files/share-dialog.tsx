@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Check, Copy, Loader2 } from 'lucide-react'
+import { Check, Copy, Loader2, Lock } from 'lucide-react'
 import { toast } from '#/lib/toast'
 
 import { Button } from '#/components/ui/button'
+import { Checkbox } from '#/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -11,12 +12,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from '#/components/ui/dialog'
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from '#/components/ui/field'
+import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '#/components/ui/select'
 import { SHARE_EXPIRY_PRESETS } from '#/lib/constants'
 import { getErrorMessage } from '#/lib/errors'
 import { createShareLinkSchema } from '#/lib/validation'
 import { createShareLink } from '#/server/functions/shares'
-import { cn } from '#/lib/utils'
 
 type Props = {
   open: boolean
@@ -51,12 +65,20 @@ export function ShareDialog({
   )
   const [pending, setPending] = useState(false)
   const [createdPath, setCreatedPath] = useState<string | null>(null)
+  const [embedPath, setEmbedPath] = useState<string | null>(null)
+  const [passwordProtected, setPasswordProtected] = useState(false)
+  const [usePassword, setUsePassword] = useState(false)
+  const [password, setPassword] = useState('')
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (open) {
       setCreatedPath(null)
+      setEmbedPath(null)
       setCopied(false)
+      setPasswordProtected(false)
+      setUsePassword(false)
+      setPassword('')
       setExpiresIn(resolveDefaultExpiresIn(defaultExpiresIn))
     }
   }, [open, fileId, defaultExpiresIn])
@@ -67,11 +89,20 @@ export function ShareDialog({
       return
     }
 
-    const parsed = createShareLinkSchema.safeParse({ fileId, expiresIn })
+    const payload = {
+      fileId,
+      expiresIn,
+      ...(usePassword && password ? { password } : {}),
+    }
+    const parsed = createShareLinkSchema.safeParse(payload)
     if (!parsed.success) {
       toast.error(
         parsed.error.issues[0]?.message ?? 'Neplatné nastavenie zdieľania',
       )
+      return
+    }
+    if (usePassword && !password) {
+      toast.error('Zadaj heslo alebo vypni ochranu')
       return
     }
 
@@ -81,7 +112,13 @@ export function ShareDialog({
         data: parsed.data,
       })
       setCreatedPath(result.path)
-      toast.success('Odkaz vytvorený')
+      setEmbedPath(result.embedPath)
+      setPasswordProtected(result.passwordProtected)
+      toast.success(
+        result.passwordProtected
+          ? 'Odkaz s heslom vytvorený'
+          : 'Odkaz vytvorený',
+      )
       onCreated?.()
     } catch (error) {
       toast.error(getErrorMessage(error, 'Vytvorenie zlyhalo'))
@@ -90,11 +127,9 @@ export function ShareDialog({
     }
   }
 
-  async function handleCopy() {
-    if (!createdPath) return
-    const url = `${window.location.origin}${createdPath}`
+  async function handleCopy(text: string) {
     try {
-      await navigator.clipboard.writeText(url)
+      await navigator.clipboard.writeText(text)
       setCopied(true)
       toast.success('Skopírované')
       window.setTimeout(() => setCopied(false), 1500)
@@ -115,49 +150,123 @@ export function ShareDialog({
         </DialogHeader>
 
         {createdPath ? (
-          <div className="space-y-3">
-            <Label>Verejný odkaz</Label>
-            <div className="flex gap-2">
-              <code className="flex-1 truncate rounded-md bg-muted px-3 py-2 text-sm">
-                {typeof window !== 'undefined'
-                  ? `${window.location.origin}${createdPath}`
-                  : createdPath}
-              </code>
-              <Button type="button" variant="outline" size="icon" onClick={handleCopy}>
-                {copied ? <Check /> : <Copy />}
-              </Button>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Verejný odkaz</Label>
+              <div className="flex gap-2">
+                <code className="flex-1 truncate rounded-md bg-muted px-3 py-2 text-sm">
+                  {typeof window !== 'undefined'
+                    ? `${window.location.origin}${createdPath}`
+                    : createdPath}
+                </code>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    void handleCopy(
+                      `${window.location.origin}${createdPath}`,
+                    )
+                  }
+                >
+                  {copied ? <Check /> : <Copy />}
+                </Button>
+              </div>
             </div>
+            {passwordProtected ? (
+              <p className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-900 dark:text-amber-200">
+                <Lock className="size-3.5" aria-hidden />
+                Odkaz je chránený heslom — príjemca ho musí zadať pred
+                otvorením.
+              </p>
+            ) : null}
+            {embedPath ? (
+              <div className="space-y-2">
+                <Label>Embed náhľad</Label>
+                <code className="block max-h-24 overflow-auto rounded-md bg-muted px-3 py-2 text-xs break-all">
+                  {`<iframe src="${typeof window !== 'undefined' ? window.location.origin : ''}${embedPath}" width="100%" height="480" allow="fullscreen" title="${fileName}"></iframe>`}
+                </code>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    void handleCopy(
+                      `<iframe src="${window.location.origin}${embedPath}" width="100%" height="480" allow="fullscreen" title="${fileName}"></iframe>`,
+                    )
+                  }
+                >
+                  <Copy className="size-3.5" />
+                  Kopírovať embed
+                </Button>
+              </div>
+            ) : null}
             <p className="text-xs text-muted-foreground">
-              Pre obrázky otvorí safe viewer (bez odhalenia UploadThing kľúča).
-              Ostatné súbory redirectnú na krátky signed URL (5 min). Odkaz
-              zrušíš v Zdieľaniach.
+              Embed stránka zobrazí náhľad (obrázok / Office Online / PDF
+              download). Odkaz zrušíš v Zdieľaniach.
             </p>
           </div>
         ) : (
-          <fieldset className="space-y-3">
-            <legend className="text-sm font-medium">Platnosť</legend>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {SHARE_EXPIRY_PRESETS.map((preset) => {
-                const selected = expiresIn === preset.value
-                return (
-                  <button
-                    key={preset.value}
-                    type="button"
-                    aria-pressed={selected}
-                    className={cn(
-                      'rounded-md border p-3 text-left text-sm transition',
-                      selected
-                        ? 'border-foreground bg-primary/25 dark:border-primary dark:bg-primary/20'
-                        : 'border-border hover:bg-muted/60',
-                    )}
-                    onClick={() => setExpiresIn(preset.value)}
-                  >
-                    {preset.label}
-                  </button>
-                )
-              })}
+          <FieldGroup className="gap-4">
+            <Field>
+              <FieldLabel>Platnosť</FieldLabel>
+              <Select
+                value={String(expiresIn)}
+                onValueChange={(value) => setExpiresIn(Number(value))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Vyber platnosť" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SHARE_EXPIRY_PRESETS.map((preset) => (
+                    <SelectItem
+                      key={preset.value}
+                      value={String(preset.value)}
+                    >
+                      {preset.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <div className="space-y-3 rounded-lg border border-border/80 p-3">
+              <label className="flex cursor-pointer items-start gap-2.5">
+                <Checkbox
+                  checked={usePassword}
+                  onCheckedChange={(checked) => {
+                    setUsePassword(checked === true)
+                    if (checked !== true) setPassword('')
+                  }}
+                  className="mt-0.5"
+                />
+                <span className="min-w-0">
+                  <span className="flex items-center gap-1.5 text-sm font-medium">
+                    <Lock className="size-3.5 text-amber-600 dark:text-amber-400" />
+                    Chrániť heslom
+                  </span>
+                  <FieldDescription className="mt-0.5">
+                    Príjemca uvidí súbor až po zadaní hesla (min. 6 znakov).
+                  </FieldDescription>
+                </span>
+              </label>
+              {usePassword ? (
+                <Field className="pl-7">
+                  <FieldLabel htmlFor="share-link-password">
+                    Heslo odkazu
+                  </FieldLabel>
+                  <Input
+                    id="share-link-password"
+                    type="password"
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="aspoň 6 znakov"
+                  />
+                </Field>
+              ) : null}
             </div>
-          </fieldset>
+          </FieldGroup>
         )}
 
         <DialogFooter>
@@ -170,7 +279,11 @@ export function ShareDialog({
             {createdPath ? 'Zavrieť' : 'Zrušiť'}
           </Button>
           {!createdPath ? (
-            <Button type="button" onClick={handleCreate} disabled={pending || !fileId}>
+            <Button
+              type="button"
+              onClick={handleCreate}
+              disabled={pending || !fileId}
+            >
               {pending ? <Loader2 className="animate-spin" /> : null}
               Vytvoriť odkaz
             </Button>

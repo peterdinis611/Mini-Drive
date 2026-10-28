@@ -11,6 +11,8 @@ export type DriveFolder = {
   id: string
   name: string
   parentId: string | null
+  color?: string | null
+  priority?: number
   createdAt?: Date | string | number
 }
 
@@ -23,4 +25,8 @@ export type FolderTreeNode = {
   id: string
   parentId: string | null
   name: string
+  color?: string | null
+  priority?: number
+  /** Direct (non-trashed) files in this folder — optional for legacy callers */
+  fileCount?: number
 }

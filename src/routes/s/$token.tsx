@@ -1,9 +1,15 @@
+import { useState } from 'react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Clock3, Download, Link2Off, ShieldAlert } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 
+import {
+  SharePasswordGate,
+  type UnlockedShare,
+} from '#/components/files/share-password-gate'
 import { AtmosphereShell } from '#/components/layout/atmosphere-shell'
 import { Button } from '#/components/ui/button'
+import { Image } from '#/components/ui/image'
 import { APP_NAME } from '#/lib/constants'
 import { isImageMimeType } from '#/lib/mime'
 import { formatFileSize } from '#/lib/format'
@@ -55,7 +61,45 @@ export const Route = createFileRoute('/s/$token')({
 
 function PublicSharePage() {
   const data = Route.useLoaderData()
+  const { token } = Route.useParams()
+  const search = Route.useSearch()
+  const [unlocked, setUnlocked] = useState<UnlockedShare | null>(null)
+
   if (!data) return null
+
+  if (data.status === 'password_required' || unlocked) {
+    const share = unlocked
+    if (!share) {
+      return (
+        <ShareShell>
+          <SharePasswordGate
+            token={token}
+            fileName={data.status === 'password_required' ? data.fileName : undefined}
+            onUnlocked={(result) => {
+              const isImage = isImageMimeType(result.mimeType, result.fileName)
+              if (!isImage || search.raw) {
+                window.location.assign(result.url)
+                return
+              }
+              setUnlocked(result)
+            }}
+          />
+        </ShareShell>
+      )
+    }
+
+    return (
+      <ShareShell>
+        <PublicImageViewer
+          url={share.url}
+          fileName={share.fileName}
+          fileSize={share.fileSize}
+          mimeType={share.mimeType}
+          expiresIn={share.signedUrlExpiresIn}
+        />
+      </ShareShell>
+    )
+  }
 
   if (data.status === 'ok') {
     return (
@@ -149,13 +193,19 @@ function PublicImageViewer({
             </a>
           </Button>
         </div>
-        <div className="flex min-h-[320px] items-center justify-center bg-muted/30 p-4 sm:p-6">
-          <img
-            src={url}
-            alt={fileName}
-            referrerPolicy="no-referrer"
-            className="max-h-[min(70vh,720px)] max-w-full rounded-md object-contain shadow-sm ring-1 ring-border/60"
-          />
+        <div className="relative flex min-h-[320px] items-center justify-center bg-muted/30 p-4 sm:p-6">
+          <div className="relative h-[min(70vh,720px)] w-full max-w-full">
+            <Image
+              src={url}
+              alt={fileName}
+              fill
+              priority
+              sizes="(max-width: 896px) 100vw, 896px"
+              objectFit="contain"
+              unoptimized
+              className="rounded-md shadow-sm ring-1 ring-border/60"
+            />
+          </div>
         </div>
       </div>
       <p className="text-center text-xs text-muted-foreground">

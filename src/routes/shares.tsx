@@ -1,11 +1,13 @@
 import { useMemo, useState, useTransition } from 'react'
 import { Link, createFileRoute, useRouter } from '@tanstack/react-router'
-import { Copy, Eye, Link2, Link2Off } from 'lucide-react'
+import { Copy, Eye, Link2, Link2Off, Lock } from 'lucide-react'
 import { toast } from '#/lib/toast'
 
 import { ShareAccessLogDialog } from '#/components/files/share-access-log-dialog'
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
+import { AppShellPending } from '#/components/ui/preload-spinner'
+import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import {
   createDataTableColumnHelper,
@@ -16,7 +18,6 @@ import { getErrorMessage } from '#/lib/errors'
 import { formatFileSize } from '#/lib/format'
 import { requireOnboardedSession } from '#/lib/route-guards'
 import { privateAppHead } from '#/lib/seo'
-import { cn } from '#/lib/utils'
 import { getAppChrome } from '#/server/functions/drive'
 import { listShareLinks, revokeShareLink } from '#/server/functions/shares'
 
@@ -30,6 +31,9 @@ export const Route = createFileRoute('/shares')({
     return { chrome, shares }
   },
   head: () => privateAppHead('Zdieľania', '/shares'),
+  pendingComponent: function SharesPending() {
+    return <AppShellPending label="Načítavam zdieľania…" />
+  },
   component: SharesPage,
 })
 
@@ -59,7 +63,15 @@ function SharesPage() {
           header: 'Súbor',
           cell: ({ row }) => (
             <div className="min-w-0">
-              <p className="truncate font-medium">{row.original.fileName}</p>
+              <p className="inline-flex max-w-full items-center gap-1.5 truncate font-medium">
+                {row.original.passwordProtected ? (
+                  <Lock
+                    className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400"
+                    aria-label="Chránené heslom"
+                  />
+                ) : null}
+                <span className="truncate">{row.original.fileName}</span>
+              </p>
               <p className="text-xs text-muted-foreground">
                 {formatFileSize(row.original.fileSize)}
               </p>
@@ -69,7 +81,20 @@ function SharesPage() {
         }),
         columnHelper.accessor('status', {
           header: 'Stav',
-          cell: ({ getValue }) => <StatusBadge status={getValue()} />,
+          cell: ({ row }) => (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <StatusBadge status={row.original.status} />
+              {row.original.passwordProtected ? (
+                <Badge
+                  variant="outline"
+                  className="gap-1 border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200"
+                >
+                  <Lock className="size-3" aria-hidden />
+                  Heslo
+                </Badge>
+              ) : null}
+            </div>
+          ),
           meta: { hideBelow: 'sm', mobileLabel: 'Stav' },
         }),
         columnHelper.accessor('accessCount', {
@@ -202,6 +227,9 @@ function SharesPage() {
               columns={columns}
               data={shares}
               getRowId={(row) => row.id}
+              searchable
+              pageSize={25}
+              searchPlaceholder="Hľadať v zdieľaniach…"
             />
           )}
         </section>
@@ -225,20 +253,21 @@ function StatusBadge({
   status: 'active' | 'expired' | 'revoked'
 }) {
   return (
-    <span
-      className={cn(
-        'inline-flex rounded-md px-2 py-0.5 text-xs font-medium',
-        status === 'active' && 'bg-accent text-accent-foreground',
-        status === 'expired' && 'bg-muted text-muted-foreground',
-        status === 'revoked' && 'bg-destructive/10 text-destructive',
-      )}
+    <Badge
+      variant={
+        status === 'active'
+          ? 'default'
+          : status === 'revoked'
+            ? 'destructive'
+            : 'secondary'
+      }
     >
       {status === 'active'
         ? 'Aktívny'
         : status === 'expired'
           ? 'Vypršaný'
           : 'Zrušený'}
-    </span>
+    </Badge>
   )
 }
 

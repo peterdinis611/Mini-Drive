@@ -1,4 +1,7 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react'
+import { useThrottledCallback } from '@tanstack/react-pacer'
 import { useRouterState } from '@tanstack/react-router'
 import { ArrowUp } from 'lucide-react'
 import {
@@ -23,13 +26,23 @@ type ScrollControls = {
   stop: () => void
 }
 
+function readScrollY() {
+  if (typeof window === 'undefined') return 0
+  return (
+    window.scrollY ||
+    document.documentElement.scrollTop ||
+    document.body.scrollTop ||
+    0
+  )
+}
+
 function animateScrollToTop(preferReducedMotion: boolean): ScrollControls {
   if (preferReducedMotion) {
-    window.scrollTo(0, 0)
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
     return { stop: () => undefined }
   }
 
-  const from = window.scrollY
+  const from = readScrollY()
   if (from <= 0) return { stop: () => undefined }
 
   const controls = animate(from, 0, {
@@ -58,15 +71,26 @@ export function ScrollToTopOnNavigate() {
   return null
 }
 
-/** Floating control — Motion scroll-linked reveal + animated scroll. */
+/** Global floating control — Motion scroll-linked reveal + animated scroll. */
 export function ScrollToTopButton({ className }: { className?: string }) {
   const reduce = useReducedMotion()
   const { scrollY, scrollYProgress } = useScroll()
   const [visible, setVisible] = useState(false)
   const controlsRef = useRef<ScrollControls | null>(null)
 
+  const updateVisibility = useThrottledCallback(
+    (y: number) => {
+      setVisible(y > SHOW_AFTER_PX)
+    },
+    { wait: 100 },
+  )
+
+  useEffect(() => {
+    setVisible(readScrollY() > SHOW_AFTER_PX)
+  }, [])
+
   useMotionValueEvent(scrollY, 'change', (y) => {
-    setVisible(y > SHOW_AFTER_PX)
+    updateVisibility(y)
   })
 
   const progress = useSpring(scrollYProgress, {
@@ -91,7 +115,7 @@ export function ScrollToTopButton({ className }: { className?: string }) {
       {visible ? (
         <motion.div
           className={cn(
-            'fixed right-4 bottom-4 z-40 sm:right-6 sm:bottom-6',
+            'pointer-events-auto fixed right-4 bottom-20 z-[55] sm:right-6 sm:bottom-24',
             className,
           )}
           initial={reduce ? false : { opacity: 0, y: 16, scale: 0.86 }}

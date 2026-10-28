@@ -3,6 +3,11 @@ import { Link } from '@tanstack/react-router'
 import { APP_NAME } from '#/lib/constants'
 
 import { LandingCollage } from './fragments/landing-collage'
+import {
+  LandingAuthFooterLinks,
+  LandingGuestCta,
+} from './fragments/landing-guest-cta'
+import { LandingStartButton } from './fragments/landing-start-button'
 import { LandingThemeToggle } from './fragments/landing-theme-toggle'
 import './landing.css'
 
@@ -96,12 +101,7 @@ export function LandingPage() {
               </Link>
             </nav>
             <LandingThemeToggle />
-            <Link className="landing-start" to="/sign-up/$" preload="intent">
-              <span className="landing-start-label">Začať</span>
-              <span className="landing-start-arrow" aria-hidden>
-                <ArrowGlyph />
-              </span>
-            </Link>
+            <LandingStartButton arrow={<ArrowGlyph />} />
           </div>
         </header>
 
@@ -116,12 +116,16 @@ export function LandingPage() {
                 Súkromný archív na nahrávanie, priečinky a dočasné odkazy — bez
                 odhalenia interných kľúčov a bez verejného cloudu.
               </p>
-              <Link className="landing-cta" to="/sign-up/$" preload="intent">
-                Začať nahrávať zadarmo
-                <span className="landing-cta-arrow" aria-hidden>
-                  <ArrowGlyph />
-                </span>
-              </Link>
+              <LandingGuestCta
+                className="landing-cta"
+                guestLabel="Začať nahrávať zadarmo"
+                signedInLabel="Pokračovať do Drive"
+                arrow={
+                  <span className="landing-cta-arrow" aria-hidden>
+                    <ArrowGlyph />
+                  </span>
+                }
+              />
             </header>
 
             <ul className="landing-card-rail" aria-label="Funkcie produktu">
@@ -161,13 +165,11 @@ export function LandingPage() {
             <LandingCollage />
 
             <p className="landing-block-cta">
-              <Link
+              <LandingGuestCta
                 className="landing-ghost-pill"
-                to="/sign-up/$"
-                preload="intent"
-              >
-                Pripravený nahrávať
-              </Link>
+                guestLabel="Pripravený nahrávať"
+                signedInLabel="Otvoriť Drive"
+              />
             </p>
           </section>
 
@@ -233,25 +235,23 @@ export function LandingPage() {
             <p>
               Účet zadarmo. Safe-url, priečinky, kôš a kvóta sú súčasť produktu.
             </p>
-            <Link className="landing-cta" to="/sign-up/$" preload="intent">
-              Vytvoriť účet
-              <span className="landing-cta-arrow" aria-hidden>
-                <ArrowGlyph />
-              </span>
-            </Link>
+            <LandingGuestCta
+              className="landing-cta"
+              guestLabel="Vytvoriť účet"
+              signedInLabel="Otvoriť Drive"
+              arrow={
+                <span className="landing-cta-arrow" aria-hidden>
+                  <ArrowGlyph />
+                </span>
+              }
+            />
           </aside>
         </main>
 
         <footer className="landing-foot">
           <p>Kôš · kvóta · verzie obrázkov</p>
           <nav aria-label="Účet">
-            <Link to="/sign-in/$" preload="intent">
-              Prihlásenie
-            </Link>
-            {' · '}
-            <Link to="/sign-up/$" preload="intent">
-              Registrácia
-            </Link>
+            <LandingAuthFooterLinks />
           </nav>
           <p>
             <small>
@@ -287,22 +287,22 @@ function ArtFolders() {
         width="76"
         height="56"
         rx="12"
-        fill="#b6ec2e"
-        stroke="#071820"
+        fill="#2f6fed"
+        stroke="#101828"
         strokeWidth="3.5"
       />
       <path
         d="M26 36V28c0-4 3-7 7-7h20l7 9h28c4 0 7 3 7 7v0"
         fill="#7eb8ff"
-        stroke="#071820"
+        stroke="#101828"
         strokeWidth="3.5"
         strokeLinejoin="round"
       />
-      <rect x="32" y="52" width="56" height="11" rx="4" fill="#071820" opacity="0.18" />
-      <circle cx="90" cy="82" r="18" fill="#7eb8ff" stroke="#071820" strokeWidth="3.5" />
+      <rect x="32" y="52" width="56" height="11" rx="4" fill="#101828" opacity="0.18" />
+      <circle cx="90" cy="82" r="18" fill="#7eb8ff" stroke="#101828" strokeWidth="3.5" />
       <path
         d="M82 82h16M90 74v16"
-        stroke="#071820"
+        stroke="#101828"
         strokeWidth="3.5"
         strokeLinecap="round"
       />
@@ -319,20 +319,20 @@ function ArtSafeUrl() {
         width="78"
         height="68"
         rx="16"
-        fill="#f6faf7"
-        stroke="#071820"
+        fill="#f5f7fb"
+        stroke="#101828"
         strokeWidth="3.5"
       />
-      <rect x="30" y="40" width="54" height="13" rx="6" fill="#071820" />
-      <rect x="30" y="60" width="36" height="11" rx="5" fill="#b6ec2e" stroke="#071820" strokeWidth="2" />
-      <circle cx="88" cy="86" r="20" fill="#7eb8ff" stroke="#071820" strokeWidth="3.5" />
+      <rect x="30" y="40" width="54" height="13" rx="6" fill="#101828" />
+      <rect x="30" y="60" width="36" height="11" rx="5" fill="#2f6fed" stroke="#101828" strokeWidth="2" />
+      <circle cx="88" cy="86" r="20" fill="#7eb8ff" stroke="#101828" strokeWidth="3.5" />
       <path
         d="M78 86c0-5.5 4-10 10-10s10 4.5 10 10"
-        stroke="#071820"
+        stroke="#101828"
         strokeWidth="3.5"
         strokeLinecap="round"
       />
-      <circle cx="88" cy="86" r="4" fill="#071820" />
+      <circle cx="88" cy="86" r="4" fill="#101828" />
     </svg>
   )
 }
@@ -347,7 +347,7 @@ function ArtStack() {
         height="20"
         rx="7"
         fill="#7eb8ff"
-        stroke="#b6ec2e"
+        stroke="#2f6fed"
         strokeWidth="3"
       />
       <rect
@@ -357,7 +357,7 @@ function ArtStack() {
         height="22"
         rx="7"
         fill="#e8fff0"
-        stroke="#b6ec2e"
+        stroke="#2f6fed"
         strokeWidth="3"
       />
       <rect
@@ -366,15 +366,15 @@ function ArtStack() {
         width="84"
         height="30"
         rx="8"
-        fill="#b6ec2e"
-        stroke="#071820"
+        fill="#2f6fed"
+        stroke="#101828"
         strokeWidth="2.5"
       />
       <text
         x="60"
         y="88"
         textAnchor="middle"
-        fill="#071820"
+        fill="#101828"
         fontSize="11"
         fontFamily="Sora, sans-serif"
         fontWeight="700"
@@ -390,7 +390,7 @@ function ArtLock() {
     <svg viewBox="0 0 120 120" fill="none" aria-hidden>
       <path
         d="M42 52V40c0-11 8-20 18-20s18 9 18 20v12"
-        stroke="#b6ec2e"
+        stroke="#2f6fed"
         strokeWidth="6"
         strokeLinecap="round"
       />
@@ -400,18 +400,18 @@ function ArtLock() {
         width="56"
         height="46"
         rx="14"
-        fill="#b6ec2e"
-        stroke="#071820"
+        fill="#2f6fed"
+        stroke="#101828"
         strokeWidth="3"
       />
-      <circle cx="60" cy="72" r="7" fill="#071820" />
+      <circle cx="60" cy="72" r="7" fill="#101828" />
       <path
         d="M60 79v10"
-        stroke="#071820"
+        stroke="#101828"
         strokeWidth="5"
         strokeLinecap="round"
       />
-      <circle cx="92" cy="32" r="15" fill="#7eb8ff" stroke="#071820" strokeWidth="3" />
+      <circle cx="92" cy="32" r="15" fill="#7eb8ff" stroke="#101828" strokeWidth="3" />
     </svg>
   )
 }

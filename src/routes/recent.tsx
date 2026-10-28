@@ -8,6 +8,7 @@ import { useImagePreviews } from '#/components/files/use-image-previews'
 import type { DriveFile } from '#/components/files/types'
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
+import { AppShellPending } from '#/components/ui/preload-spinner'
 import { Button } from '#/components/ui/button'
 import {
   createDataTableColumnHelper,
@@ -30,6 +31,9 @@ export const Route = createFileRoute('/recent')({
     return { chrome, recent }
   },
   head: () => privateAppHead('Nedávne', '/recent'),
+  pendingComponent: function RecentPending() {
+    return <AppShellPending label="Načítavam nedávne…" />
+  },
   component: RecentPage,
 })
 
@@ -136,6 +140,22 @@ function RecentPage() {
       stats={chrome.stats}
       title="Nedávne"
       subtitle="Posledných 40 nahratých súborov"
+      actions={
+        chrome.user.lastFolderId ? (
+          <Button asChild variant="outline">
+            <Link
+              to="/files/$folderId"
+              params={{ folderId: chrome.user.lastFolderId }}
+            >
+              Pokračovať kde si skončil
+            </Link>
+          </Button>
+        ) : (
+          <Button asChild variant="outline">
+            <Link to="/files">Otvoriť Drive</Link>
+          </Button>
+        )
+      }
     >
       <FadeIn>
         <section className="overflow-hidden rounded-2xl border border-border/70 bg-card/40">
@@ -155,6 +175,9 @@ function RecentPage() {
               columns={columns}
               data={recent}
               getRowId={(row) => row.id}
+              searchable
+              pageSize={25}
+              searchPlaceholder="Hľadať v nedávnych…"
             />
           )}
         </section>

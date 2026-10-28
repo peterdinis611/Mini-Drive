@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 
 import { FileExplorer } from '#/components/files/file-explorer'
+import { AppShellPending } from '#/components/ui/preload-spinner'
 import { requireOnboardedSession } from '#/lib/route-guards'
 import { privateAppHead } from '#/lib/seo'
 import { getAppChrome } from '#/server/functions/drive'
@@ -8,6 +9,9 @@ import { listFolderContents } from '#/server/functions/folders'
 
 export const Route = createFileRoute('/files/$folderId')({
   beforeLoad: requireOnboardedSession,
+  pendingComponent: function FolderPending() {
+    return <AppShellPending label="Načítavam priečinok…" />
+  },
   loader: async ({ params }) => {
     try {
       const [chrome, contents] = await Promise.all([

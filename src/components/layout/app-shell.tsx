@@ -1,16 +1,17 @@
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Menu, PanelLeft } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
 import { AppErrorBoundary } from '#/components/error-boundary/app-error-boundary'
+import { DriveSearchHost } from '#/components/files/drive-search-dialog'
+import { DriveHotkeys } from '#/components/hotkeys/drive-hotkeys'
+import { HotkeysCheatSheetHost } from '#/components/hotkeys/hotkeys-cheat-sheet'
 import { AppSidebar } from '#/components/layout/app-sidebar'
 import type { DriveStats } from '#/components/layout/app-sidebar'
-import {
-  ScrollToTopButton,
-  ScrollToTopOnNavigate,
-} from '#/components/layout/scroll-to-top'
+import { QuickActionsFab } from '#/components/layout/quick-actions-fab'
 import type { FolderTreeNode } from '#/components/files/types'
 import { Button } from '#/components/ui/button'
+import { SectionLoading } from '#/components/ui/preload-spinner'
 import {
   Sheet,
   SheetContent,
@@ -18,8 +19,10 @@ import {
   SheetTitle,
 } from '#/components/ui/sheet'
 import { TooltipProvider } from '#/components/ui/tooltip'
+import { useSidebarWidth } from '#/hooks/use-sidebar-width'
 import { APP_NAME } from '#/lib/constants'
 import { riseTransition } from '#/lib/motion'
+import { cn } from '#/lib/utils'
 
 type Props = {
   userName: string
@@ -47,6 +50,15 @@ export function AppShell({
   const reduce = useReducedMotion()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [desktopCollapsed, setDesktopCollapsed] = useState(false)
+  const [resizing, setResizing] = useState(false)
+  const {
+    width,
+    resetWidth,
+    onResizePointerDown,
+    onResizeKeyDown,
+    min,
+    max,
+  } = useSidebarWidth()
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -56,13 +68,21 @@ export function AppShell({
             {!desktopCollapsed ? (
               <motion.div
                 key="sidebar"
-                className="hidden lg:block"
+                className="relative hidden shrink-0 lg:block"
                 initial={reduce ? false : { width: 0, opacity: 0 }}
-                animate={{ width: 'auto', opacity: 1 }}
+                animate={{ width, opacity: 1 }}
                 exit={reduce ? undefined : { width: 0, opacity: 0 }}
-                transition={riseTransition}
+                transition={
+                  resizing || reduce
+                    ? { duration: 0 }
+                    : { ...riseTransition, width: { type: 'spring', stiffness: 380, damping: 36 } }
+                }
+                style={{ width }}
               >
-                <div className="sticky top-0 h-[calc(100svh-2*clamp(0.45rem,1.2vw,0.85rem))]">
+                <div
+                  className="sticky top-0 h-[calc(100svh-2*clamp(0.45rem,1.2vw,0.85rem))]"
+                  style={{ width }}
+                >
                   <AppSidebar
                     userName={userName}
                     userEmail={userEmail}
@@ -72,6 +92,45 @@ export function AppShell({
                     onCollapse={() => setDesktopCollapsed(true)}
                   />
                 </div>
+
+                <div
+                  role="separator"
+                  aria-orientation="vertical"
+                  aria-label="Šírka bočného panela"
+                  aria-valuemin={min}
+                  aria-valuemax={max}
+                  aria-valuenow={width}
+                  aria-valuetext={`${width} pixelov`}
+                  tabIndex={0}
+                  title="Potiahni na zmenu šírky · dvojklik obnoví predvolenú"
+                  className={cn(
+                    'group absolute top-0 right-0 z-30 flex h-full w-3 translate-x-1/2 cursor-col-resize touch-none items-center justify-center outline-none',
+                    'focus-visible:ring-2 focus-visible:ring-sidebar-ring/70',
+                  )}
+                  onPointerDown={(event) => {
+                    setResizing(true)
+                    onResizePointerDown(event)
+                    const finish = () => {
+                      setResizing(false)
+                      window.removeEventListener('pointerup', finish)
+                      window.removeEventListener('pointercancel', finish)
+                    }
+                    window.addEventListener('pointerup', finish)
+                    window.addEventListener('pointercancel', finish)
+                  }}
+                  onDoubleClick={() => resetWidth()}
+                  onKeyDown={onResizeKeyDown}
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'h-12 w-1 rounded-full bg-sidebar-border transition',
+                      'group-hover:h-16 group-hover:bg-primary/70',
+                      'group-focus-visible:bg-primary',
+                      resizing && 'h-20 bg-primary',
+                    )}
+                  />
+                </div>
               </motion.div>
             ) : null}
           </AnimatePresence>
@@ -79,7 +138,7 @@ export function AppShell({
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetContent
               side="left"
-              className="w-[260px] border-sidebar-border bg-sidebar p-0 sm:max-w-[260px]"
+              className="w-[min(100vw,280px)] border-sidebar-border bg-sidebar p-0 sm:max-w-[280px]"
             >
               <SheetHeader className="sr-only">
                 <SheetTitle>{APP_NAME}</SheetTitle>
@@ -144,14 +203,15 @@ export function AppShell({
                   </div>
                 </div>
                 {actions ? (
-                  <motion.div
-                    className="flex flex-wrap items-center gap-2"
+                  <motion.menu
+                    className="m-0 flex list-none flex-wrap items-center gap-2 p-0"
+                    aria-label="Akcie stránky"
                     initial={reduce ? false : { opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...riseTransition, delay: 0.05 }}
                   >
                     {actions}
-                  </motion.div>
+                  </motion.menu>
                 ) : null}
               </div>
             </header>
@@ -169,14 +229,17 @@ export function AppShell({
                 resetKeys={[title]}
                 sectionTitle="Obsah stránky zlyhal"
               >
-                {children}
+                <Suspense fallback={<SectionLoading />}>
+                  {children}
+                </Suspense>
               </AppErrorBoundary>
             </motion.main>
           </div>
-
-          <ScrollToTopOnNavigate />
-          <ScrollToTopButton />
         </div>
+        <DriveSearchHost />
+        <DriveHotkeys />
+        <HotkeysCheatSheetHost />
+        <QuickActionsFab />
       </div>
     </TooltipProvider>
   )

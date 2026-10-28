@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { FileCode2, Loader2 } from 'lucide-react'
+import { FileCode2 } from 'lucide-react'
 
+import { PreviewLoading } from '#/components/ui/preload-spinner'
 import { codeLanguageFromName } from '#/lib/file-kind'
 
 import type { PreviewShellProps } from './types'
@@ -37,10 +38,10 @@ export function CodePreview({ url, fileName }: PreviewShellProps) {
 
   if (loading) {
     return (
-      <div className="flex h-[min(70vh,640px)] items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" />
-        Načítavam kód…
-      </div>
+      <PreviewLoading
+        className="h-[min(70vh,640px)]"
+        label="Načítavam kód…"
+      />
     )
   }
 

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as RecentRouteImport } from './routes/recent'
@@ -20,6 +21,7 @@ import { Route as SharesRouteImport } from './routes/shares'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TrashRouteImport } from './routes/trash'
 import { Route as ApiUploadthingRouteImport } from './routes/api/uploadthing'
+import { Route as ETokenRouteImport } from './routes/e/$token'
 import { Route as FilesIndexRouteImport } from './routes/files/index'
 import { Route as FilesFolderIdRouteImport } from './routes/files/$folderId'
 import { Route as STokenRouteImport } from './routes/s/$token'
@@ -29,6 +31,11 @@ import { Route as SignUpSplatRouteImport } from './routes/sign-up.$'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityRoute = ActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -81,6 +88,11 @@ const ApiUploadthingRoute = ApiUploadthingRouteImport.update({
   path: '/api/uploadthing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ETokenRoute = ETokenRouteImport.update({
+  id: '/e/$token',
+  path: '/e/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FilesIndexRoute = FilesIndexRouteImport.update({
   id: '/files/',
   path: '/files/',
@@ -109,6 +121,7 @@ const SignUpSplatRoute = SignUpSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/recent': typeof RecentRoute
@@ -119,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trash': typeof TrashRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
+  '/e/$token': typeof ETokenRoute
   '/files/$folderId': typeof FilesFolderIdRoute
   '/s/$token': typeof STokenRoute
   '/sign-in/$': typeof SignInSplatRoute
@@ -127,6 +141,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/recent': typeof RecentRoute
@@ -137,6 +152,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trash': typeof TrashRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
+  '/e/$token': typeof ETokenRoute
   '/files/$folderId': typeof FilesFolderIdRoute
   '/s/$token': typeof STokenRoute
   '/sign-in/$': typeof SignInSplatRoute
@@ -146,6 +162,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/recent': typeof RecentRoute
@@ -156,6 +173,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trash': typeof TrashRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
+  '/e/$token': typeof ETokenRoute
   '/files/$folderId': typeof FilesFolderIdRoute
   '/s/$token': typeof STokenRoute
   '/sign-in/$': typeof SignInSplatRoute
@@ -166,6 +184,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/activity'
     | '/login'
     | '/onboarding'
     | '/recent'
@@ -176,6 +195,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/trash'
     | '/api/uploadthing'
+    | '/e/$token'
     | '/files/$folderId'
     | '/s/$token'
     | '/sign-in/$'
@@ -184,6 +204,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/activity'
     | '/login'
     | '/onboarding'
     | '/recent'
@@ -194,6 +215,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/trash'
     | '/api/uploadthing'
+    | '/e/$token'
     | '/files/$folderId'
     | '/s/$token'
     | '/sign-in/$'
@@ -202,6 +224,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/activity'
     | '/login'
     | '/onboarding'
     | '/recent'
@@ -212,6 +235,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/trash'
     | '/api/uploadthing'
+    | '/e/$token'
     | '/files/$folderId'
     | '/s/$token'
     | '/sign-in/$'
@@ -221,6 +245,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivityRoute: typeof ActivityRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   RecentRoute: typeof RecentRoute
@@ -231,6 +256,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TrashRoute: typeof TrashRoute
   ApiUploadthingRoute: typeof ApiUploadthingRoute
+  ETokenRoute: typeof ETokenRoute
   FilesFolderIdRoute: typeof FilesFolderIdRoute
   STokenRoute: typeof STokenRoute
   SignInSplatRoute: typeof SignInSplatRoute
@@ -245,6 +271,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity': {
+      id: '/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof ActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -317,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUploadthingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/e/$token': {
+      id: '/e/$token'
+      path: '/e/$token'
+      fullPath: '/e/$token'
+      preLoaderRoute: typeof ETokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/files/': {
       id: '/files/'
       path: '/files'
@@ -357,6 +397,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivityRoute: ActivityRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   RecentRoute: RecentRoute,
@@ -367,6 +408,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TrashRoute: TrashRoute,
   ApiUploadthingRoute: ApiUploadthingRoute,
+  ETokenRoute: ETokenRoute,
   FilesFolderIdRoute: FilesFolderIdRoute,
   STokenRoute: STokenRoute,
   SignInSplatRoute: SignInSplatRoute,
@@ -376,13 +418,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

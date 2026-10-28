@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { BrandMark } from '#/components/brand-mark'
 import { AtmosphereBackdrop } from '#/components/layout/atmosphere-backdrop'
 import { ThemeToggle } from '#/components/theme-toggle'
+import { PreloadSpinner } from '#/components/ui/preload-spinner'
 import { cn } from '#/lib/utils'
 
 type Props = {
@@ -44,6 +45,11 @@ export function AuthCardSkeleton() {
       aria-busy="true"
       aria-label="Načítavam prihlásenie"
     >
+      <PreloadSpinner
+        className="py-4"
+        size="md"
+        label="Načítavam prihlásenie…"
+      />
       <div className="mx-auto mb-2 h-6 w-48 animate-pulse rounded-full bg-muted" />
       <div className="mx-auto mb-8 h-4 w-56 animate-pulse rounded-full bg-muted/70" />
       <div className="mb-3 h-10 animate-pulse rounded-xl bg-muted" />

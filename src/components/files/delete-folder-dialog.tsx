@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react'
 
-import { Button } from '#/components/ui/button'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '#/components/ui/dialog'
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '#/components/ui/alert-dialog'
+import { buttonVariants } from '#/components/ui/button'
+import { Spinner } from '#/components/ui/spinner'
+import { cn } from '#/lib/utils'
 import { getFolderDeleteSummary } from '#/server/functions/folders'
 
 type Props = {
@@ -47,14 +51,14 @@ export function DeleteFolderDialog({
   }, [open, folderId])
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Zmazať priečinok</DialogTitle>
-          <DialogDescription>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Zmazať priečinok</AlertDialogTitle>
+          <AlertDialogDescription>
             Presunie „{folderName}“ a obsah do Koša (dá sa obnoviť).
-          </DialogDescription>
-        </DialogHeader>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
         <div className="rounded-md bg-muted/60 px-4 py-3 text-sm">
           {summary ? (
             <p>
@@ -62,33 +66,30 @@ export function DeleteFolderDialog({
               <strong>{summary.fileCount}</strong> súborov.
             </p>
           ) : (
-            <p className="text-muted-foreground">Počítam obsah…</p>
+            <p className="inline-flex items-center gap-2 text-muted-foreground">
+              <Spinner className="size-3.5" />
+              Počítam obsah…
+            </p>
           )}
         </div>
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={pending}
-          >
-            Zrušiť
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={pending}>Zrušiť</AlertDialogCancel>
+          <AlertDialogAction
+            className={cn(buttonVariants({ variant: 'destructive' }))}
             disabled={pending || !summary}
-            onClick={() => {
+            onClick={(event) => {
+              event.preventDefault()
               setPending(true)
               void Promise.resolve(onConfirm())
                 .catch(() => undefined)
                 .finally(() => setPending(false))
             }}
           >
+            {pending ? <Spinner className="size-3.5" /> : null}
             Presunúť do koša
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

@@ -33,9 +33,27 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
         id: folders.id,
         parentId: folders.parentId,
         name: folders.name,
+        color: folders.color,
+        priority: folders.priority,
       })
       .from(folders)
       .where(and(eq(folders.userId, userId), isNull(folders.deletedAt)))
+
+    const fileCountRows = await db
+      .select({
+        folderId: files.folderId,
+        fileCount: count(files.id),
+      })
+      .from(files)
+      .where(and(eq(files.userId, userId), isNull(files.deletedAt)))
+      .groupBy(files.folderId)
+
+    const fileCountByFolder = new Map<string, number>()
+    for (const row of fileCountRows) {
+      if (row.folderId) {
+        fileCountByFolder.set(row.folderId, Number(row.fileCount))
+      }
+    }
 
     const profile = firstOrThrow(
       await db
@@ -46,6 +64,8 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
           themePreference: user.themePreference,
           defaultShareExpiresIn: user.defaultShareExpiresIn,
           confirmDelete: user.confirmDelete,
+          customHotkeys: user.customHotkeys,
+          lastFolderId: user.lastFolderId,
         })
         .from(user)
         .where(eq(user.id, userId))
@@ -56,6 +76,10 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
     const fileStats = fileStatsRows.at(0)
     const folderStats = folderStatsRows.at(0)
 
+    const sortedFolders = [...folderTree].sort(
+      (a, b) => (b.priority ?? 0) - (a.priority ?? 0) || a.name.localeCompare(b.name, 'sk'),
+    )
+
     return {
       user: {
         id: userId,
@@ -65,8 +89,13 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
         themePreference: profile.themePreference,
         defaultShareExpiresIn: profile.defaultShareExpiresIn,
         confirmDelete: profile.confirmDelete,
+        customHotkeys: profile.customHotkeys,
+        lastFolderId: profile.lastFolderId,
       },
-      folders: folderTree,
+      folders: sortedFolders.map((folder) => ({
+        ...folder,
+        fileCount: fileCountByFolder.get(folder.id) ?? 0,
+      })),
       stats: {
         fileCount: Number(fileStats?.fileCount ?? 0),
         folderCount: Number(folderStats?.folderCount ?? 0),
@@ -136,6 +165,7 @@ export const getDriveSearchIndex = createServerFn({ method: 'GET' }).handler(
           size: files.size,
           mimeType: files.mimeType,
           folderId: files.folderId,
+          contentText: files.contentText,
         })
         .from(files)
         .where(and(eq(files.userId, userId), isNull(files.deletedAt)))

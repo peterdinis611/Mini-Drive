@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
-import { Download, Loader2 } from 'lucide-react'
+import { Suspense, useEffect, useRef, useState } from 'react'
+import { Download } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 import { FilePreviewBody } from '#/components/files/previews'
 import { ShareDialog } from '#/components/files/share-dialog'
 import { Button } from '#/components/ui/button'
+import { PreviewLoading } from '#/components/ui/preload-spinner'
 import {
   Dialog,
   DialogContent,
@@ -99,25 +100,24 @@ export function FilePreviewDialog({
 
           <div className="relative min-h-[420px] flex-1 bg-muted/30">
             {loading || !url || !file ? (
-              <div className="flex h-[420px] flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
-                <Loader2 className="size-7 animate-spin text-foreground/70" />
-                <span>Načítavam náhľad…</span>
-              </div>
+              <PreviewLoading />
             ) : (
-              <FilePreviewBody
-                kind={kind}
-                url={url}
-                fileName={file.name}
-                mimeType={file.mimeType}
-                fileSize={file.size}
-                fileId={file.id}
-                folderId={file.folderId}
-                onRequestShare={
-                  kind === 'image' ? () => setShareOpen(true) : undefined
-                }
-                onSavedToDrive={onSavedToDrive}
-                theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
-              />
+              <Suspense fallback={<PreviewLoading />}>
+                <FilePreviewBody
+                  kind={kind}
+                  url={url}
+                  fileName={file.name}
+                  mimeType={file.mimeType}
+                  fileSize={file.size}
+                  fileId={file.id}
+                  folderId={file.folderId}
+                  onRequestShare={
+                    kind === 'image' ? () => setShareOpen(true) : undefined
+                  }
+                  onSavedToDrive={onSavedToDrive}
+                  theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
+                />
+              </Suspense>
             )}
           </div>
 

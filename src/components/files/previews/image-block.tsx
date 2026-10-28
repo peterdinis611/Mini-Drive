@@ -17,6 +17,7 @@ import {
   Maximize2,
   Minimize2,
   PenLine,
+  Redo2,
   RefreshCw,
   RotateCcw,
   RotateCw,
@@ -39,13 +40,16 @@ import {
   TooltipTrigger,
 } from '#/components/ui/tooltip'
 import {
+  buildCssFilter,
   clampViewZoom,
   downloadBlob,
+  filtersAreDefault,
   getCroppedImageBlob,
   getTransformedImageBlob,
   withCroppedName,
   withEditedName,
   type DrawStroke,
+  type ImageFilterValues,
 } from '#/lib/crop-image'
 import { formatFileSize } from '#/lib/format'
 import { loadImageMeta, saveImageMeta } from '#/lib/image-meta'
@@ -55,7 +59,7 @@ import { cn } from '#/lib/utils'
 
 import type { PreviewShellProps } from './types'
 
-type AspectId = 'free' | '1:1' | '4:3' | '16:9' | '3:2'
+type AspectId = 'free' | '1:1' | '4:3' | '16:9' | '3:2' | '9:16' | 'A4'
 type ViewFit = 'contain' | 'actual'
 type ViewerMode = 'view' | 'crop' | 'draw'
 
@@ -66,9 +70,92 @@ const ASPECTS: Array<{ id: AspectId; label: string; value: number | undefined }>
     { id: '4:3', label: '4:3', value: 4 / 3 },
     { id: '3:2', label: '3:2', value: 3 / 2 },
     { id: '16:9', label: '16:9', value: 16 / 9 },
+    { id: '9:16', label: '9:16', value: 9 / 16 },
+    { id: 'A4', label: 'A4', value: 210 / 297 },
   ]
 
-const STROKE_COLORS = ['#ffffff', '#b6ec2e', '#7eb8ff', '#f43f5e', '#fbbf24'] as const
+const STROKE_COLORS = ['#ffffff', '#2f6fed', '#7eb8ff', '#f43f5e', '#fbbf24'] as const
+
+const STROKE_WIDTHS = [
+  { id: 's', label: 'Tenké', value: 0.006 },
+  { id: 'm', label: 'Stredné', value: 0.01 },
+  { id: 'l', label: 'Hrubé', value: 0.018 },
+] as const
+
+type FilterPresetId = 'reset' | 'vivid' | 'muted' | 'bw' | 'sepia' | 'bright'
+
+const FILTER_PRESETS: Array<{
+  id: FilterPresetId
+  label: string
+  values: Required<ImageFilterValues>
+}> = [
+  {
+    id: 'reset',
+    label: 'Originál',
+    values: {
+      brightness: 1,
+      contrast: 1,
+      saturation: 1,
+      grayscale: 0,
+      sepia: 0,
+    },
+  },
+  {
+    id: 'vivid',
+    label: 'Živý',
+    values: {
+      brightness: 1.05,
+      contrast: 1.15,
+      saturation: 1.35,
+      grayscale: 0,
+      sepia: 0,
+    },
+  },
+  {
+    id: 'muted',
+    label: 'Tlmený',
+    values: {
+      brightness: 0.98,
+      contrast: 0.92,
+      saturation: 0.65,
+      grayscale: 0,
+      sepia: 0,
+    },
+  },
+  {
+    id: 'bw',
+    label: 'B&W',
+    values: {
+      brightness: 1,
+      contrast: 1.1,
+      saturation: 1,
+      grayscale: 1,
+      sepia: 0,
+    },
+  },
+  {
+    id: 'sepia',
+    label: 'Sépia',
+    values: {
+      brightness: 1.05,
+      contrast: 1.05,
+      saturation: 0.9,
+      grayscale: 0,
+      sepia: 0.65,
+    },
+  },
+  {
+    id: 'bright',
+    label: 'Svetlý',
+    values: {
+      brightness: 1.25,
+      contrast: 0.95,
+      saturation: 1.05,
+      grayscale: 0,
+      sepia: 0,
+    },
+  },
+]
 
 function ToolButton({
   label,
@@ -138,14 +225,27 @@ export function ImageBlock({
   const [showFilters, setShowFilters] = useState(false)
   const [brightness, setBrightness] = useState(1)
   const [contrast, setContrast] = useState(1)
+  const [saturation, setSaturation] = useState(1)
+  const [grayscale, setGrayscale] = useState(0)
+  const [sepia, setSepia] = useState(0)
   const [caption, setCaption] = useState('')
   const [altText, setAltText] = useState(fileName)
   const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(
     null,
   )
   const [strokes, setStrokes] = useState<DrawStroke[]>([])
+  const [redoStrokes, setRedoStrokes] = useState<DrawStroke[]>([])
   const [strokeColor, setStrokeColor] = useState<string>(STROKE_COLORS[1])
+  const [strokeWidthNorm, setStrokeWidthNorm] = useState(0.01)
   const [isFullscreen, setIsFullscreen] = useState(false)
+
+  const filterValues: ImageFilterValues = {
+    brightness,
+    contrast,
+    saturation,
+    grayscale,
+    sepia,
+  }
 
   const panDrag = useRef<{
     pointerId: number
@@ -164,20 +264,26 @@ export function ImageBlock({
     flipV ||
     viewZoom !== 1 ||
     fit !== 'contain' ||
-    brightness !== 1 ||
-    contrast !== 1 ||
+    !filtersAreDefault(filterValues) ||
     strokes.length > 0
   const hasExportableEdits =
     rotation !== 0 ||
     flipH ||
     flipV ||
-    brightness !== 1 ||
-    contrast !== 1 ||
+    !filtersAreDefault(filterValues) ||
     strokes.length > 0
 
   const onCropComplete = useCallback((_area: Area, pixels: Area) => {
     setCroppedAreaPixels(pixels)
   }, [])
+
+  function applyFilterPreset(preset: (typeof FILTER_PRESETS)[number]) {
+    setBrightness(preset.values.brightness)
+    setContrast(preset.values.contrast)
+    setSaturation(preset.values.saturation)
+    setGrayscale(preset.values.grayscale)
+    setSepia(preset.values.sepia)
+  }
 
   function resetTransforms() {
     setCrop({ x: 0, y: 0 })
@@ -190,9 +296,36 @@ export function ImageBlock({
     setAspectId('free')
     setBrightness(1)
     setContrast(1)
+    setSaturation(1)
+    setGrayscale(0)
+    setSepia(0)
     setStrokes([])
+    setRedoStrokes([])
     setFit('contain')
     setMode('view')
+  }
+
+  function updateStrokes(next: DrawStroke[]) {
+    setStrokes(next)
+    setRedoStrokes([])
+  }
+
+  function undoStroke() {
+    setStrokes((current) => {
+      if (current.length === 0) return current
+      const removed = current[current.length - 1]!
+      setRedoStrokes((redo) => [...redo, removed])
+      return current.slice(0, -1)
+    })
+  }
+
+  function redoStroke() {
+    setRedoStrokes((redo) => {
+      if (redo.length === 0) return redo
+      const restored = redo[redo.length - 1]!
+      setStrokes((current) => [...current, restored])
+      return redo.slice(0, -1)
+    })
   }
 
   useEffect(() => {
@@ -214,7 +347,12 @@ export function ImageBlock({
     setAspectId('free')
     setBrightness(1)
     setContrast(1)
+    setSaturation(1)
+    setGrayscale(0)
+    setSepia(0)
     setStrokes([])
+    setRedoStrokes([])
+    setStrokeWidthNorm(0.01)
     setShowMeta(Boolean(meta.caption))
     setShowFilters(false)
   }, [url, fileName, fileId])
@@ -329,16 +467,24 @@ export function ImageBlock({
 
   async function copyImage() {
     try {
-      const response = await fetch(url)
-      const blob = await response.blob()
       if (!('clipboard' in navigator) || !window.ClipboardItem) {
         toast.error('Schránka nepodporuje obrázky')
         return
       }
+      const blob = hasExportableEdits
+        ? await getTransformedImageBlob(url, rotation, {
+            ...exportOptions(),
+            mimeType: 'image/png',
+          })
+        : await (await fetch(url)).blob()
       await navigator.clipboard.write([
         new ClipboardItem({ [blob.type || 'image/png']: blob }),
       ])
-      toast.success('Obrázok v schránke')
+      toast.success(
+        hasExportableEdits
+          ? 'Upravený obrázok v schránke'
+          : 'Obrázok v schránke',
+      )
     } catch {
       toast.error('Kopírovanie obrázka zlyhalo')
     }
@@ -352,6 +498,9 @@ export function ImageBlock({
       mimeType: outMime,
       brightness,
       contrast,
+      saturation,
+      grayscale,
+      sepia,
       strokes,
     }
   }
@@ -811,17 +960,43 @@ export function ImageBlock({
                 onClick={() => setStrokeColor(color)}
               />
             ))}
+            <div className="mx-0.5 h-5 w-px bg-white/10" />
+            {STROKE_WIDTHS.map((width) => (
+              <Button
+                key={width.id}
+                type="button"
+                size="sm"
+                variant="ghost"
+                className={cn(
+                  'h-7 px-2 text-[11px] text-white/70 hover:bg-white/10 hover:text-white',
+                  strokeWidthNorm === width.value && 'bg-white/15 text-white',
+                )}
+                onClick={() => setStrokeWidthNorm(width.value)}
+              >
+                {width.label}
+              </Button>
+            ))}
             <ToolButton
               label="Späť ťah"
               disabled={strokes.length === 0}
-              onClick={() => setStrokes((s) => s.slice(0, -1))}
+              onClick={undoStroke}
             >
               <Undo2 className="size-4" />
             </ToolButton>
             <ToolButton
+              label="Znova ťah"
+              disabled={redoStrokes.length === 0}
+              onClick={redoStroke}
+            >
+              <Redo2 className="size-4" />
+            </ToolButton>
+            <ToolButton
               label="Vymazať kresbu"
               disabled={strokes.length === 0}
-              onClick={() => setStrokes([])}
+              onClick={() => {
+                setStrokes([])
+                setRedoStrokes([])
+              }}
             >
               <Eraser className="size-4" />
             </ToolButton>
@@ -832,37 +1007,120 @@ export function ImageBlock({
         ) : null}
 
         {showFilters ? (
-          <div className="grid gap-3 border-b border-white/10 bg-[#12151b]/80 px-4 py-2 sm:grid-cols-2">
-            <label className="flex items-center gap-3 text-[11px] text-white/55">
-              Jas
-              <input
-                type="range"
-                min={0.4}
-                max={1.8}
-                step={0.05}
-                value={brightness}
-                onChange={(e) => setBrightness(Number(e.target.value))}
-                className="flex-1 accent-primary"
-              />
-              <span className="w-8 tabular-nums text-white/70">
-                {Math.round(brightness * 100)}%
-              </span>
-            </label>
-            <label className="flex items-center gap-3 text-[11px] text-white/55">
-              Kontrast
-              <input
-                type="range"
-                min={0.4}
-                max={1.8}
-                step={0.05}
-                value={contrast}
-                onChange={(e) => setContrast(Number(e.target.value))}
-                className="flex-1 accent-primary"
-              />
-              <span className="w-8 tabular-nums text-white/70">
-                {Math.round(contrast * 100)}%
-              </span>
-            </label>
+          <div className="space-y-3 border-b border-white/10 bg-[#12151b]/80 px-4 py-2">
+            <div className="flex flex-wrap gap-1.5">
+              {FILTER_PRESETS.map((preset) => (
+                <Button
+                  key={preset.id}
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2.5 text-[11px] text-white/70 hover:bg-white/10 hover:text-white"
+                  onClick={() => applyFilterPreset(preset)}
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <label className="flex items-center gap-3 text-[11px] text-white/55">
+                Jas
+                <input
+                  type="range"
+                  min={0.4}
+                  max={1.8}
+                  step={0.05}
+                  value={brightness}
+                  onChange={(e) => setBrightness(Number(e.target.value))}
+                  className="flex-1 accent-primary"
+                />
+                <span className="w-8 tabular-nums text-white/70">
+                  {Math.round(brightness * 100)}%
+                </span>
+              </label>
+              <label className="flex items-center gap-3 text-[11px] text-white/55">
+                Kontrast
+                <input
+                  type="range"
+                  min={0.4}
+                  max={1.8}
+                  step={0.05}
+                  value={contrast}
+                  onChange={(e) => setContrast(Number(e.target.value))}
+                  className="flex-1 accent-primary"
+                />
+                <span className="w-8 tabular-nums text-white/70">
+                  {Math.round(contrast * 100)}%
+                </span>
+              </label>
+              <label className="flex items-center gap-3 text-[11px] text-white/55">
+                Saturácia
+                <input
+                  type="range"
+                  min={0}
+                  max={2}
+                  step={0.05}
+                  value={saturation}
+                  onChange={(e) => setSaturation(Number(e.target.value))}
+                  className="flex-1 accent-primary"
+                />
+                <span className="w-8 tabular-nums text-white/70">
+                  {Math.round(saturation * 100)}%
+                </span>
+              </label>
+              <label className="flex items-center gap-3 text-[11px] text-white/55">
+                B&W
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={grayscale}
+                  onChange={(e) => setGrayscale(Number(e.target.value))}
+                  className="flex-1 accent-primary"
+                />
+                <span className="w-8 tabular-nums text-white/70">
+                  {Math.round(grayscale * 100)}%
+                </span>
+              </label>
+              <label className="flex items-center gap-3 text-[11px] text-white/55">
+                Sépia
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={sepia}
+                  onChange={(e) => setSepia(Number(e.target.value))}
+                  className="flex-1 accent-primary"
+                />
+                <span className="w-8 tabular-nums text-white/70">
+                  {Math.round(sepia * 100)}%
+                </span>
+              </label>
+              <label className="flex items-center gap-3 text-[11px] text-white/55">
+                Jemné
+                <input
+                  type="range"
+                  min={-15}
+                  max={15}
+                  step={1}
+                  value={(() => {
+                    const nearest = Math.round(rotation / 90) * 90
+                    return Math.max(-15, Math.min(15, rotation - nearest))
+                  })()}
+                  onChange={(e) => {
+                    const fine = Number(e.target.value)
+                    const nearest = Math.round(rotation / 90) * 90
+                    setRotation(nearest + fine)
+                  }}
+                  className="flex-1 accent-primary"
+                />
+                <span className="w-10 tabular-nums text-white/70">
+                  {Math.round(rotation)}°
+                </span>
+              </label>
+            </div>
           </div>
         ) : null}
 
@@ -908,7 +1166,7 @@ export function ImageBlock({
                 className="relative max-h-full max-w-full transition-transform duration-150"
                 style={{
                   transform: `translate(${pan.x}px, ${pan.y}px) rotate(${rotation}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1}) scale(${viewZoom})`,
-                  filter: `brightness(${brightness}) contrast(${contrast})`,
+                  filter: buildCssFilter(filterValues),
                 }}
               >
                 <img
@@ -940,11 +1198,11 @@ export function ImageBlock({
                   }}
                 />
                 <ImageDrawLayer
-                  enabled={drawing && rotation % 360 === 0}
+                  enabled={drawing && Math.abs(rotation % 360) < 0.01}
                   color={strokeColor}
-                  widthNorm={0.01}
+                  widthNorm={strokeWidthNorm}
                   strokes={strokes}
-                  onChange={setStrokes}
+                  onChange={updateStrokes}
                   flipHorizontal={flipH}
                   flipVertical={flipV}
                 />

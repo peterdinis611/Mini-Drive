@@ -1,6 +1,7 @@
 import { silenceClerkDevKeySpam } from '#/lib/clerk-dev-silence'
 
 silenceClerkDevKeySpam()
+import { Suspense } from 'react'
 import {
   HeadContent,
   Outlet,
@@ -13,10 +14,15 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { NuqsAdapter } from 'nuqs/adapters/react'
 
 import { ThemedClerkProvider } from '#/components/clerk-provider'
+import { AppHotkeysProvider } from '#/components/hotkeys/app-hotkeys-provider'
 import { ThemeProvider } from '#/components/theme-provider'
 import { ThemeSync } from '#/components/theme-sync'
 import { AppErrorBoundary } from '#/components/error-boundary/app-error-boundary'
 import { RouteError } from '#/components/error-boundary/route-error'
+import {
+  ScrollToTopButton,
+  ScrollToTopOnNavigate,
+} from '#/components/layout/scroll-to-top'
 import { NotFoundPage, RoutePending } from '#/components/status/status-page'
 import { Toaster } from '#/components/toast/toaster'
 import { APP_NAME } from '#/lib/constants'
@@ -122,7 +128,9 @@ function RootComponent() {
   return (
     <NuqsAdapter serverSearch={serverSearch}>
       <AppErrorBoundary variant="page" name="root-outlet" resetKeys={[pathname]}>
-        <Outlet />
+        <Suspense fallback={<RoutePending />}>
+          <Outlet />
+        </Suspense>
       </AppErrorBoundary>
     </NuqsAdapter>
   )
@@ -137,29 +145,33 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="min-h-svh antialiased">
         <ThemeProvider>
           <ThemedClerkProvider>
-            <ThemeSync />
-            <a className="skip-to-content" href="#main-content">
-              Preskočiť na obsah
-            </a>
-            <AppErrorBoundary variant="page" name="shell">
-              {children}
-            </AppErrorBoundary>
-            <Toaster />
-            {import.meta.env.DEV ? (
-              <TanStackDevtools
-                config={{
-                  position: 'bottom-right',
-                }}
-                plugins={[
-                  {
-                    name: 'Tanstack Router',
-                    render: <TanStackRouterDevtoolsPanel />,
-                  },
-                  TanStackQueryDevtools,
-                ]}
-              />
-            ) : null}
-            <Scripts />
+            <AppHotkeysProvider>
+              <ThemeSync />
+              <a className="skip-to-content" href="#main-content">
+                Preskočiť na obsah
+              </a>
+              <AppErrorBoundary variant="page" name="shell">
+                {children}
+              </AppErrorBoundary>
+              <ScrollToTopOnNavigate />
+              <ScrollToTopButton />
+              <Toaster />
+              {import.meta.env.DEV ? (
+                <TanStackDevtools
+                  config={{
+                    position: 'bottom-right',
+                  }}
+                  plugins={[
+                    {
+                      name: 'Tanstack Router',
+                      render: <TanStackRouterDevtoolsPanel />,
+                    },
+                    TanStackQueryDevtools,
+                  ]}
+                />
+              ) : null}
+              <Scripts />
+            </AppHotkeysProvider>
           </ThemedClerkProvider>
         </ThemeProvider>
       </body>

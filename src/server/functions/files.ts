@@ -1,8 +1,11 @@
 import { createServerFn } from '@tanstack/react-start'
 import { and, desc, eq, inArray, isNull, ne } from 'drizzle-orm'
 
+import { applyRenamePattern } from '#/lib/batch-rename'
 import {
   bulkMoveFilesSchema,
+  bulkRenamePatternSchema,
+  checkUploadConflictsSchema,
   deleteFileSchema,
   fileIdsSchema,
   imagePreviewUrlsSchema,
@@ -12,6 +15,7 @@ import {
   restoreFileVersionSchema,
 } from '#/lib/validation'
 import { firstOrNull, firstOrThrow } from '#/server/db-helpers.server'
+import { recordActivity } from '#/server/activity.server'
 import { nextFileVersionNumber } from '#/server/storage.server'
 
 export const renameFile = createServerFn({ method: 'POST' })
@@ -64,7 +68,7 @@ export const renameFile = createServerFn({ method: 'POST' })
       throw new Error('V tomto priečinku už existuje súbor s týmto názvom')
     }
 
-    return firstOrThrow(
+    const renamed = firstOrThrow(
       await db
         .update(files)
         .set({ name: data.name })
@@ -79,6 +83,145 @@ export const renameFile = createServerFn({ method: 'POST' })
         }),
       'Súbor neexistuje',
     )
+
+    await recordActivity({
+      userId,
+      action: 'file.rename',
+      targetType: 'file',
+      targetId: renamed.id,
+      summary: `Premenovaný na „${renamed.name}“`,
+    })
+
+    return renamed
+  })
+
+export const bulkRenameFiles = createServerFn({ method: 'POST' })
+  .validator(bulkRenamePatternSchema)
+  .handler(async ({ data }) => {
+    const { requireSession } = await import('#/server/auth.server')
+    const { db } = await import('#/db')
+    const { files } = await import('#/db/schema')
+
+    const session = await requireSession()
+    const userId = session.user.id
+    const startAt = data.startAt ?? 1
+
+    const rows = await db
+      .select({
+        id: files.id,
+        name: files.name,
+        folderId: files.folderId,
+      })
+      .from(files)
+      .where(
+        and(
+          eq(files.userId, userId),
+          isNull(files.deletedAt),
+          inArray(files.id, data.fileIds),
+        ),
+      )
+
+    if (rows.length === 0) throw new Error('Žiadne súbory na premenovanie')
+
+    const byId = new Map(rows.map((row) => [row.id, row]))
+    const ordered = data.fileIds
+      .map((id) => byId.get(id))
+      .filter((row): row is NonNullable<typeof row> => Boolean(row))
+
+    const updates: Array<{ id: string; name: string }> = []
+    for (let i = 0; i < ordered.length; i += 1) {
+      const row = ordered[i]!
+      const nextName = applyRenamePattern(row.name, data.pattern, startAt + i)
+      if (!nextName.trim()) {
+        throw new Error('Vzor vytvoril prázdny názov')
+      }
+      updates.push({ id: row.id, name: nextName })
+    }
+
+    // Collision check within batch + existing folder siblings
+    const proposed = new Set<string>()
+    for (const update of updates) {
+      const key = `${byId.get(update.id)?.folderId ?? 'root'}::${update.name}`
+      if (proposed.has(key)) {
+        throw new Error(`Konflikt názvov v dávke: ${update.name}`)
+      }
+      proposed.add(key)
+    }
+
+    for (const update of updates) {
+      const current = byId.get(update.id)!
+      const folderFilter =
+        current.folderId === null
+          ? isNull(files.folderId)
+          : eq(files.folderId, current.folderId)
+      const clash = firstOrNull(
+        await db
+          .select({ id: files.id })
+          .from(files)
+          .where(
+            and(
+              eq(files.userId, userId),
+              folderFilter,
+              eq(files.name, update.name),
+              ne(files.id, update.id),
+              isNull(files.deletedAt),
+            ),
+          )
+          .limit(1),
+      )
+      if (clash) {
+        throw new Error(`Názov „${update.name}“ už existuje`)
+      }
+    }
+
+    for (const update of updates) {
+      await db
+        .update(files)
+        .set({ name: update.name })
+        .where(and(eq(files.id, update.id), eq(files.userId, userId)))
+    }
+
+    await recordActivity({
+      userId,
+      action: 'file.bulk_rename',
+      targetType: 'file',
+      summary: `Hromadné premenovanie (${updates.length})`,
+      meta: { pattern: data.pattern, count: updates.length },
+    })
+
+    return { ok: true as const, count: updates.length, updates }
+  })
+
+export const checkUploadConflicts = createServerFn({ method: 'POST' })
+  .validator(checkUploadConflictsSchema)
+  .handler(async ({ data }) => {
+    const { requireSession } = await import('#/server/auth.server')
+    const { db } = await import('#/db')
+    const { files } = await import('#/db/schema')
+
+    const session = await requireSession()
+    const userId = session.user.id
+    const folderFilter =
+      data.folderId === null
+        ? isNull(files.folderId)
+        : eq(files.folderId, data.folderId)
+
+    const existing = await db
+      .select({ id: files.id, name: files.name })
+      .from(files)
+      .where(
+        and(
+          eq(files.userId, userId),
+          folderFilter,
+          isNull(files.deletedAt),
+          inArray(files.name, data.names),
+        ),
+      )
+
+    const byName = new Map(existing.map((row) => [row.name, row.id]))
+    return data.names
+      .filter((name) => byName.has(name))
+      .map((name) => ({ name, fileId: byName.get(name)! }))
   })
 
 export const moveFile = createServerFn({ method: 'POST' })

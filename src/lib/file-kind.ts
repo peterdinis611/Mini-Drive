@@ -18,13 +18,16 @@ export type FileKind =
   | 'text'
   | 'code'
   | 'spreadsheet'
+  | 'office'
   | 'archive'
   | 'file'
 
 const CODE_EXT =
   /\.(ts|tsx|js|jsx|mjs|cjs|css|scss|less|html?|json|xml|yml|yaml|toml|py|rs|go|java|kt|swift|c|cpp|h|hpp|cs|php|rb|sh|bash|zsh|sql|graphql|vue|svelte)$/i
 
-const SPREADSHEET_EXT = /\.(csv|tsv|xlsx?|ods)$/i
+const SPREADSHEET_EXT = /\.(csv|tsv)$/i
+const OFFICE_SHEET_EXT = /\.xlsx?$/i
+const OFFICE_DOC_EXT = /\.(docx?|pptx?|odt|ods)$/i
 const ARCHIVE_EXT = /\.(zip|rar|7z|tar|gz|tgz|bz2)$/i
 const TEXT_EXT = /\.(txt|md|markdown|log|rtf)$/i
 
@@ -42,9 +45,18 @@ export function getFileKind(mimeType: string, name = ''): FileKind {
     return 'pdf'
   }
   if (
+    mimeType.includes('officedocument') ||
+    mimeType.includes('msword') ||
+    mimeType.includes('ms-powerpoint') ||
+    mimeType.includes('ms-excel') ||
+    mimeType.includes('opendocument') ||
+    OFFICE_DOC_EXT.test(name) ||
+    OFFICE_SHEET_EXT.test(name)
+  ) {
+    return 'office'
+  }
+  if (
     mimeType === 'text/csv' ||
-    mimeType.includes('spreadsheet') ||
-    mimeType.includes('excel') ||
     SPREADSHEET_EXT.test(name)
   ) {
     return 'spreadsheet'
@@ -89,6 +101,8 @@ export function fileKindIcon(kind: FileKind): LucideIcon {
       return FileCode2
     case 'spreadsheet':
       return FileSpreadsheet
+    case 'office':
+      return FileText
     case 'archive':
       return FileArchive
     default:
@@ -112,6 +126,8 @@ export function fileKindLabel(kind: FileKind): string {
       return 'Kód'
     case 'spreadsheet':
       return 'Tabuľka'
+    case 'office':
+      return 'Office'
     case 'archive':
       return 'Archív'
     default:
@@ -127,7 +143,8 @@ export function canInlinePreview(kind: FileKind): boolean {
     kind === 'audio' ||
     kind === 'text' ||
     kind === 'code' ||
-    kind === 'spreadsheet'
+    kind === 'spreadsheet' ||
+    kind === 'office'
   )
 }
 

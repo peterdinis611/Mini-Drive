@@ -1,18 +1,33 @@
-import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from 'react'
+import { useDebouncedValue } from '@tanstack/react-pacer'
 import { Link, useNavigate, useRouter } from '@tanstack/react-router'
 import {
+  Archive,
+  Copy,
   Download,
   Eye,
   Folder,
   FolderPlus,
   Grid2X2,
+  History,
   List,
   MoreHorizontal,
   Pencil,
   Search,
   Share2,
+  Star,
+  StickyNote,
+  Tag,
   Trash2,
   FolderInput,
+  Type,
   Upload,
   X,
 } from 'lucide-react'
@@ -27,15 +42,30 @@ import { NameDialog } from '#/components/files/name-dialog'
 import { MoveDialog } from '#/components/files/move-dialog'
 import { DeleteFolderDialog } from '#/components/files/delete-folder-dialog'
 import { ShareDialog } from '#/components/files/share-dialog'
-import { DriveSearchDialog } from '#/components/files/drive-search-dialog'
+import { DriveSearchTrigger } from '#/components/files/drive-search-dialog'
 import { FileThumbnail } from '#/components/files/file-thumbnail'
 import { FilePreviewDialog } from '#/components/files/file-preview-dialog'
+import { FileVersionsDialog } from '#/components/files/file-versions-dialog'
+import { FileTagsDialog } from '#/components/files/file-tags-dialog'
+import { FileNotesDialog } from '#/components/files/file-notes-dialog'
+import { BatchRenameDialog } from '#/components/files/batch-rename-dialog'
+import { FolderStyleDialog } from '#/components/files/folder-style-dialog'
+import {
+  UploadConflictDialog,
+  uniqueKeepBothName,
+  type UploadConflict,
+} from '#/components/files/upload-conflict-dialog'
+import { DuplicatesDialog } from '#/components/files/duplicates-dialog'
 import { FolderDropTarget } from '#/components/files/folder-drop-target'
 import { useDriveUpload } from '#/components/files/use-drive-upload'
 import { useImagePreviews } from '#/components/files/use-image-previews'
 import { canInlinePreview } from '#/lib/mime'
 import { filterDriveFiles, filterDriveFolders } from '#/lib/drive-filters'
 import { driveSearchParams, viewParser } from '#/lib/drive-url-state'
+import {
+  consumeQueuedQuickAction,
+  onQuickAction,
+} from '#/lib/quick-actions'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
 import { riseTransition } from '#/lib/motion'
@@ -50,6 +80,7 @@ import {
   BreadcrumbSeparator,
 } from '#/components/ui/breadcrumb'
 import { Button } from '#/components/ui/button'
+import { ButtonGroup } from '#/components/ui/button-group'
 import { Checkbox } from '#/components/ui/checkbox'
 import { EmptyState } from '#/components/ui/empty-state'
 import {
@@ -60,17 +91,28 @@ import {
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '#/components/ui/input-group'
+import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '#/components/ui/tooltip'
+import {
   createDataTableColumnHelper,
   DataTable,
 } from '#/components/ui/data-table'
-import { Input } from '#/components/ui/input'
-import { Skeleton } from '#/components/ui/skeleton'
+import { SectionLoading } from '#/components/ui/preload-spinner'
 import { getErrorMessage } from '#/lib/errors'
 import { formatFileSize } from '#/lib/format'
-import { cn } from '#/lib/utils'
 import {
   bulkDeleteFiles,
   bulkMoveFiles,
+  bulkRenameFiles,
+  checkUploadConflicts,
   deleteFile,
   getFileDownloadUrl,
   moveFile,
@@ -81,7 +123,14 @@ import {
   deleteFolder,
   moveFolder,
   renameFolder,
+  setLastFolder,
+  updateFolderStyle,
 } from '#/server/functions/folders'
+import { toggleFavorite } from '#/server/functions/favorites'
+import {
+  downloadFolderZip,
+  getBulkDownloadUrls,
+} from '#/server/functions/zip'
 import type {
   BreadcrumbItem as Crumb,
   DriveFile,
@@ -123,6 +172,12 @@ type DialogState =
   | { type: 'bulk-move' }
   | { type: 'delete-folder'; folder: DriveFolder }
   | { type: 'share-file'; file: DriveFile }
+  | { type: 'versions'; file: DriveFile }
+  | { type: 'tags'; file: DriveFile }
+  | { type: 'notes'; file: DriveFile }
+  | { type: 'batch-rename' }
+  | { type: 'folder-style'; folder: DriveFolder }
+  | { type: 'duplicates' }
   | null
 
 type DriveListItem =
@@ -148,20 +203,53 @@ export function FileExplorer({
     })
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
   const [dialog, setDialog] = useState<DialogState>(null)
+  const [uploadConflicts, setUploadConflicts] = useState<UploadConflict[]>([])
+  const [pendingUpload, setPendingUpload] = useState<{
+    files: File[]
+    dest: string | null
+  } | null>(null)
   const [pending, startTransition] = useTransition()
   const previewUrls = useImagePreviews(initial.files, true)
+  const [filterDraft, setFilterDraft] = useState(q)
+  const [debouncedFilter] = useDebouncedValue(filterDraft, { wait: 220 })
 
   const folders = initial.folders
   const files = initial.files
 
+  useEffect(() => {
+    setFilterDraft(q)
+  }, [q, folderId])
+
+  useEffect(() => {
+    if (debouncedFilter === q) return
+    void setUrlState({ q: debouncedFilter })
+  }, [debouncedFilter, q, setUrlState])
+
+  useEffect(() => {
+    function applyQuickAction(action: 'upload' | 'create-folder' | 'search') {
+      if (action === 'upload') {
+        void setUrlState({ upload: true })
+        return
+      }
+      if (action === 'create-folder') {
+        setDialog({ type: 'create-folder' })
+      }
+    }
+
+    const pending = consumeQueuedQuickAction()
+    if (pending) applyQuickAction(pending)
+
+    return onQuickAction(applyQuickAction)
+  }, [setUrlState])
+
   const filteredFolders = useMemo(
-    () => filterDriveFolders(folders, kind, q),
-    [folders, kind, q],
+    () => filterDriveFolders(folders, kind, debouncedFilter),
+    [folders, kind, debouncedFilter],
   )
 
   const filteredFiles = useMemo(
-    () => filterDriveFiles(files, kind, q),
-    [files, kind, q],
+    () => filterDriveFiles(files, kind, debouncedFilter),
+    [files, kind, debouncedFilter],
   )
 
   const empty = filteredFolders.length === 0 && filteredFiles.length === 0
@@ -173,6 +261,12 @@ export function FileExplorer({
 
   useEffect(() => {
     setSelectedIds(new Set())
+  }, [folderId])
+
+  useEffect(() => {
+    void setLastFolder({ data: { folderId } }).catch(() => {
+      // best-effort resume pointer
+    })
   }, [folderId])
 
   useEffect(() => {
@@ -235,7 +329,25 @@ export function FileExplorer({
   const handleUpload = useCallback(
     (incoming: File[] | FileList | null, dest: string | null) => {
       void setUrlState({ upload: true })
-      void uploadFiles(incoming, dest)
+      const list = incoming
+        ? Array.from(incoming instanceof FileList ? incoming : incoming)
+        : []
+      if (list.length === 0) return
+
+      void checkUploadConflicts({
+        data: { folderId: dest, names: list.map((file) => file.name) },
+      })
+        .then((conflicts) => {
+          if (conflicts.length === 0) {
+            void uploadFiles(list, dest)
+            return
+          }
+          setPendingUpload({ files: list, dest })
+          setUploadConflicts(conflicts)
+        })
+        .catch(() => {
+          void uploadFiles(list, dest)
+        })
     },
     [setUrlState, uploadFiles],
   )
@@ -303,6 +415,95 @@ export function FileExplorer({
     const file = files.find((f) => f.id === fileId)
     if (file) setDialog({ type: 'share-file', file })
   }, [files, selectedIds])
+
+  const handleBulkDownload = useCallback(() => {
+    const fileIds = [...selectedIds]
+    if (fileIds.length === 0) return
+    void run(async () => {
+      const items = await getBulkDownloadUrls({ data: { fileIds } })
+      for (const item of items) {
+        const anchor = document.createElement('a')
+        anchor.href = item.url
+        anchor.download = item.name
+        anchor.rel = 'noopener'
+        anchor.target = '_blank'
+        document.body.appendChild(anchor)
+        anchor.click()
+        anchor.remove()
+      }
+    }, fileIds.length === 1 ? 'Sťahovanie pripravené' : `${fileIds.length} súborov`)
+  }, [run, selectedIds])
+
+  const handleToggleFavorite = useCallback(
+    (targetType: 'file' | 'folder', targetId: string) => {
+      void run(
+        () => toggleFavorite({ data: { targetType, targetId } }),
+        'Obľúbené aktualizované',
+      )
+    },
+    [run],
+  )
+
+  const handleFolderZip = useCallback(
+    (folder: DriveFolder) => {
+      void run(async () => {
+        const result = await downloadFolderZip({
+          data: { folderId: folder.id },
+        })
+        const binary = atob(result.base64)
+        const bytes = new Uint8Array(binary.length)
+        for (let i = 0; i < binary.length; i += 1) {
+          bytes[i] = binary.charCodeAt(i)
+        }
+        const blob = new Blob([bytes], { type: 'application/zip' })
+        const url = URL.createObjectURL(blob)
+        const anchor = document.createElement('a')
+        anchor.href = url
+        anchor.download = result.name
+        document.body.appendChild(anchor)
+        anchor.click()
+        anchor.remove()
+        URL.revokeObjectURL(url)
+      }, `Zip (${folder.name}) pripravený`)
+    },
+    [run],
+  )
+
+  const dragUrlCache = useRef(new Map<string, { url: string; mimeType: string; name: string }>())
+
+  const prefetchDragUrl = useCallback((file: DriveFile) => {
+    if (dragUrlCache.current.has(file.id)) return
+    void getFileDownloadUrl({ data: { fileId: file.id } })
+      .then((result) => {
+        dragUrlCache.current.set(file.id, {
+          url: result.url,
+          mimeType: file.mimeType,
+          name: file.name,
+        })
+      })
+      .catch(() => {
+        // ignore — drag-out falls back to text/plain
+      })
+  }, [])
+
+  const handleFileDragStart = useCallback(
+    (event: React.DragEvent, file: DriveFile) => {
+      event.dataTransfer.effectAllowed = 'copy'
+      event.dataTransfer.setData('text/plain', file.name)
+      const cached = dragUrlCache.current.get(file.id)
+      if (cached) {
+        try {
+          event.dataTransfer.setData(
+            'DownloadURL',
+            `${cached.mimeType}:${cached.name}:${cached.url}`,
+          )
+        } catch {
+          // DownloadURL not supported in all browsers
+        }
+      }
+    },
+    [],
+  )
 
   const allFilteredSelected =
     filteredFiles.length > 0 &&
@@ -442,6 +643,9 @@ export function FileExplorer({
                   onRename={() => setDialog({ type: 'rename-folder', folder })}
                   onMove={() => setDialog({ type: 'move-folder', folder })}
                   onDelete={() => setDialog({ type: 'delete-folder', folder })}
+                  onZip={() => handleFolderZip(folder)}
+                  onFavorite={() => handleToggleFavorite('folder', folder.id)}
+                  onStyle={() => setDialog({ type: 'folder-style', folder })}
                 />
               )
             }
@@ -475,6 +679,10 @@ export function FileExplorer({
                   )
                 }}
                 onShare={() => setDialog({ type: 'share-file', file })}
+                onVersions={() => setDialog({ type: 'versions', file })}
+                onTags={() => setDialog({ type: 'tags', file })}
+                onNotes={() => setDialog({ type: 'notes', file })}
+                onFavorite={() => handleToggleFavorite('file', file.id)}
               />
             )
           },
@@ -489,6 +697,8 @@ export function FileExplorer({
       allFilteredSelected,
       confirmTrash,
       filteredFiles,
+      handleFolderZip,
+      handleToggleFavorite,
       handleUpload,
       isUploading,
       openPreview,
@@ -515,37 +725,44 @@ export function FileExplorer({
       subtitle={`${filteredFolders.length} priečinkov · ${filteredFiles.length} súborov`}
       actions={
         <>
-          <DriveSearchDialog />
-          <div className="flex overflow-hidden rounded-full border-2 border-foreground/80 dark:border-primary/45">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={
-                view === 'list'
-                  ? 'rounded-none bg-primary text-primary-foreground'
-                  : 'rounded-none'
-              }
-              aria-label="Zoznam"
-              onClick={() => void setUrlState({ view: 'list' })}
+          <DriveSearchTrigger />
+          <ButtonGroup className="rounded-full border-2 border-foreground/80 dark:border-primary/45">
+            <ToggleGroup
+              type="single"
+              value={view}
+              onValueChange={(value) => {
+                if (value === 'list' || value === 'grid') {
+                  void setUrlState({ view: value })
+                }
+              }}
+              className="gap-0"
             >
-              <List />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={
-                view === 'grid'
-                  ? 'rounded-none bg-primary text-primary-foreground'
-                  : 'rounded-none'
-              }
-              aria-label="Mriežka"
-              onClick={() => void setUrlState({ view: 'grid' })}
-            >
-              <Grid2X2 />
-            </Button>
-          </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ToggleGroupItem
+                    value="list"
+                    aria-label="Zoznam"
+                    className="rounded-none first:rounded-l-full data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                  >
+                    <List />
+                  </ToggleGroupItem>
+                </TooltipTrigger>
+                <TooltipContent>Zoznam</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ToggleGroupItem
+                    value="grid"
+                    aria-label="Mriežka"
+                    className="rounded-none last:rounded-r-full data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                  >
+                    <Grid2X2 />
+                  </ToggleGroupItem>
+                </TooltipTrigger>
+                <TooltipContent>Mriežka</TooltipContent>
+              </Tooltip>
+            </ToggleGroup>
+          </ButtonGroup>
           <Button
             type="button"
             variant={showUpload ? 'secondary' : 'outline'}
@@ -554,6 +771,14 @@ export function FileExplorer({
           >
             <Upload />
             {showUpload ? 'Skryť upload' : 'Nahrať'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setDialog({ type: 'duplicates' })}
+          >
+            <Copy />
+            Duplikáty
           </Button>
           <Button
             type="button"
@@ -567,7 +792,7 @@ export function FileExplorer({
     >
       <div className="space-y-5">
         <div className="sm:hidden">
-          <DriveSearchDialog compact />
+          <DriveSearchTrigger compact />
         </div>
 
         <FadeIn>
@@ -604,33 +829,46 @@ export function FileExplorer({
         </FadeIn>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-1.5">
+          <ToggleGroup
+            type="single"
+            value={kind}
+            onValueChange={(value) => {
+              if (
+                value === 'all' ||
+                value === 'image' ||
+                value === 'pdf' ||
+                value === 'video' ||
+                value === 'audio' ||
+                value === 'text'
+              ) {
+                void setUrlState({ kind: value })
+              }
+            }}
+            variant="outline"
+            size="sm"
+            className="flex flex-wrap justify-start gap-1.5"
+          >
             {KIND_CHIPS.map((chip) => (
-              <Button
+              <ToggleGroupItem
                 key={chip.value}
-                type="button"
-                size="sm"
-                variant={kind === chip.value ? 'secondary' : 'ghost'}
-                className={cn(
-                  'h-8 rounded-md px-2.5 text-xs',
-                  kind === chip.value && 'bg-accent',
-                )}
-                onClick={() => void setUrlState({ kind: chip.value })}
+                value={chip.value}
+                className="h-8 rounded-md px-2.5 text-xs data-[state=on]:bg-accent"
               >
                 {chip.label}
-              </Button>
+              </ToggleGroupItem>
             ))}
-          </div>
-          <div className="relative w-full sm:max-w-56">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={q}
-              onChange={(event) => void setUrlState({ q: event.target.value })}
+          </ToggleGroup>
+          <InputGroup className="h-8 w-full sm:max-w-56">
+            <InputGroupAddon>
+              <Search className="size-3.5" aria-hidden />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={filterDraft}
+              onChange={(event) => setFilterDraft(event.target.value)}
               placeholder="Filtrovať…"
-              className="h-8 pl-8"
-              aria-label="Filtrovať podľa názvu"
+              aria-label="Filtrovať súbory a priečinky"
             />
-          </div>
+          </InputGroup>
         </div>
 
         <AnimatePresence initial={false}>
@@ -656,16 +894,12 @@ export function FileExplorer({
 
         <FadeIn delay={0.06}>
           {pending ? (
-            <div className="space-y-3 py-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-2/3" />
-            </div>
+            <SectionLoading label="Obnovujem priečinok…" />
           ) : empty ? (
             <EmptyState
               icon={Folder}
               title="Zatiaľ prázdne"
-              description="Nahraj súbor alebo vytvor nový priečinok. Hľadaj cez ⌘K."
+              description="Nahraj súbor alebo vytvor nový priečinok. Hľadaj cez skratku (predvolene ⌘K)."
               className="rounded-2xl border border-dashed border-border/80 bg-muted/20"
             />
           ) : view === 'list' ? (
@@ -720,6 +954,13 @@ export function FileExplorer({
                           onDelete={() =>
                             setDialog({ type: 'delete-folder', folder })
                           }
+                          onZip={() => handleFolderZip(folder)}
+                          onFavorite={() =>
+                            handleToggleFavorite('folder', folder.id)
+                          }
+                          onStyle={() =>
+                            setDialog({ type: 'folder-style', folder })
+                          }
                         />
                       </div>
                     </motion.div>
@@ -733,6 +974,13 @@ export function FileExplorer({
                     whileHover={reduce ? undefined : { y: -1 }}
                     transition={riseTransition}
                   >
+                    <div
+                      draggable
+                      onPointerDown={() => prefetchDragUrl(file)}
+                      onDragStart={(event) =>
+                        handleFileDragStart(event, file)
+                      }
+                    >
                     <button
                       type="button"
                       className="flex w-full items-start gap-3 text-left"
@@ -788,7 +1036,16 @@ export function FileExplorer({
                         onShare={() =>
                           setDialog({ type: 'share-file', file })
                         }
+                        onVersions={() =>
+                          setDialog({ type: 'versions', file })
+                        }
+                        onTags={() => setDialog({ type: 'tags', file })}
+                        onNotes={() => setDialog({ type: 'notes', file })}
+                        onFavorite={() =>
+                          handleToggleFavorite('file', file.id)
+                        }
                       />
+                    </div>
                     </div>
                   </motion.div>
                 </StaggerItem>
@@ -802,6 +1059,24 @@ export function FileExplorer({
             <span className="text-sm font-medium">
               {selectedIds.size} vybraných
             </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handleBulkDownload}
+            >
+              <Download />
+              Stiahnuť
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setDialog({ type: 'batch-rename' })}
+            >
+              <Type />
+              Premenovať
+            </Button>
             <Button
               type="button"
               size="sm"
@@ -829,6 +1104,19 @@ export function FileExplorer({
             >
               <Share2 />
               Zdieľať
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={selectedIds.size !== 1}
+              onClick={() => {
+                const fileId = [...selectedIds][0]
+                if (fileId) handleToggleFavorite('file', fileId)
+              }}
+            >
+              <Star />
+              Pin
             </Button>
             <Button
               type="button"
@@ -985,6 +1273,124 @@ export function FileExplorer({
         }}
         onSavedToDrive={() => refresh()}
       />
+
+      <FileVersionsDialog
+        open={dialog?.type === 'versions'}
+        fileId={dialog?.type === 'versions' ? dialog.file.id : null}
+        fileName={dialog?.type === 'versions' ? dialog.file.name : ''}
+        onOpenChange={(open) => !open && setDialog(null)}
+        onRestored={() => refresh()}
+      />
+
+      <DuplicatesDialog
+        open={dialog?.type === 'duplicates'}
+        onOpenChange={(open) => !open && setDialog(null)}
+        onChanged={() => refresh()}
+      />
+
+      <FileTagsDialog
+        open={dialog?.type === 'tags'}
+        fileId={dialog?.type === 'tags' ? dialog.file.id : null}
+        fileName={dialog?.type === 'tags' ? dialog.file.name : ''}
+        onOpenChange={(open) => !open && setDialog(null)}
+      />
+
+      <FileNotesDialog
+        open={dialog?.type === 'notes'}
+        fileId={dialog?.type === 'notes' ? dialog.file.id : null}
+        fileName={dialog?.type === 'notes' ? dialog.file.name : ''}
+        onOpenChange={(open) => !open && setDialog(null)}
+      />
+
+      <BatchRenameDialog
+        open={dialog?.type === 'batch-rename'}
+        fileNames={[...selectedIds]
+          .map((id) => files.find((file) => file.id === id)?.name)
+          .filter((name): name is string => Boolean(name))}
+        onOpenChange={(open) => !open && setDialog(null)}
+        onSubmit={(pattern, startAt) =>
+          run(
+            () =>
+              bulkRenameFiles({
+                data: {
+                  fileIds: [...selectedIds],
+                  pattern,
+                  startAt,
+                },
+              }),
+            'Súbory premenované',
+          ).then(clearSelection)
+        }
+      />
+
+      <UploadConflictDialog
+        open={uploadConflicts.length > 0}
+        conflicts={uploadConflicts}
+        onOpenChange={(open) => {
+          if (!open) {
+            setUploadConflicts([])
+            setPendingUpload(null)
+          }
+        }}
+        onCancel={() => {
+          setUploadConflicts([])
+          setPendingUpload(null)
+        }}
+        onKeepBoth={() => {
+          if (!pendingUpload) return
+          const taken = new Set([
+            ...files.map((file) => file.name),
+            ...pendingUpload.files.map((file) => file.name),
+          ])
+          const renamed = pendingUpload.files.map((file) => {
+            if (!uploadConflicts.some((c) => c.name === file.name)) {
+              return file
+            }
+            const nextName = uniqueKeepBothName(file.name, taken)
+            taken.add(nextName)
+            return new File([file], nextName, { type: file.type })
+          })
+          const dest = pendingUpload.dest
+          setUploadConflicts([])
+          setPendingUpload(null)
+          void uploadFiles(renamed, dest)
+        }}
+        onReplace={() => {
+          if (!pendingUpload || uploadConflicts.length !== 1) return
+          const conflict = uploadConflicts[0]!
+          const match = pendingUpload.files.find(
+            (file) => file.name === conflict.name,
+          )
+          if (!match) return
+          const dest = pendingUpload.dest
+          setUploadConflicts([])
+          setPendingUpload(null)
+          void uploadFiles([match], {
+            folderId: dest,
+            replaceFileId: conflict.fileId,
+          })
+        }}
+      />
+
+      <FolderStyleDialog
+        open={dialog?.type === 'folder-style'}
+        folder={dialog?.type === 'folder-style' ? dialog.folder : null}
+        onOpenChange={(open) => !open && setDialog(null)}
+        onSave={(color, priority) => {
+          if (dialog?.type !== 'folder-style') return
+          return run(
+            () =>
+              updateFolderStyle({
+                data: {
+                  folderId: dialog.folder.id,
+                  color,
+                  priority,
+                },
+              }),
+            'Štýl priečinka uložený',
+          )
+        }}
+      />
     </AppShell>
     </DndProvider>
   )
@@ -994,10 +1400,16 @@ function FolderActions({
   onRename,
   onMove,
   onDelete,
+  onZip,
+  onFavorite,
+  onStyle,
 }: {
   onRename: () => void
   onMove: () => void
   onDelete: () => void
+  onZip: () => void
+  onFavorite: () => void
+  onStyle: () => void
 }) {
   return (
     <DropdownMenu>
@@ -1018,6 +1430,15 @@ function FolderActions({
         <DropdownMenuItem onClick={onMove}>
           <FolderInput /> Presunúť
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={onZip}>
+          <Archive /> Stiahnuť ZIP
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onStyle}>
+          <Star /> Farba / priorita
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onFavorite}>
+          <Star /> Obľúbené
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={onDelete}>
           <Trash2 /> Zmazať
@@ -1035,6 +1456,10 @@ function FileActions({
   onDownload,
   onDelete,
   onShare,
+  onVersions,
+  onTags,
+  onNotes,
+  onFavorite,
 }: {
   canPreview?: boolean
   onPreview?: () => void
@@ -1043,6 +1468,10 @@ function FileActions({
   onDownload: () => void
   onDelete: () => void
   onShare: () => void
+  onVersions: () => void
+  onTags: () => void
+  onNotes: () => void
+  onFavorite: () => void
 }) {
   return (
     <DropdownMenu>
@@ -1073,6 +1502,18 @@ function FileActions({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onShare}>
           <Share2 /> Zdieľať
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onVersions}>
+          <History /> Verzie
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onTags}>
+          <Tag /> Tagy
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onNotes}>
+          <StickyNote /> Poznámky
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onFavorite}>
+          <Star /> Obľúbené
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={onDelete}>
