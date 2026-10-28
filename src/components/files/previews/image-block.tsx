@@ -68,7 +68,7 @@ const ASPECTS: Array<{ id: AspectId; label: string; value: number | undefined }>
     { id: '16:9', label: '16:9', value: 16 / 9 },
   ]
 
-const STROKE_COLORS = ['#ffffff', '#22d3ee', '#f43f5e', '#fbbf24', '#a3e635'] as const
+const STROKE_COLORS = ['#ffffff', '#b6ec2e', '#b9a6ff', '#f43f5e', '#fbbf24'] as const
 
 function ToolButton({
   label,
@@ -691,7 +691,7 @@ export function ImageBlock({
                     <Button
                       type="button"
                       size="sm"
-                      className="h-8 gap-1.5 bg-cyan-400 text-black hover:bg-cyan-300"
+                      className="h-8 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
                       disabled={busy}
                       onClick={() => void saveEdits('replace')}
                     >
@@ -752,7 +752,7 @@ export function ImageBlock({
                   <Button
                     type="button"
                     size="sm"
-                    className="h-8 gap-1.5 bg-cyan-400 text-black hover:bg-cyan-300"
+                    className="h-8 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
                     disabled={busy || !croppedAreaPixels}
                     onClick={() => void applyCropAndSave('replace')}
                   >
@@ -842,7 +842,7 @@ export function ImageBlock({
                 step={0.05}
                 value={brightness}
                 onChange={(e) => setBrightness(Number(e.target.value))}
-                className="flex-1 accent-cyan-300"
+                className="flex-1 accent-primary"
               />
               <span className="w-8 tabular-nums text-white/70">
                 {Math.round(brightness * 100)}%
@@ -857,7 +857,7 @@ export function ImageBlock({
                 step={0.05}
                 value={contrast}
                 onChange={(e) => setContrast(Number(e.target.value))}
-                className="flex-1 accent-cyan-300"
+                className="flex-1 accent-primary"
               />
               <span className="w-8 tabular-nums text-white/70">
                 {Math.round(contrast * 100)}%

@@ -516,12 +516,12 @@ export function FileExplorer({
       actions={
         <>
           <DriveSearchDialog />
-          <div className="flex overflow-hidden rounded-md border border-border">
+          <div className="flex overflow-hidden rounded-full border-2 border-foreground/80 dark:border-primary/45">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className={view === 'list' ? 'bg-accent' : ''}
+              className={view === 'list' ? 'bg-primary text-primary-foreground' : 'rounded-none'}
               aria-label="Zoznam"
               onClick={() => void setUrlState({ view: 'list' })}
             >
@@ -531,7 +531,7 @@ export function FileExplorer({
               type="button"
               variant="ghost"
               size="icon"
-              className={view === 'grid' ? 'bg-accent' : ''}
+              className={view === 'grid' ? 'bg-primary text-primary-foreground' : 'rounded-none'}
               aria-label="Mriežka"
               onClick={() => void setUrlState({ view: 'grid' })}
             >

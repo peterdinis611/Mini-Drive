@@ -242,10 +242,11 @@ export function RoutePending() {
   const reduce = useReducedMotion()
 
   return (
-    <div className="flex min-h-svh flex-col bg-background">
+    <div className="app-frame">
+      <div className="app-frame-inner flex min-h-[inherit] flex-col bg-background">
       <div className="border-b border-border/80 px-6 py-5 sm:px-10">
         <motion.div
-          className="h-8 w-36 rounded-sm bg-muted"
+          className="h-8 w-36 rounded-full bg-muted"
           animate={reduce ? undefined : { opacity: [0.45, 0.85, 0.45] }}
           transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -256,10 +257,10 @@ export function RoutePending() {
             key={i}
             className={
               width === 'full'
-                ? 'h-12 rounded-sm bg-muted/60'
+                ? 'h-12 rounded-2xl bg-muted/60'
                 : width === '4/5'
-                  ? 'h-12 w-4/5 rounded-sm bg-muted/60'
-                  : `h-10 rounded-sm bg-muted ${width === 48 ? 'w-48' : 'w-72'}`
+                  ? 'h-12 w-4/5 rounded-2xl bg-muted/60'
+                  : `h-10 rounded-2xl bg-muted ${width === 48 ? 'w-48' : 'w-72'}`
             }
             initial={reduce ? false : { opacity: 0, y: 6 }}
             animate={
@@ -276,6 +277,7 @@ export function RoutePending() {
             }}
           />
         ))}
+      </div>
       </div>
     </div>
   )

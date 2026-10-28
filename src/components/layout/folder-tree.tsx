@@ -23,9 +23,9 @@ export function FolderTree({ folders, activeFolderId, onNavigate }: Props) {
         to="/files"
         onClick={onNavigate}
         className={cn(
-          'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition',
+          'flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition',
           activeFolderId === null
-            ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
+            ? 'bg-primary/25 font-medium text-foreground dark:bg-primary/20 dark:text-primary'
             : 'text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground',
         )}
       >
@@ -70,9 +70,9 @@ function TreeNode({
     <div>
       <div
         className={cn(
-          'group flex items-center gap-0.5 rounded-md',
+          'group flex items-center gap-0.5 rounded-full',
           active
-            ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
+            ? 'bg-primary/25 font-medium text-foreground dark:bg-primary/20 dark:text-primary'
             : 'hover:bg-sidebar-accent/70',
         )}
         style={{ paddingLeft: 8 + depth * 12 }}

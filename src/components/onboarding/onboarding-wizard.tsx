@@ -169,10 +169,10 @@ export function OnboardingWizard({ initial }: Props) {
       <div className="flex flex-1 flex-col gap-8 py-4">
         <FadeIn>
           <div>
-            <p className="text-sm font-medium text-muted-foreground">
+            <p className="font-script text-2xl leading-none text-foreground">
               {APP_NAME}
             </p>
-            <h1 className="font-display text-4xl">Vitaj</h1>
+            <h1 className="font-display mt-2 text-4xl">Vitaj</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Pripravíme tvoje úložisko za pár krokov.
             </p>
@@ -180,7 +180,7 @@ export function OnboardingWizard({ initial }: Props) {
         </FadeIn>
 
         <FadeIn delay={0.05}>
-          <div className="space-y-2 rounded-xl border border-border/70 bg-background/70 p-4 backdrop-blur-md">
+          <div className="space-y-2 rounded-2xl border-2 border-foreground/12 bg-card/80 p-4 backdrop-blur-md dark:border-primary/30">
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>
                 Krok {step} / {ONBOARDING_STEPS}

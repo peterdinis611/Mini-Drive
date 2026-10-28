@@ -34,10 +34,7 @@ interface MyRouterContext {
 }
 
 const FONT_STYLESHEET =
-  'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap'
-
-const LANDING_FONT_STYLESHEET =
-  'https://fonts.googleapis.com/css2?family=Great+Vibes&family=Sora:wght@400;600;700&display=swap'
+  'https://fonts.googleapis.com/css2?family=Great+Vibes&family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;600;700&display=swap'
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => {
@@ -103,10 +100,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         {
           rel: 'stylesheet',
           href: FONT_STYLESHEET,
-        },
-        {
-          rel: 'stylesheet',
-          href: LANDING_FONT_STYLESHEET,
         },
         {
           rel: 'stylesheet',
