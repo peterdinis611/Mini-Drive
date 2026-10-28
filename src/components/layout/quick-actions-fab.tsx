@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { formatForDisplay, useAppHotkeys } from '@tanstack/react-hotkeys'
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import {
   Clock3,
@@ -30,6 +31,7 @@ type FabAction = {
 export function QuickActionsFab() {
   const navigate = useNavigate()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const keys = useAppHotkeys()
   const reduce = useReducedMotion()
   const [open, setOpen] = useState(false)
 
@@ -41,13 +43,18 @@ export function QuickActionsFab() {
       id: 'search',
       label: 'Hľadať',
       icon: Search,
-      shortcut: '⌘K',
+      shortcut: keys['search.open'].hotkey
+        ? formatForDisplay(keys['search.open'].hotkey)
+        : undefined,
       onSelect: () => dispatchQuickAction('search'),
     },
     {
       id: 'upload',
       label: 'Nahrať súbory',
       icon: Upload,
+      shortcut: keys['files.upload'].hotkey
+        ? formatForDisplay(keys['files.upload'].hotkey)
+        : undefined,
       onSelect: () => {
         if (onFiles) {
           dispatchQuickAction('upload')
@@ -61,6 +68,9 @@ export function QuickActionsFab() {
       id: 'create-folder',
       label: 'Nový priečinok',
       icon: FolderPlus,
+      shortcut: keys['files.new-folder'].hotkey
+        ? formatForDisplay(keys['files.new-folder'].hotkey)
+        : undefined,
       onSelect: () => {
         if (onFiles) {
           dispatchQuickAction('create-folder')

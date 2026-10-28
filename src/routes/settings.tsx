@@ -23,6 +23,7 @@ import { usePersistTheme } from '#/hooks/use-persist-theme'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
 import { DeleteAllDialog } from '#/components/settings/delete-all-dialog'
+import { HotkeysSettings } from '#/components/settings/hotkeys-settings'
 import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
@@ -375,6 +376,10 @@ function SettingsPage() {
                 />
               </div>
             </section>
+          </StaggerItem>
+
+          <StaggerItem>
+            <HotkeysSettings />
           </StaggerItem>
 
           <StaggerItem>

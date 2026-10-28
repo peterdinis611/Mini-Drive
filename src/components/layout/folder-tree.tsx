@@ -39,7 +39,6 @@ const ROW_HEIGHT = 34
 export function FolderTree({ folders, activeFolderId, onNavigate }: Props) {
   const parentRef = useRef<HTMLElement>(null)
   const filterId = useId()
-  const reduce = useReducedMotion()
   const [open, setOpen] = useState<Record<string, boolean>>({})
   const [filterInput, setFilterInput] = useState('')
   const [debouncedFilter] = useDebouncedValue(filterInput, { wait: 180 })

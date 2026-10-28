@@ -2,6 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useDebouncedValue } from '@tanstack/react-pacer'
+import {
+  formatForDisplay,
+  useAppHotkeys,
+  useHotkey,
+} from '@tanstack/react-hotkeys'
 import { useNavigate } from '@tanstack/react-router'
 import { FileIcon, Folder, Search } from 'lucide-react'
 
@@ -39,6 +44,9 @@ export function DriveSearchTrigger({
   className,
   compact = false,
 }: TriggerProps) {
+  const keys = useAppHotkeys()
+  const shortcut = keys['search.open'].hotkey
+
   return (
     <Button
       type="button"
@@ -56,9 +64,9 @@ export function DriveSearchTrigger({
         <Search className="size-4 shrink-0" aria-hidden />
         <span className="truncate">Hľadať…</span>
       </span>
-      {!compact ? (
+      {!compact && shortcut ? (
         <kbd className="pointer-events-none hidden items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground sm:inline-flex">
-          ⌘K
+          {formatForDisplay(shortcut)}
         </kbd>
       ) : null}
     </Button>
@@ -68,21 +76,15 @@ export function DriveSearchTrigger({
 /** Single global command palette — mount once in AppShell. */
 export function DriveSearchHost() {
   const navigate = useNavigate()
+  const keys = useAppHotkeys()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [items, setItems] = useState<DriveSearchItem[]>([])
 
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-        event.preventDefault()
-        setOpen((value) => !value)
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  useHotkey(keys['search.open'], () => {
+    setOpen((value) => !value)
+  })
 
   useEffect(() => {
     return onQuickAction((action) => {

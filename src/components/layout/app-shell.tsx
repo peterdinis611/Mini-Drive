@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
 import { AppErrorBoundary } from '#/components/error-boundary/app-error-boundary'
 import { DriveSearchHost } from '#/components/files/drive-search-dialog'
+import { DriveHotkeys } from '#/components/hotkeys/drive-hotkeys'
 import { AppSidebar } from '#/components/layout/app-sidebar'
 import type { DriveStats } from '#/components/layout/app-sidebar'
 import { QuickActionsFab } from '#/components/layout/quick-actions-fab'
@@ -235,6 +236,7 @@ export function AppShell({
           </div>
         </div>
         <DriveSearchHost />
+        <DriveHotkeys />
         <QuickActionsFab />
       </div>
     </TooltipProvider>

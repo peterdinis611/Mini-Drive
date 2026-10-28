@@ -694,7 +694,7 @@ export function FileExplorer({
             <EmptyState
               icon={Folder}
               title="Zatiaľ prázdne"
-              description="Nahraj súbor alebo vytvor nový priečinok. Hľadaj cez ⌘K."
+              description="Nahraj súbor alebo vytvor nový priečinok. Hľadaj cez skratku (predvolene ⌘K)."
               className="rounded-2xl border border-dashed border-border/80 bg-muted/20"
             />
           ) : view === 'list' ? (
