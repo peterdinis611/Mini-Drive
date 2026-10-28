@@ -175,6 +175,9 @@ function RecentPage() {
               columns={columns}
               data={recent}
               getRowId={(row) => row.id}
+              searchable
+              pageSize={25}
+              searchPlaceholder="Hľadať v nedávnych…"
             />
           )}
         </section>

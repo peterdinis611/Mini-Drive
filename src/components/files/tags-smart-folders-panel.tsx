@@ -4,7 +4,13 @@ import { useCallback, useEffect, useState } from 'react'
 import { FolderSearch, FolderX, Plus, Search, Tag, Trash2 } from 'lucide-react'
 import { toast } from '#/lib/toast'
 
+import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '#/components/ui/collapsible'
 import { Input } from '#/components/ui/input'
 import { getErrorMessage } from '#/lib/errors'
 import {
@@ -92,39 +98,45 @@ export function TagsSmartFoldersPanel({ onOpenSmart }: Props) {
         </form>
         <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
           {tags.map((tag) => (
-            <li
-              key={tag.id}
-              className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-sm"
-              style={{ borderColor: tag.color }}
-            >
-              <span
-                className="size-2 rounded-full"
-                style={{ background: tag.color }}
-                aria-hidden
-              />
-              {tag.name}
-              <button
-                type="button"
-                className="ml-1 text-muted-foreground hover:text-destructive"
-                aria-label={`Zmazať tag ${tag.name}`}
-                onClick={() => {
-                  void deleteTag({ data: { tagId: tag.id } })
-                    .then(refresh)
-                    .catch((error) => toast.error(getErrorMessage(error)))
-                }}
+            <li key={tag.id}>
+              <Badge
+                variant="outline"
+                className="gap-1.5 pr-1"
+                style={{ borderColor: tag.color }}
               >
-                <Trash2 className="size-3" />
-              </button>
+                <span
+                  className="size-2 rounded-full"
+                  style={{ background: tag.color }}
+                  aria-hidden
+                />
+                {tag.name}
+                <button
+                  type="button"
+                  className="rounded-full p-0.5 text-muted-foreground hover:text-destructive"
+                  aria-label={`Zmazať tag ${tag.name}`}
+                  onClick={() => {
+                    void deleteTag({ data: { tagId: tag.id } })
+                      .then(refresh)
+                      .catch((error) => toast.error(getErrorMessage(error)))
+                  }}
+                >
+                  <Trash2 className="size-3" />
+                </button>
+              </Badge>
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="space-y-3 rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 dark:border-primary/30">
-        <header className="flex items-center gap-2">
+      <Collapsible
+        defaultOpen
+        className="space-y-3 rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 dark:border-primary/30"
+      >
+        <CollapsibleTrigger className="flex w-full items-center gap-2 text-left [&[data-state=open]>svg]:rotate-180">
           <FolderSearch className="size-4" aria-hidden />
           <h2 className="font-display text-lg">Smart folders</h2>
-        </header>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-3">
         <form
           className="flex flex-col gap-2 sm:flex-row"
           onSubmit={(event) => {
@@ -198,7 +210,8 @@ export function TagsSmartFoldersPanel({ onOpenSmart }: Props) {
             </li>
           ))}
         </ul>
-      </section>
+        </CollapsibleContent>
+      </Collapsible>
 
       <section className="space-y-3 rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 dark:border-primary/30">
         <header className="flex items-center gap-2">

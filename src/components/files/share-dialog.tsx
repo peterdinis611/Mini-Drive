@@ -12,13 +12,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from '#/components/ui/dialog'
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '#/components/ui/select'
 import { SHARE_EXPIRY_PRESETS } from '#/lib/constants'
 import { getErrorMessage } from '#/lib/errors'
 import { createShareLinkSchema } from '#/lib/validation'
 import { createShareLink } from '#/server/functions/shares'
-import { cn } from '#/lib/utils'
 
 type Props = {
   open: boolean
@@ -195,31 +207,28 @@ export function ShareDialog({
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            <fieldset className="space-y-3">
-              <legend className="text-sm font-medium">Platnosť</legend>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {SHARE_EXPIRY_PRESETS.map((preset) => {
-                  const selected = expiresIn === preset.value
-                  return (
-                    <button
+          <FieldGroup className="gap-4">
+            <Field>
+              <FieldLabel>Platnosť</FieldLabel>
+              <Select
+                value={String(expiresIn)}
+                onValueChange={(value) => setExpiresIn(Number(value))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Vyber platnosť" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SHARE_EXPIRY_PRESETS.map((preset) => (
+                    <SelectItem
                       key={preset.value}
-                      type="button"
-                      aria-pressed={selected}
-                      className={cn(
-                        'rounded-md border p-3 text-left text-sm transition',
-                        selected
-                          ? 'border-foreground bg-primary/25 dark:border-primary dark:bg-primary/20'
-                          : 'border-border hover:bg-muted/60',
-                      )}
-                      onClick={() => setExpiresIn(preset.value)}
+                      value={String(preset.value)}
                     >
                       {preset.label}
-                    </button>
-                  )
-                })}
-              </div>
-            </fieldset>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
 
             <div className="space-y-3 rounded-lg border border-border/80 p-3">
               <label className="flex cursor-pointer items-start gap-2.5">
@@ -236,14 +245,16 @@ export function ShareDialog({
                     <Lock className="size-3.5 text-amber-600 dark:text-amber-400" />
                     Chrániť heslom
                   </span>
-                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                  <FieldDescription className="mt-0.5">
                     Príjemca uvidí súbor až po zadaní hesla (min. 6 znakov).
-                  </span>
+                  </FieldDescription>
                 </span>
               </label>
               {usePassword ? (
-                <div className="space-y-1.5 pl-7">
-                  <Label htmlFor="share-link-password">Heslo odkazu</Label>
+                <Field className="pl-7">
+                  <FieldLabel htmlFor="share-link-password">
+                    Heslo odkazu
+                  </FieldLabel>
                   <Input
                     id="share-link-password"
                     type="password"
@@ -252,10 +263,10 @@ export function ShareDialog({
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="aspoň 6 znakov"
                   />
-                </div>
+                </Field>
               ) : null}
             </div>
-          </div>
+          </FieldGroup>
         )}
 
         <DialogFooter>

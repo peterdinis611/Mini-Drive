@@ -3,8 +3,16 @@ import { Activity } from 'lucide-react'
 
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
-import { AppShellPending } from '#/components/ui/preload-spinner'
+import { Badge } from '#/components/ui/badge'
 import { EmptyState } from '#/components/ui/empty-state'
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemTitle,
+} from '#/components/ui/item'
+import { AppShellPending } from '#/components/ui/preload-spinner'
 import { requireOnboardedSession } from '#/lib/route-guards'
 import { privateAppHead } from '#/lib/seo'
 import { getAppChrome } from '#/server/functions/drive'
@@ -46,21 +54,27 @@ function ActivityPage() {
             description="Upload, rename, komentáre a zdieľania sa tu zobrazia."
           />
         ) : (
-          <ol className="m-0 list-none space-y-2 p-0">
+          <ItemGroup className="gap-2">
             {events.map((event) => (
-              <li
+              <Item
                 key={event.id}
-                className="rounded-2xl border-2 border-foreground/10 bg-card/70 px-4 py-3 dark:border-primary/25"
+                variant="outline"
+                className="rounded-2xl border-2 border-foreground/10 bg-card/70 dark:border-primary/25"
               >
-                <p className="text-sm font-medium">{event.summary}</p>
-                <p className="font-meta text-[11px] text-muted-foreground">
-                  {event.action} · {event.targetType}
-                  {event.targetId ? ` · ${event.targetId.slice(0, 8)}…` : ''} ·{' '}
-                  {formatDate(event.createdAt)}
-                </p>
-              </li>
+                <ItemContent>
+                  <ItemTitle className="text-sm">{event.summary}</ItemTitle>
+                  <ItemDescription className="flex flex-wrap items-center gap-2 font-meta text-[11px]">
+                    <Badge variant="secondary">{event.action}</Badge>
+                    <span>{event.targetType}</span>
+                    {event.targetId ? (
+                      <span>{event.targetId.slice(0, 8)}…</span>
+                    ) : null}
+                    <span>{formatDate(event.createdAt)}</span>
+                  </ItemDescription>
+                </ItemContent>
+              </Item>
             ))}
-          </ol>
+          </ItemGroup>
         )}
       </FadeIn>
     </AppShell>

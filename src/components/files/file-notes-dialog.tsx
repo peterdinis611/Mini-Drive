@@ -13,8 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '#/components/ui/dialog'
-import { Input } from '#/components/ui/input'
 import { PreloadSpinner } from '#/components/ui/preload-spinner'
+import { ScrollArea } from '#/components/ui/scroll-area'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
+import { Textarea } from '#/components/ui/textarea'
 import { getErrorMessage } from '#/lib/errors'
 import {
   addFileComment,
@@ -94,11 +96,18 @@ export function FileNotesDialog({
             <PreloadSpinner label="Načítavam…" />
           </div>
         ) : (
-          <div className="space-y-5">
-            <section className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="file-note">
+          <Tabs defaultValue="note" className="gap-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="note">
+                <StickyNote className="size-3.5" />
                 Poznámka
-              </label>
+              </TabsTrigger>
+              <TabsTrigger value="comments">
+                <MessageSquare className="size-3.5" />
+                Komentáre
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="note" className="space-y-2">
               <NoteEditor
                 key={`${fileId}-${noteKey}`}
                 value={note}
@@ -123,15 +132,10 @@ export function FileNotesDialog({
               >
                 Uložiť poznámku
               </Button>
-            </section>
-
-            <section className="space-y-2">
-              <h3 className="flex items-center gap-1.5 text-sm font-medium">
-                <MessageSquare className="size-3.5" aria-hidden />
-                Komentáre
-              </h3>
+            </TabsContent>
+            <TabsContent value="comments" className="space-y-2">
               <form
-                className="flex gap-2"
+                className="space-y-2"
                 onSubmit={(event) => {
                   event.preventDefault()
                   if (!fileId || !comment.trim()) return
@@ -152,61 +156,64 @@ export function FileNotesDialog({
                     .catch((error) => toast.error(getErrorMessage(error)))
                 }}
               >
-                <Input
+                <Textarea
                   value={comment}
                   onChange={(event) => setComment(event.target.value)}
                   placeholder="Nový komentár…"
                   aria-label="Nový komentár"
+                  rows={3}
                 />
                 <Button type="submit">Pridať</Button>
               </form>
-              <ul className="m-0 max-h-48 list-none space-y-2 overflow-y-auto p-0">
-                {comments.length === 0 ? (
-                  <li className="text-sm text-muted-foreground">
-                    Zatiaľ bez komentárov.
-                  </li>
-                ) : (
-                  comments.map((item) => (
-                    <li
-                      key={item.id}
-                      className="rounded-xl border border-border/70 bg-muted/15 px-3 py-2"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="text-sm">{item.body}</p>
-                          <p className="font-meta text-[11px] text-muted-foreground">
-                            {item.authorName} · {formatDate(item.createdAt)}
-                          </p>
-                        </div>
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          className="size-7 shrink-0"
-                          aria-label="Zmazať komentár"
-                          onClick={() => {
-                            void deleteFileComment({
-                              data: { commentId: item.id },
-                            })
-                              .then(() =>
-                                setComments((prev) =>
-                                  prev.filter((row) => row.id !== item.id),
-                                ),
-                              )
-                              .catch((error) =>
-                                toast.error(getErrorMessage(error)),
-                              )
-                          }}
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
-                      </div>
+              <ScrollArea className="h-48">
+                <ul className="m-0 list-none space-y-2 p-0 pr-3">
+                  {comments.length === 0 ? (
+                    <li className="text-sm text-muted-foreground">
+                      Zatiaľ bez komentárov.
                     </li>
-                  ))
-                )}
-              </ul>
-            </section>
-          </div>
+                  ) : (
+                    comments.map((item) => (
+                      <li
+                        key={item.id}
+                        className="rounded-xl border border-border/70 bg-muted/15 px-3 py-2"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-sm">{item.body}</p>
+                            <p className="font-meta text-[11px] text-muted-foreground">
+                              {item.authorName} · {formatDate(item.createdAt)}
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="size-7 shrink-0"
+                            aria-label="Zmazať komentár"
+                            onClick={() => {
+                              void deleteFileComment({
+                                data: { commentId: item.id },
+                              })
+                                .then(() =>
+                                  setComments((prev) =>
+                                    prev.filter((row) => row.id !== item.id),
+                                  ),
+                                )
+                                .catch((error) =>
+                                  toast.error(getErrorMessage(error)),
+                                )
+                            }}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
         )}
       </DialogContent>
     </Dialog>

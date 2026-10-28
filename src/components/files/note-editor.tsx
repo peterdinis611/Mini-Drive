@@ -17,7 +17,8 @@ import {
   Undo2,
 } from 'lucide-react'
 
-import { Button } from '#/components/ui/button'
+import { Separator } from '#/components/ui/separator'
+import { Toggle } from '#/components/ui/toggle'
 import { cn } from '#/lib/utils'
 
 type Props = {
@@ -168,7 +169,7 @@ export function NoteEditor({
           >
             <Link2 className="size-3.5" />
           </ToolbarButton>
-          <span className="mx-1 h-4 w-px bg-border" aria-hidden />
+          <Separator orientation="vertical" className="mx-1 h-4" />
           <ToolbarButton
             label="Späť"
             onClick={() => editor.chain().focus().undo().run()}
@@ -204,21 +205,18 @@ function ToolbarButton({
   disabled?: boolean
 }) {
   return (
-    <Button
+    <Toggle
       type="button"
-      size="icon"
-      variant="ghost"
-      className={cn(
-        'size-7',
-        active && 'bg-primary/15 text-primary',
-      )}
+      size="sm"
+      pressed={Boolean(active)}
       aria-label={label}
       title={label}
       disabled={disabled}
-      onClick={onClick}
+      onPressedChange={() => onClick()}
+      className="size-7 min-w-7 p-0 data-[state=on]:bg-primary/15 data-[state=on]:text-primary"
     >
       {children}
-    </Button>
+    </Toggle>
   )
 }
 

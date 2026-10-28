@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FileSpreadsheet, Search } from 'lucide-react'
 
-import { Input } from '#/components/ui/input'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '#/components/ui/input-group'
 import { PreviewLoading } from '#/components/ui/preload-spinner'
 import { columnLabel, parseDelimitedText } from '#/lib/csv-parse'
 import { cn } from '#/lib/utils'
@@ -112,16 +116,18 @@ function CsvPreview({ url, fileName }: PreviewShellProps) {
             stĺpcov
           </p>
         </div>
-        <div className="relative w-full max-w-[220px]">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
+        <InputGroup className="h-8 w-full max-w-[220px]">
+          <InputGroupAddon>
+            <Search className="size-3.5" aria-hidden />
+          </InputGroupAddon>
+          <InputGroupInput
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
             placeholder="Filtrovať riadky…"
-            className="h-8 pl-8 text-xs"
+            className="text-xs"
             aria-label="Filtrovať CSV"
           />
-        </div>
+        </InputGroup>
       </header>
 
       <div className="flex-1 overflow-auto">

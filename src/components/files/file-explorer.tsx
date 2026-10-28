@@ -80,6 +80,7 @@ import {
   BreadcrumbSeparator,
 } from '#/components/ui/breadcrumb'
 import { Button } from '#/components/ui/button'
+import { ButtonGroup } from '#/components/ui/button-group'
 import { Checkbox } from '#/components/ui/checkbox'
 import { EmptyState } from '#/components/ui/empty-state'
 import {
@@ -90,14 +91,23 @@ import {
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '#/components/ui/input-group'
+import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '#/components/ui/tooltip'
+import {
   createDataTableColumnHelper,
   DataTable,
 } from '#/components/ui/data-table'
-import { Input } from '#/components/ui/input'
 import { SectionLoading } from '#/components/ui/preload-spinner'
 import { getErrorMessage } from '#/lib/errors'
 import { formatFileSize } from '#/lib/format'
-import { cn } from '#/lib/utils'
 import {
   bulkDeleteFiles,
   bulkMoveFiles,
@@ -716,36 +726,43 @@ export function FileExplorer({
       actions={
         <>
           <DriveSearchTrigger />
-          <div className="flex overflow-hidden rounded-full border-2 border-foreground/80 dark:border-primary/45">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={
-                view === 'list'
-                  ? 'rounded-none bg-primary text-primary-foreground'
-                  : 'rounded-none'
-              }
-              aria-label="Zoznam"
-              onClick={() => void setUrlState({ view: 'list' })}
+          <ButtonGroup className="rounded-full border-2 border-foreground/80 dark:border-primary/45">
+            <ToggleGroup
+              type="single"
+              value={view}
+              onValueChange={(value) => {
+                if (value === 'list' || value === 'grid') {
+                  void setUrlState({ view: value })
+                }
+              }}
+              className="gap-0"
             >
-              <List />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={
-                view === 'grid'
-                  ? 'rounded-none bg-primary text-primary-foreground'
-                  : 'rounded-none'
-              }
-              aria-label="Mriežka"
-              onClick={() => void setUrlState({ view: 'grid' })}
-            >
-              <Grid2X2 />
-            </Button>
-          </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ToggleGroupItem
+                    value="list"
+                    aria-label="Zoznam"
+                    className="rounded-none first:rounded-l-full data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                  >
+                    <List />
+                  </ToggleGroupItem>
+                </TooltipTrigger>
+                <TooltipContent>Zoznam</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ToggleGroupItem
+                    value="grid"
+                    aria-label="Mriežka"
+                    className="rounded-none last:rounded-r-full data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                  >
+                    <Grid2X2 />
+                  </ToggleGroupItem>
+                </TooltipTrigger>
+                <TooltipContent>Mriežka</TooltipContent>
+              </Tooltip>
+            </ToggleGroup>
+          </ButtonGroup>
           <Button
             type="button"
             variant={showUpload ? 'secondary' : 'outline'}
@@ -812,33 +829,46 @@ export function FileExplorer({
         </FadeIn>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-1.5">
+          <ToggleGroup
+            type="single"
+            value={kind}
+            onValueChange={(value) => {
+              if (
+                value === 'all' ||
+                value === 'image' ||
+                value === 'pdf' ||
+                value === 'video' ||
+                value === 'audio' ||
+                value === 'text'
+              ) {
+                void setUrlState({ kind: value })
+              }
+            }}
+            variant="outline"
+            size="sm"
+            className="flex flex-wrap justify-start gap-1.5"
+          >
             {KIND_CHIPS.map((chip) => (
-              <Button
+              <ToggleGroupItem
                 key={chip.value}
-                type="button"
-                size="sm"
-                variant={kind === chip.value ? 'secondary' : 'ghost'}
-                className={cn(
-                  'h-8 rounded-md px-2.5 text-xs',
-                  kind === chip.value && 'bg-accent',
-                )}
-                onClick={() => void setUrlState({ kind: chip.value })}
+                value={chip.value}
+                className="h-8 rounded-md px-2.5 text-xs data-[state=on]:bg-accent"
               >
                 {chip.label}
-              </Button>
+              </ToggleGroupItem>
             ))}
-          </div>
-          <div className="relative w-full sm:max-w-56">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input
+          </ToggleGroup>
+          <InputGroup className="h-8 w-full sm:max-w-56">
+            <InputGroupAddon>
+              <Search className="size-3.5" aria-hidden />
+            </InputGroupAddon>
+            <InputGroupInput
               value={filterDraft}
               onChange={(event) => setFilterDraft(event.target.value)}
               placeholder="Filtrovať…"
-              className="h-8 pl-8"
               aria-label="Filtrovať súbory a priečinky"
             />
-          </div>
+          </InputGroup>
         </div>
 
         <AnimatePresence initial={false}>

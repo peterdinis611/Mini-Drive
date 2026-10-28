@@ -227,6 +227,9 @@ function SharesPage() {
               columns={columns}
               data={shares}
               getRowId={(row) => row.id}
+              searchable
+              pageSize={25}
+              searchPlaceholder="Hľadať v zdieľaniach…"
             />
           )}
         </section>

@@ -17,6 +17,11 @@ import { FolderTree } from '#/components/layout/folder-tree'
 import { ThemeToggle } from '#/components/theme-toggle'
 import { Avatar, AvatarFallback } from '#/components/ui/avatar'
 import { Button } from '#/components/ui/button'
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '#/components/ui/hover-card'
 import { Progress } from '#/components/ui/progress'
 import type { FolderTreeNode } from '#/components/files/types'
 import { formatFileSize } from '#/lib/format'
@@ -177,40 +182,53 @@ export function AppSidebar({
       </section>
 
       <footer className="space-y-3 border-t border-sidebar-border p-3">
-        <section
-          className="space-y-1.5 px-1"
-          aria-labelledby="sidebar-storage-heading"
-        >
-          <header className="flex justify-between text-xs text-muted-foreground">
-            <h2 id="sidebar-storage-heading" className="font-normal">
-              Úložisko
-            </h2>
-            <output
-              htmlFor="sidebar-storage-meter"
-              className="font-meta tabular-nums"
-              aria-live="polite"
+        <HoverCard openDelay={200}>
+          <HoverCardTrigger asChild>
+            <button
+              type="button"
+              className="w-full space-y-1.5 px-1 text-left"
+              aria-labelledby="sidebar-storage-heading"
             >
-              {usedPct}%
-            </output>
-          </header>
-          <Progress
-            id="sidebar-storage-meter"
-            value={usedPct}
-            className="h-1"
-            aria-label={`Využitie úložiska ${usedPct} percent`}
-          />
-          <p className="font-meta text-[11px] text-sidebar-foreground/60">
-            <data value={stats.totalBytes}>
-              {formatFileSize(stats.totalBytes)}
-            </data>
-            {' / '}
-            <data value={stats.quotaBytes}>
+              <header className="flex justify-between text-xs text-muted-foreground">
+                <h2 id="sidebar-storage-heading" className="font-normal">
+                  Úložisko
+                </h2>
+                <output
+                  htmlFor="sidebar-storage-meter"
+                  className="font-meta tabular-nums"
+                  aria-live="polite"
+                >
+                  {usedPct}%
+                </output>
+              </header>
+              <Progress
+                id="sidebar-storage-meter"
+                value={usedPct}
+                className="h-1"
+                aria-label={`Využitie úložiska ${usedPct} percent`}
+              />
+              <p className="font-meta text-[11px] text-sidebar-foreground/60">
+                <data value={stats.totalBytes}>
+                  {formatFileSize(stats.totalBytes)}
+                </data>
+                {' / '}
+                <data value={stats.quotaBytes}>
+                  {formatFileSize(stats.quotaBytes)}
+                </data>
+                {' · '}
+                <data value={stats.fileCount}>{stats.fileCount}</data> súborov
+              </p>
+            </button>
+          </HoverCardTrigger>
+          <HoverCardContent side="right" className="w-56 text-sm">
+            <p className="font-medium">Využitie Drive</p>
+            <p className="mt-1 text-muted-foreground">
+              {stats.folderCount} priečinkov · {stats.fileCount} súborov ·{' '}
+              {formatFileSize(stats.totalBytes)} z{' '}
               {formatFileSize(stats.quotaBytes)}
-            </data>
-            {' · '}
-            <data value={stats.fileCount}>{stats.fileCount}</data> súborov
-          </p>
-        </section>
+            </p>
+          </HoverCardContent>
+        </HoverCard>
 
         <address className="flex items-center gap-2 rounded-md px-1 py-1 not-italic">
           <Avatar className="size-7 rounded-full">

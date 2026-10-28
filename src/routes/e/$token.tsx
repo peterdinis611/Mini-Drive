@@ -8,6 +8,7 @@ import {
 } from '#/components/files/share-password-gate'
 import { EmbedPdfViewer } from '#/components/files/previews/embed-pdf-viewer'
 import { Button } from '#/components/ui/button'
+import { Image } from '#/components/ui/image'
 import { APP_NAME } from '#/lib/constants'
 import { getFileKind } from '#/lib/file-kind'
 import { isImageMimeType, isPdfMimeType } from '#/lib/mime'
@@ -118,11 +119,17 @@ function EmbedSharePage() {
       </header>
       <main className="relative min-h-0 flex-1">
         {isImage ? (
-          <img
-            src={share.url}
-            alt={share.fileName}
-            className="mx-auto max-h-[calc(100vh-3.5rem)] max-w-full object-contain"
-          />
+          <div className="relative mx-auto h-[calc(100vh-3.5rem)] w-full max-w-full">
+            <Image
+              src={share.url}
+              alt={share.fileName}
+              fill
+              priority
+              sizes="100vw"
+              objectFit="contain"
+              unoptimized
+            />
+          </div>
         ) : isPdf ? (
           <div className="absolute inset-0">
             <EmbedPdfViewer

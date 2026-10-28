@@ -1,8 +1,8 @@
 'use client'
 
-import { Loader2 } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 
+import { Spinner } from '#/components/ui/spinner'
 import { cn } from '#/lib/utils'
 
 type SpinnerProps = {
@@ -23,8 +23,8 @@ export function InlineSpinner({
   size = 'sm',
 }: Omit<SpinnerProps, 'label'>) {
   return (
-    <Loader2
-      className={cn('animate-spin text-current', SIZE[size], className)}
+    <Spinner
+      className={cn('text-current', SIZE[size], className)}
       aria-hidden
     />
   )
@@ -45,10 +45,7 @@ export function PreloadSpinner({
         className,
       )}
     >
-      <Loader2
-        className={cn('animate-spin text-foreground/70', SIZE[size])}
-        aria-hidden
-      />
+      <Spinner className={cn('text-foreground/70', SIZE[size])} aria-hidden />
       <span>{label}</span>
     </div>
   )

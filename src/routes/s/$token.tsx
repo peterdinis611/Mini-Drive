@@ -9,6 +9,7 @@ import {
 } from '#/components/files/share-password-gate'
 import { AtmosphereShell } from '#/components/layout/atmosphere-shell'
 import { Button } from '#/components/ui/button'
+import { Image } from '#/components/ui/image'
 import { APP_NAME } from '#/lib/constants'
 import { isImageMimeType } from '#/lib/mime'
 import { formatFileSize } from '#/lib/format'
@@ -192,13 +193,19 @@ function PublicImageViewer({
             </a>
           </Button>
         </div>
-        <div className="flex min-h-[320px] items-center justify-center bg-muted/30 p-4 sm:p-6">
-          <img
-            src={url}
-            alt={fileName}
-            referrerPolicy="no-referrer"
-            className="max-h-[min(70vh,720px)] max-w-full rounded-md object-contain shadow-sm ring-1 ring-border/60"
-          />
+        <div className="relative flex min-h-[320px] items-center justify-center bg-muted/30 p-4 sm:p-6">
+          <div className="relative h-[min(70vh,720px)] w-full max-w-full">
+            <Image
+              src={url}
+              alt={fileName}
+              fill
+              priority
+              sizes="(max-width: 896px) 100vw, 896px"
+              objectFit="contain"
+              unoptimized
+              className="rounded-md shadow-sm ring-1 ring-border/60"
+            />
+          </div>
         </div>
       </div>
       <p className="text-center text-xs text-muted-foreground">

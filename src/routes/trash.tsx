@@ -215,7 +215,14 @@ function TrashPage() {
           description="Zmazané súbory a priečinky sa zobrazia tu. Môžeš ich obnoviť alebo natrvalo odstrániť."
         />
       ) : (
-        <DataTable columns={columns} data={rows} />
+        <DataTable
+          columns={columns}
+          data={rows}
+          getRowId={(row) => row.id}
+          searchable
+          pageSize={25}
+          searchPlaceholder="Hľadať v koši…"
+        />
       )}
 
       <ConfirmWordDialog
