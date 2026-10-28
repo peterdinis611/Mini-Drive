@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import {
+  buildCssFilter,
   clampViewZoom,
   downloadBlob,
+  filtersAreDefault,
   rotateSize,
   withCroppedName,
   withEditedName,
@@ -55,6 +57,35 @@ describe('clampViewZoom', () => {
     expect(clampViewZoom(0.01)).toBe(0.25)
     expect(clampViewZoom(99)).toBe(5)
     expect(clampViewZoom(1.26)).toBe(1.26)
+  })
+})
+
+describe('buildCssFilter', () => {
+  it('returns none for defaults', () => {
+    expect(buildCssFilter()).toBe('none')
+    expect(buildCssFilter({ brightness: 1, contrast: 1 })).toBe('none')
+  })
+
+  it('composes brightness, contrast, saturate, grayscale, sepia', () => {
+    expect(
+      buildCssFilter({
+        brightness: 1.2,
+        contrast: 0.8,
+        saturation: 1.5,
+        grayscale: 0.5,
+        sepia: 0.25,
+      }),
+    ).toBe(
+      'brightness(1.2) contrast(0.8) saturate(1.5) grayscale(0.5) sepia(0.25)',
+    )
+  })
+})
+
+describe('filtersAreDefault', () => {
+  it('detects custom filters', () => {
+    expect(filtersAreDefault({})).toBe(true)
+    expect(filtersAreDefault({ saturation: 1.2 })).toBe(false)
+    expect(filtersAreDefault({ grayscale: 1 })).toBe(false)
   })
 })
 

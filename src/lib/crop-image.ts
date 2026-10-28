@@ -32,32 +32,87 @@ export type DrawStroke = {
   points: Array<{ x: number; y: number }>
 }
 
-export type ImageExportOptions = {
-  flipHorizontal?: boolean
-  flipVertical?: boolean
-  mimeType?: string
-  quality?: number
+export type ImageFilterValues = {
   /** 1 = unchanged */
   brightness?: number
   /** 1 = unchanged */
   contrast?: number
+  /** 1 = unchanged */
+  saturation?: number
+  /** 0 = color, 1 = full B&W */
+  grayscale?: number
+  /** 0 = none, 1 = full sepia */
+  sepia?: number
+}
+
+export type ImageExportOptions = ImageFilterValues & {
+  flipHorizontal?: boolean
+  flipVertical?: boolean
+  mimeType?: string
+  quality?: number
   strokes?: DrawStroke[]
 }
 
 export type CropExportOptions = ImageExportOptions
 
+export const DEFAULT_IMAGE_FILTERS: Required<ImageFilterValues> = {
+  brightness: 1,
+  contrast: 1,
+  saturation: 1,
+  grayscale: 0,
+  sepia: 0,
+}
+
+function clamp01(value: number) {
+  if (!Number.isFinite(value)) return 0
+  return Math.min(1, Math.max(0, value))
+}
+
+function clampPositive(value: number, fallback = 1) {
+  if (!Number.isFinite(value)) return fallback
+  return Math.max(0, value)
+}
+
+/** CSS `filter` string for live preview + canvas export. */
+export function buildCssFilter(filters: ImageFilterValues = {}): string {
+  const brightness = clampPositive(
+    filters.brightness ?? DEFAULT_IMAGE_FILTERS.brightness,
+  )
+  const contrast = clampPositive(
+    filters.contrast ?? DEFAULT_IMAGE_FILTERS.contrast,
+  )
+  const saturation = clampPositive(
+    filters.saturation ?? DEFAULT_IMAGE_FILTERS.saturation,
+  )
+  const grayscale = clamp01(
+    filters.grayscale ?? DEFAULT_IMAGE_FILTERS.grayscale,
+  )
+  const sepia = clamp01(filters.sepia ?? DEFAULT_IMAGE_FILTERS.sepia)
+
+  const parts: string[] = []
+  if (brightness !== 1) parts.push(`brightness(${brightness})`)
+  if (contrast !== 1) parts.push(`contrast(${contrast})`)
+  if (saturation !== 1) parts.push(`saturate(${saturation})`)
+  if (grayscale > 0) parts.push(`grayscale(${grayscale})`)
+  if (sepia > 0) parts.push(`sepia(${sepia})`)
+  return parts.length > 0 ? parts.join(' ') : 'none'
+}
+
+export function filtersAreDefault(filters: ImageFilterValues): boolean {
+  return (
+    (filters.brightness ?? 1) === 1 &&
+    (filters.contrast ?? 1) === 1 &&
+    (filters.saturation ?? 1) === 1 &&
+    (filters.grayscale ?? 0) === 0 &&
+    (filters.sepia ?? 0) === 0
+  )
+}
+
 function applyCanvasFilter(
   ctx: CanvasRenderingContext2D,
-  brightness = 1,
-  contrast = 1,
+  filters: ImageFilterValues,
 ) {
-  const b = Number.isFinite(brightness) ? brightness : 1
-  const c = Number.isFinite(contrast) ? contrast : 1
-  if (b === 1 && c === 1) {
-    ctx.filter = 'none'
-    return
-  }
-  ctx.filter = `brightness(${b}) contrast(${c})`
+  ctx.filter = buildCssFilter(filters)
 }
 
 function paintStrokes(
@@ -125,6 +180,9 @@ export async function getTransformedImageBlob(
     quality = 0.92,
     brightness = 1,
     contrast = 1,
+    saturation = 1,
+    grayscale = 0,
+    sepia = 0,
     strokes = [],
   } = options
 
@@ -134,7 +192,13 @@ export async function getTransformedImageBlob(
   const sourceCtx = source.getContext('2d')
   if (!sourceCtx) throw new Error('Canvas nie je dostupný')
 
-  applyCanvasFilter(sourceCtx, brightness, contrast)
+  applyCanvasFilter(sourceCtx, {
+    brightness,
+    contrast,
+    saturation,
+    grayscale,
+    sepia,
+  })
   sourceCtx.drawImage(image, 0, 0)
   sourceCtx.filter = 'none'
   if (strokes.length > 0) {
@@ -178,6 +242,9 @@ export async function getCroppedImageBlob(
     quality = 0.92,
     brightness = 1,
     contrast = 1,
+    saturation = 1,
+    grayscale = 0,
+    sepia = 0,
     strokes = [],
   } = options
 
@@ -201,7 +268,13 @@ export async function getCroppedImageBlob(
   source.height = image.height
   const sourceCtx = source.getContext('2d')
   if (!sourceCtx) throw new Error('Canvas nie je dostupný')
-  applyCanvasFilter(sourceCtx, brightness, contrast)
+  applyCanvasFilter(sourceCtx, {
+    brightness,
+    contrast,
+    saturation,
+    grayscale,
+    sepia,
+  })
   sourceCtx.drawImage(image, 0, 0)
   sourceCtx.filter = 'none'
   if (strokes.length > 0) {
