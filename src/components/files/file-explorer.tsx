@@ -23,9 +23,11 @@ import {
   Search,
   Share2,
   Star,
+  StickyNote,
   Tag,
   Trash2,
   FolderInput,
+  Type,
   Upload,
   X,
 } from 'lucide-react'
@@ -45,6 +47,14 @@ import { FileThumbnail } from '#/components/files/file-thumbnail'
 import { FilePreviewDialog } from '#/components/files/file-preview-dialog'
 import { FileVersionsDialog } from '#/components/files/file-versions-dialog'
 import { FileTagsDialog } from '#/components/files/file-tags-dialog'
+import { FileNotesDialog } from '#/components/files/file-notes-dialog'
+import { BatchRenameDialog } from '#/components/files/batch-rename-dialog'
+import { FolderStyleDialog } from '#/components/files/folder-style-dialog'
+import {
+  UploadConflictDialog,
+  uniqueKeepBothName,
+  type UploadConflict,
+} from '#/components/files/upload-conflict-dialog'
 import { DuplicatesDialog } from '#/components/files/duplicates-dialog'
 import { FolderDropTarget } from '#/components/files/folder-drop-target'
 import { useDriveUpload } from '#/components/files/use-drive-upload'
@@ -91,6 +101,8 @@ import { cn } from '#/lib/utils'
 import {
   bulkDeleteFiles,
   bulkMoveFiles,
+  bulkRenameFiles,
+  checkUploadConflicts,
   deleteFile,
   getFileDownloadUrl,
   moveFile,
@@ -101,6 +113,8 @@ import {
   deleteFolder,
   moveFolder,
   renameFolder,
+  setLastFolder,
+  updateFolderStyle,
 } from '#/server/functions/folders'
 import { toggleFavorite } from '#/server/functions/favorites'
 import {
@@ -150,6 +164,9 @@ type DialogState =
   | { type: 'share-file'; file: DriveFile }
   | { type: 'versions'; file: DriveFile }
   | { type: 'tags'; file: DriveFile }
+  | { type: 'notes'; file: DriveFile }
+  | { type: 'batch-rename' }
+  | { type: 'folder-style'; folder: DriveFolder }
   | { type: 'duplicates' }
   | null
 
@@ -176,6 +193,11 @@ export function FileExplorer({
     })
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
   const [dialog, setDialog] = useState<DialogState>(null)
+  const [uploadConflicts, setUploadConflicts] = useState<UploadConflict[]>([])
+  const [pendingUpload, setPendingUpload] = useState<{
+    files: File[]
+    dest: string | null
+  } | null>(null)
   const [pending, startTransition] = useTransition()
   const previewUrls = useImagePreviews(initial.files, true)
   const [filterDraft, setFilterDraft] = useState(q)
@@ -229,6 +251,12 @@ export function FileExplorer({
 
   useEffect(() => {
     setSelectedIds(new Set())
+  }, [folderId])
+
+  useEffect(() => {
+    void setLastFolder({ data: { folderId } }).catch(() => {
+      // best-effort resume pointer
+    })
   }, [folderId])
 
   useEffect(() => {
@@ -291,7 +319,25 @@ export function FileExplorer({
   const handleUpload = useCallback(
     (incoming: File[] | FileList | null, dest: string | null) => {
       void setUrlState({ upload: true })
-      void uploadFiles(incoming, dest)
+      const list = incoming
+        ? Array.from(incoming instanceof FileList ? incoming : incoming)
+        : []
+      if (list.length === 0) return
+
+      void checkUploadConflicts({
+        data: { folderId: dest, names: list.map((file) => file.name) },
+      })
+        .then((conflicts) => {
+          if (conflicts.length === 0) {
+            void uploadFiles(list, dest)
+            return
+          }
+          setPendingUpload({ files: list, dest })
+          setUploadConflicts(conflicts)
+        })
+        .catch(() => {
+          void uploadFiles(list, dest)
+        })
     },
     [setUrlState, uploadFiles],
   )
@@ -589,6 +635,7 @@ export function FileExplorer({
                   onDelete={() => setDialog({ type: 'delete-folder', folder })}
                   onZip={() => handleFolderZip(folder)}
                   onFavorite={() => handleToggleFavorite('folder', folder.id)}
+                  onStyle={() => setDialog({ type: 'folder-style', folder })}
                 />
               )
             }
@@ -624,6 +671,7 @@ export function FileExplorer({
                 onShare={() => setDialog({ type: 'share-file', file })}
                 onVersions={() => setDialog({ type: 'versions', file })}
                 onTags={() => setDialog({ type: 'tags', file })}
+                onNotes={() => setDialog({ type: 'notes', file })}
                 onFavorite={() => handleToggleFavorite('file', file.id)}
               />
             )
@@ -880,6 +928,9 @@ export function FileExplorer({
                           onFavorite={() =>
                             handleToggleFavorite('folder', folder.id)
                           }
+                          onStyle={() =>
+                            setDialog({ type: 'folder-style', folder })
+                          }
                         />
                       </div>
                     </motion.div>
@@ -959,6 +1010,7 @@ export function FileExplorer({
                           setDialog({ type: 'versions', file })
                         }
                         onTags={() => setDialog({ type: 'tags', file })}
+                        onNotes={() => setDialog({ type: 'notes', file })}
                         onFavorite={() =>
                           handleToggleFavorite('file', file.id)
                         }
@@ -985,6 +1037,15 @@ export function FileExplorer({
             >
               <Download />
               Stiahnuť
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setDialog({ type: 'batch-rename' })}
+            >
+              <Type />
+              Premenovať
             </Button>
             <Button
               type="button"
@@ -1203,6 +1264,103 @@ export function FileExplorer({
         fileName={dialog?.type === 'tags' ? dialog.file.name : ''}
         onOpenChange={(open) => !open && setDialog(null)}
       />
+
+      <FileNotesDialog
+        open={dialog?.type === 'notes'}
+        fileId={dialog?.type === 'notes' ? dialog.file.id : null}
+        fileName={dialog?.type === 'notes' ? dialog.file.name : ''}
+        onOpenChange={(open) => !open && setDialog(null)}
+      />
+
+      <BatchRenameDialog
+        open={dialog?.type === 'batch-rename'}
+        fileNames={[...selectedIds]
+          .map((id) => files.find((file) => file.id === id)?.name)
+          .filter((name): name is string => Boolean(name))}
+        onOpenChange={(open) => !open && setDialog(null)}
+        onSubmit={(pattern, startAt) =>
+          run(
+            () =>
+              bulkRenameFiles({
+                data: {
+                  fileIds: [...selectedIds],
+                  pattern,
+                  startAt,
+                },
+              }),
+            'Súbory premenované',
+          ).then(clearSelection)
+        }
+      />
+
+      <UploadConflictDialog
+        open={uploadConflicts.length > 0}
+        conflicts={uploadConflicts}
+        onOpenChange={(open) => {
+          if (!open) {
+            setUploadConflicts([])
+            setPendingUpload(null)
+          }
+        }}
+        onCancel={() => {
+          setUploadConflicts([])
+          setPendingUpload(null)
+        }}
+        onKeepBoth={() => {
+          if (!pendingUpload) return
+          const taken = new Set([
+            ...files.map((file) => file.name),
+            ...pendingUpload.files.map((file) => file.name),
+          ])
+          const renamed = pendingUpload.files.map((file) => {
+            if (!uploadConflicts.some((c) => c.name === file.name)) {
+              return file
+            }
+            const nextName = uniqueKeepBothName(file.name, taken)
+            taken.add(nextName)
+            return new File([file], nextName, { type: file.type })
+          })
+          const dest = pendingUpload.dest
+          setUploadConflicts([])
+          setPendingUpload(null)
+          void uploadFiles(renamed, dest)
+        }}
+        onReplace={() => {
+          if (!pendingUpload || uploadConflicts.length !== 1) return
+          const conflict = uploadConflicts[0]!
+          const match = pendingUpload.files.find(
+            (file) => file.name === conflict.name,
+          )
+          if (!match) return
+          const dest = pendingUpload.dest
+          setUploadConflicts([])
+          setPendingUpload(null)
+          void uploadFiles([match], {
+            folderId: dest,
+            replaceFileId: conflict.fileId,
+          })
+        }}
+      />
+
+      <FolderStyleDialog
+        open={dialog?.type === 'folder-style'}
+        folder={dialog?.type === 'folder-style' ? dialog.folder : null}
+        onOpenChange={(open) => !open && setDialog(null)}
+        onSave={(color, priority) => {
+          if (dialog?.type !== 'folder-style') return
+          return run(
+            () =>
+              updateFolderStyle({
+                data: {
+                  folderId: dialog.folder.id,
+                  color,
+                  priority,
+                },
+              }),
+            'Štýl priečinka uložený',
+          )
+        }}
+      />
     </AppShell>
     </DndProvider>
   )
@@ -1214,12 +1372,14 @@ function FolderActions({
   onDelete,
   onZip,
   onFavorite,
+  onStyle,
 }: {
   onRename: () => void
   onMove: () => void
   onDelete: () => void
   onZip: () => void
   onFavorite: () => void
+  onStyle: () => void
 }) {
   return (
     <DropdownMenu>
@@ -1243,6 +1403,9 @@ function FolderActions({
         <DropdownMenuItem onClick={onZip}>
           <Archive /> Stiahnuť ZIP
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={onStyle}>
+          <Star /> Farba / priorita
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={onFavorite}>
           <Star /> Obľúbené
         </DropdownMenuItem>
@@ -1265,6 +1428,7 @@ function FileActions({
   onShare,
   onVersions,
   onTags,
+  onNotes,
   onFavorite,
 }: {
   canPreview?: boolean
@@ -1276,6 +1440,7 @@ function FileActions({
   onShare: () => void
   onVersions: () => void
   onTags: () => void
+  onNotes: () => void
   onFavorite: () => void
 }) {
   return (
@@ -1313,6 +1478,9 @@ function FileActions({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onTags}>
           <Tag /> Tagy
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onNotes}>
+          <StickyNote /> Poznámky
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onFavorite}>
           <Star /> Obľúbené

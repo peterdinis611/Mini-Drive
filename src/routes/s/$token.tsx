@@ -1,7 +1,12 @@
+import { useState } from 'react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Clock3, Download, Link2Off, ShieldAlert } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 
+import {
+  SharePasswordGate,
+  type UnlockedShare,
+} from '#/components/files/share-password-gate'
 import { AtmosphereShell } from '#/components/layout/atmosphere-shell'
 import { Button } from '#/components/ui/button'
 import { APP_NAME } from '#/lib/constants'
@@ -55,7 +60,45 @@ export const Route = createFileRoute('/s/$token')({
 
 function PublicSharePage() {
   const data = Route.useLoaderData()
+  const { token } = Route.useParams()
+  const search = Route.useSearch()
+  const [unlocked, setUnlocked] = useState<UnlockedShare | null>(null)
+
   if (!data) return null
+
+  if (data.status === 'password_required' || unlocked) {
+    const share = unlocked
+    if (!share) {
+      return (
+        <ShareShell>
+          <SharePasswordGate
+            token={token}
+            fileName={data.status === 'password_required' ? data.fileName : undefined}
+            onUnlocked={(result) => {
+              const isImage = isImageMimeType(result.mimeType, result.fileName)
+              if (!isImage || search.raw) {
+                window.location.assign(result.url)
+                return
+              }
+              setUnlocked(result)
+            }}
+          />
+        </ShareShell>
+      )
+    }
+
+    return (
+      <ShareShell>
+        <PublicImageViewer
+          url={share.url}
+          fileName={share.fileName}
+          fileSize={share.fileSize}
+          mimeType={share.mimeType}
+          expiresIn={share.signedUrlExpiresIn}
+        />
+      </ShareShell>
+    )
+  }
 
   if (data.status === 'ok') {
     return (

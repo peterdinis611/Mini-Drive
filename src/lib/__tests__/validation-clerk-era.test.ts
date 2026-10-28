@@ -64,6 +64,22 @@ describe('share schemas', () => {
       createShareLinkSchema.parse({ fileId: UUID, expiresIn: 3600 }),
     ).toEqual({ fileId: UUID, expiresIn: 3600 })
 
+    expect(
+      createShareLinkSchema.parse({
+        fileId: UUID,
+        expiresIn: 3600,
+        password: 'secret1',
+      }),
+    ).toMatchObject({ password: 'secret1' })
+
+    expect(() =>
+      createShareLinkSchema.parse({
+        fileId: UUID,
+        expiresIn: 3600,
+        password: 'short',
+      }),
+    ).toThrow()
+
     expect(() =>
       createShareLinkSchema.parse({ fileId: 'not-uuid', expiresIn: 3600 }),
     ).toThrow()

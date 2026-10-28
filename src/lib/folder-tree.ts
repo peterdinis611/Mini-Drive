@@ -22,6 +22,8 @@ export type FlatFolderRow = {
   pathLabel: string
   isActive: boolean
   isAncestorOfActive: boolean
+  color?: string | null
+  priority?: number
 }
 
 /** Nested tree sorted sk-SK, with path + child counts. */
@@ -47,7 +49,11 @@ export function buildFolderTree(folders: FolderTreeNode[]): FolderTreeItem[] {
   }
 
   const decorate = (nodes: FolderTreeItem[], parentPath: string) => {
-    nodes.sort((a, b) => a.name.localeCompare(b.name, 'sk'))
+    nodes.sort(
+      (a, b) =>
+        (b.priority ?? 0) - (a.priority ?? 0) ||
+        a.name.localeCompare(b.name, 'sk'),
+    )
     for (const node of nodes) {
       node.pathLabel = parentPath ? `${parentPath} / ${node.name}` : node.name
       node.childCount = node.children.length
@@ -127,6 +133,8 @@ export function flattenFolderRows(
         pathLabel: node.pathLabel,
         isActive: options.activeFolderId === node.id,
         isAncestorOfActive: activeAncestors.has(node.id),
+        color: node.color,
+        priority: node.priority,
       })
 
       if (node.children.length > 0 && isOpen) {

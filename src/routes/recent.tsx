@@ -140,6 +140,22 @@ function RecentPage() {
       stats={chrome.stats}
       title="Nedávne"
       subtitle="Posledných 40 nahratých súborov"
+      actions={
+        chrome.user.lastFolderId ? (
+          <Button asChild variant="outline">
+            <Link
+              to="/files/$folderId"
+              params={{ folderId: chrome.user.lastFolderId }}
+            >
+              Pokračovať kde si skončil
+            </Link>
+          </Button>
+        ) : (
+          <Button asChild variant="outline">
+            <Link to="/files">Otvoriť Drive</Link>
+          </Button>
+        )
+      }
     >
       <FadeIn>
         <section className="overflow-hidden rounded-2xl border border-border/70 bg-card/40">

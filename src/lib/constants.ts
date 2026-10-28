@@ -49,6 +49,12 @@ export const CREATE_SHARE_RATE_LIMIT = {
   windowMs: 60_000,
 } as const
 
+/** Public password unlock attempts (per IP + token, sliding window). */
+export const SHARE_PASSWORD_RATE_LIMIT = {
+  limit: 10,
+  windowMs: 60_000,
+} as const
+
 /** Max stored audit rows returned per share in the UI. */
 export const SHARE_ACCESS_LOG_LIMIT = 50
 

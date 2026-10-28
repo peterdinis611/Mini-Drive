@@ -1,6 +1,6 @@
 import { useMemo, useState, useTransition } from 'react'
 import { Link, createFileRoute, useRouter } from '@tanstack/react-router'
-import { Copy, Eye, Link2, Link2Off } from 'lucide-react'
+import { Copy, Eye, Link2, Link2Off, Lock } from 'lucide-react'
 import { toast } from '#/lib/toast'
 
 import { ShareAccessLogDialog } from '#/components/files/share-access-log-dialog'
@@ -63,9 +63,18 @@ function SharesPage() {
           header: 'Súbor',
           cell: ({ row }) => (
             <div className="min-w-0">
-              <p className="truncate font-medium">{row.original.fileName}</p>
+              <p className="inline-flex max-w-full items-center gap-1.5 truncate font-medium">
+                {row.original.passwordProtected ? (
+                  <Lock
+                    className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400"
+                    aria-label="Chránené heslom"
+                  />
+                ) : null}
+                <span className="truncate">{row.original.fileName}</span>
+              </p>
               <p className="text-xs text-muted-foreground">
                 {formatFileSize(row.original.fileSize)}
+                {row.original.passwordProtected ? ' · heslo' : ''}
               </p>
             </div>
           ),
@@ -73,7 +82,17 @@ function SharesPage() {
         }),
         columnHelper.accessor('status', {
           header: 'Stav',
-          cell: ({ getValue }) => <StatusBadge status={getValue()} />,
+          cell: ({ row }) => (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <StatusBadge status={row.original.status} />
+              {row.original.passwordProtected ? (
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">
+                  <Lock className="size-3" aria-hidden />
+                  Heslo
+                </span>
+              ) : null}
+            </div>
+          ),
           meta: { hideBelow: 'sm', mobileLabel: 'Stav' },
         }),
         columnHelper.accessor('accessCount', {

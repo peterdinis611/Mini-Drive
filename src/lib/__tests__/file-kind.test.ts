@@ -22,9 +22,10 @@ describe('getFileKind', () => {
     expect(getFileKind('application/json', 'data.json')).toBe('code')
   })
 
-  it('detects spreadsheet and archive', () => {
+  it('detects spreadsheet, office and archive', () => {
     expect(getFileKind('text/csv', 'report.csv')).toBe('spreadsheet')
-    expect(getFileKind('', 'sheet.xlsx')).toBe('spreadsheet')
+    expect(getFileKind('', 'sheet.xlsx')).toBe('office')
+    expect(getFileKind('', 'brief.docx')).toBe('office')
     expect(getFileKind('application/zip', 'pack.zip')).toBe('archive')
   })
 

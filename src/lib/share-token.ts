@@ -9,6 +9,11 @@ export function buildSharePath(token: string): string {
   return `/s/${token}`
 }
 
+/** Embeddable preview surface (iframe-friendly). */
+export function buildEmbedPath(token: string): string {
+  return `/e/${token}`
+}
+
 export function resolveShareStatus(link: {
   expiresAt: Date | number
   revokedAt: Date | number | null

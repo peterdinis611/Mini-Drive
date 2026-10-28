@@ -89,6 +89,17 @@ export function ensureSqliteSchema(sqlite: Database.Database) {
     }
   }
 
+  const shareCols = new Set(
+    (
+      sqlite.prepare(`PRAGMA table_info("share_links")`).all() as Array<{
+        name: string
+      }>
+    ).map((row) => row.name),
+  )
+  if (shareCols.size > 0 && !shareCols.has('password_hash')) {
+    sqlite.exec(`ALTER TABLE "share_links" ADD COLUMN "password_hash" text`)
+  }
+
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS "favorites" (
       "id" text PRIMARY KEY NOT NULL,

@@ -382,6 +382,13 @@ function FolderTreeRow({
           )}
           aria-hidden
         />
+        {row.color ? (
+          <span
+            className="size-2 shrink-0 rounded-full"
+            style={{ background: row.color }}
+            aria-hidden
+          />
+        ) : null}
         <span className="min-w-0 flex-1 truncate">{row.name}</span>
         {metaParts.length > 0 ? (
           <small className="hidden shrink-0 font-meta text-[10px] text-muted-foreground/70 tabular-nums group-hover:inline xl:inline">

@@ -157,9 +157,17 @@ export const changePasswordSchema = z
     path: ['confirmPassword'],
   })
 
+/** Optional share-link password (not account password rules). */
+export const shareLinkPasswordSchema = z
+  .string()
+  .min(6, 'Heslo musí mať aspoň 6 znakov')
+  .max(128, 'Heslo môže mať najviac 128 znakov')
+
 export const createShareLinkSchema = z.object({
   fileId: z.string().uuid('Neplatné ID súboru'),
   expiresIn: expiresInSchema,
+  /** When set, public open requires this password. */
+  password: shareLinkPasswordSchema.optional(),
 })
 
 export const revokeShareLinkSchema = z.object({
@@ -179,6 +187,14 @@ export const shareTokenSchema = z
 
 export const resolveShareTokenSchema = z.object({
   token: shareTokenSchema,
+})
+
+export const unlockPublicShareSchema = z.object({
+  token: shareTokenSchema,
+  password: z
+    .string()
+    .min(1, 'Zadaj heslo')
+    .max(128, 'Heslo môže mať najviac 128 znakov'),
 })
 
 export const idSchema = z.string().uuid('Neplatné ID')
@@ -395,7 +411,8 @@ export const updateFolderStyleSchema = z.object({
 
 export const updateFileNoteSchema = z.object({
   fileId: idSchema,
-  note: z.string().trim().max(4_000).nullable(),
+  /** HTML from TipTap (or plain text for legacy notes). */
+  note: z.string().trim().max(20_000).nullable(),
 })
 
 export const addFileCommentSchema = z.object({

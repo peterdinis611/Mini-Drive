@@ -394,6 +394,8 @@ export const shareLinks = sqliteTable(
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     revokedAt: integer('revoked_at', { mode: 'timestamp_ms' }),
+    /** scrypt hash — never return plaintext; null = open link. */
+    passwordHash: text('password_hash'),
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .notNull()
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),

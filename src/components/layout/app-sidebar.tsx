@@ -1,6 +1,7 @@
 import { useClerk } from '@clerk/tanstack-react-start'
 import { Link, useRouterState } from '@tanstack/react-router'
 import {
+  Activity,
   Clock3,
   FileText,
   Link2,
@@ -42,6 +43,12 @@ type Props = {
 const NAV = [
   { to: '/files' as const, label: 'Súbory', icon: FileText, match: 'files' },
   { to: '/recent' as const, label: 'Nedávne', icon: Clock3, match: 'recent' },
+  {
+    to: '/activity' as const,
+    label: 'Aktivita',
+    icon: Activity,
+    match: 'activity',
+  },
   { to: '/shares' as const, label: 'Zdieľania', icon: Link2, match: 'shares' },
   { to: '/trash' as const, label: 'Kôš', icon: Trash2, match: 'trash' },
   {

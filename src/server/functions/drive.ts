@@ -33,6 +33,8 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
         id: folders.id,
         parentId: folders.parentId,
         name: folders.name,
+        color: folders.color,
+        priority: folders.priority,
       })
       .from(folders)
       .where(and(eq(folders.userId, userId), isNull(folders.deletedAt)))
@@ -63,6 +65,7 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
           defaultShareExpiresIn: user.defaultShareExpiresIn,
           confirmDelete: user.confirmDelete,
           customHotkeys: user.customHotkeys,
+          lastFolderId: user.lastFolderId,
         })
         .from(user)
         .where(eq(user.id, userId))
@@ -72,6 +75,10 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
 
     const fileStats = fileStatsRows.at(0)
     const folderStats = folderStatsRows.at(0)
+
+    const sortedFolders = [...folderTree].sort(
+      (a, b) => (b.priority ?? 0) - (a.priority ?? 0) || a.name.localeCompare(b.name, 'sk'),
+    )
 
     return {
       user: {
@@ -83,8 +90,9 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
         defaultShareExpiresIn: profile.defaultShareExpiresIn,
         confirmDelete: profile.confirmDelete,
         customHotkeys: profile.customHotkeys,
+        lastFolderId: profile.lastFolderId,
       },
-      folders: folderTree.map((folder) => ({
+      folders: sortedFolders.map((folder) => ({
         ...folder,
         fileCount: fileCountByFolder.get(folder.id) ?? 0,
       })),
