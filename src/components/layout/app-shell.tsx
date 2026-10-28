@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Menu, PanelLeft } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
+import { AppErrorBoundary } from '#/components/error-boundary/app-error-boundary'
 import { AppSidebar } from '#/components/layout/app-sidebar'
 import type { DriveStats } from '#/components/layout/app-sidebar'
 import {
@@ -161,7 +162,14 @@ export function AppShell({
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...riseTransition, delay: 0.04 }}
             >
-              {children}
+              <AppErrorBoundary
+                variant="section"
+                name="app-main"
+                resetKeys={[title]}
+                sectionTitle="Obsah stránky zlyhal"
+              >
+                {children}
+              </AppErrorBoundary>
             </motion.main>
           </div>
 

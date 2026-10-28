@@ -6,6 +6,7 @@ import {
   firstZodFieldErrors,
   formatZodError,
   getErrorMessage,
+  toError,
 } from '#/lib/errors'
 
 describe('getErrorMessage', () => {
@@ -57,6 +58,21 @@ describe('getErrorMessage', () => {
   it('falls back for unknown values', () => {
     expect(getErrorMessage(null, 'fallback')).toBe('fallback')
     expect(getErrorMessage(new Error('   '))).toBe('Niečo sa pokazilo')
+  })
+
+  it('maps chunk load failures', () => {
+    expect(getErrorMessage(new Error('ChunkLoadError: Loading chunk 3 failed'))).toBe(
+      'Nepodarilo sa načítať časť aplikácie. Obnov stránku.',
+    )
+  })
+})
+
+describe('toError', () => {
+  it('normalizes strings and message objects', () => {
+    expect(toError(new Error('x'))).toBeInstanceOf(Error)
+    expect(toError('boom').message).toBe('boom')
+    expect(toError({ message: 'obj' }).message).toBe('obj')
+    expect(toError(null, 'fallback').message).toBe('fallback')
   })
 })
 

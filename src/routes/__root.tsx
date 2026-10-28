@@ -15,11 +15,9 @@ import { NuqsAdapter } from 'nuqs/adapters/react'
 import { ThemedClerkProvider } from '#/components/clerk-provider'
 import { ThemeProvider } from '#/components/theme-provider'
 import { ThemeSync } from '#/components/theme-sync'
-import {
-  NotFoundPage,
-  RoutePending,
-  ServerErrorPage,
-} from '#/components/status/status-page'
+import { AppErrorBoundary } from '#/components/error-boundary/app-error-boundary'
+import { RouteError } from '#/components/error-boundary/route-error'
+import { NotFoundPage, RoutePending } from '#/components/status/status-page'
 import { Toaster } from '#/components/toast/toaster'
 import { APP_NAME } from '#/lib/constants'
 import { SITE } from '#/lib/site'
@@ -113,12 +111,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: RootComponent,
   pendingComponent: RoutePending,
   notFoundComponent: NotFoundPage,
-  errorComponent: ({ error, reset }) => (
-    <ServerErrorPage
-      error={error instanceof Error ? error : new Error('Neznáma chyba')}
-      reset={reset}
-    />
-  ),
+  errorComponent: RouteError,
   shellComponent: RootDocument,
 })
 
@@ -128,10 +121,15 @@ function RootComponent() {
   const serverSearch = useRouterState({
     select: (s) => s.location.searchStr,
   })
+  const pathname = useRouterState({
+    select: (s) => s.location.pathname,
+  })
 
   return (
     <NuqsAdapter serverSearch={serverSearch}>
-      <Outlet />
+      <AppErrorBoundary variant="page" name="root-outlet" resetKeys={[pathname]}>
+        <Outlet />
+      </AppErrorBoundary>
     </NuqsAdapter>
   )
 }
@@ -146,7 +144,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <ThemeProvider>
           <ThemedClerkProvider>
             <ThemeSync />
-            {children}
+            <AppErrorBoundary variant="page" name="shell">
+              {children}
+            </AppErrorBoundary>
             <Toaster />
             {import.meta.env.DEV ? (
               <TanStackDevtools

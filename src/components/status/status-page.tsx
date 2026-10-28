@@ -7,6 +7,7 @@ import { AtmosphereBackdrop } from '#/components/layout/atmosphere-backdrop'
 import { ThemeToggle } from '#/components/theme-toggle'
 import { Button } from '#/components/ui/button'
 import { APP_NAME } from '#/lib/constants'
+import { getErrorMessage } from '#/lib/errors'
 import {
   easeOutExpo,
   riseTransition,
@@ -223,10 +224,14 @@ export function ServerErrorPage({
   error: Error
   reset: () => void
 }) {
+  const mapped = getErrorMessage(
+    error,
+    'Niečo sa pokazilo na našej strane. Skús obnoviť stránku o chvíľu — dáta sú v bezpečí.',
+  )
   const detail =
-    import.meta.env.DEV && error.message
-      ? error.message
-      : 'Niečo sa pokazilo na našej strane. Skús obnoviť stránku o chvíľu — dáta sú v bezpečí.'
+    import.meta.env.DEV && error.message && mapped !== error.message
+      ? `${mapped} (${error.message})`
+      : mapped
 
   return (
     <StatusPage

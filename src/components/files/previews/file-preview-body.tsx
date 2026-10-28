@@ -1,3 +1,4 @@
+import { AppErrorBoundary } from '#/components/error-boundary/app-error-boundary'
 import type { FileKind } from '#/lib/file-kind'
 
 import { ArchivePreview } from './archive-preview'
@@ -17,24 +18,45 @@ type Props = PreviewShellProps & {
 }
 
 export function FilePreviewBody({ kind, theme, ...shell }: Props) {
+  let body
   switch (kind) {
     case 'image':
-      return <ImagePreview {...shell} />
+      body = <ImagePreview {...shell} />
+      break
     case 'pdf':
-      return <PdfPreview {...shell} theme={theme} />
+      body = <PdfPreview {...shell} theme={theme} />
+      break
     case 'video':
-      return <VideoPreview {...shell} />
+      body = <VideoPreview {...shell} />
+      break
     case 'audio':
-      return <AudioPreview {...shell} />
+      body = <AudioPreview {...shell} />
+      break
     case 'text':
-      return <TextPreview {...shell} />
+      body = <TextPreview {...shell} />
+      break
     case 'code':
-      return <CodePreview {...shell} />
+      body = <CodePreview {...shell} />
+      break
     case 'spreadsheet':
-      return <SpreadsheetPreview {...shell} />
+      body = <SpreadsheetPreview {...shell} />
+      break
     case 'archive':
-      return <ArchivePreview {...shell} />
+      body = <ArchivePreview {...shell} />
+      break
     default:
-      return <FallbackPreview {...shell} />
+      body = <FallbackPreview {...shell} />
   }
+
+  return (
+    <AppErrorBoundary
+      variant="section"
+      name={`preview:${kind}`}
+      resetKeys={[kind, shell.fileId, shell.url]}
+      sectionTitle="Náhľad tohto typu zlyhal"
+      compact
+    >
+      {body}
+    </AppErrorBoundary>
+  )
 }
