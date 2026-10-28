@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
+import { useDebouncedValue } from '@tanstack/react-pacer'
 import { Link, useNavigate, useRouter } from '@tanstack/react-router'
 import {
   Download,
@@ -150,18 +151,29 @@ export function FileExplorer({
   const [dialog, setDialog] = useState<DialogState>(null)
   const [pending, startTransition] = useTransition()
   const previewUrls = useImagePreviews(initial.files, true)
+  const [filterDraft, setFilterDraft] = useState(q)
+  const [debouncedFilter] = useDebouncedValue(filterDraft, { wait: 220 })
 
   const folders = initial.folders
   const files = initial.files
 
+  useEffect(() => {
+    setFilterDraft(q)
+  }, [q, folderId])
+
+  useEffect(() => {
+    if (debouncedFilter === q) return
+    void setUrlState({ q: debouncedFilter })
+  }, [debouncedFilter, q, setUrlState])
+
   const filteredFolders = useMemo(
-    () => filterDriveFolders(folders, kind, q),
-    [folders, kind, q],
+    () => filterDriveFolders(folders, kind, debouncedFilter),
+    [folders, kind, debouncedFilter],
   )
 
   const filteredFiles = useMemo(
-    () => filterDriveFiles(files, kind, q),
-    [files, kind, q],
+    () => filterDriveFiles(files, kind, debouncedFilter),
+    [files, kind, debouncedFilter],
   )
 
   const empty = filteredFolders.length === 0 && filteredFiles.length === 0
@@ -624,8 +636,8 @@ export function FileExplorer({
           <div className="relative w-full sm:max-w-56">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
-              value={q}
-              onChange={(event) => void setUrlState({ q: event.target.value })}
+              value={filterDraft}
+              onChange={(event) => setFilterDraft(event.target.value)}
               placeholder="Filtrovať…"
               className="h-8 pl-8"
               aria-label="Filtrovať podľa názvu"

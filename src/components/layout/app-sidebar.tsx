@@ -16,7 +16,6 @@ import { ThemeToggle } from '#/components/theme-toggle'
 import { Avatar, AvatarFallback } from '#/components/ui/avatar'
 import { Button } from '#/components/ui/button'
 import { Progress } from '#/components/ui/progress'
-import { ScrollArea } from '#/components/ui/scroll-area'
 import type { FolderTreeNode } from '#/components/files/types'
 import { formatFileSize } from '#/lib/format'
 import { cn } from '#/lib/utils'
@@ -134,7 +133,7 @@ export function AppSidebar({
       <div className="mt-4 px-4 pb-1">
         <p className="text-xs font-medium text-muted-foreground">Priečinky</p>
       </div>
-      <ScrollArea className="min-h-0 flex-1 px-2 pb-2">
+      <div className="min-h-0 flex-1 px-2 pb-2">
         <FolderTree
           folders={folders}
           activeFolderId={
@@ -142,7 +141,7 @@ export function AppSidebar({
           }
           onNavigate={onNavigate}
         />
-      </ScrollArea>
+      </div>
 
       <div className="space-y-3 border-t border-sidebar-border p-3">
         <div className="space-y-1.5 px-1">

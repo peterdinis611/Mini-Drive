@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useDebouncedValue } from '@tanstack/react-pacer'
 import { useNavigate } from '@tanstack/react-router'
 import { FileIcon, Folder, Loader2, Search } from 'lucide-react'
 
@@ -74,11 +75,13 @@ export function DriveSearchDialog({ className, compact = false }: Props) {
     if (!open) setQuery('')
   }, [open])
 
+  const [debouncedQuery] = useDebouncedValue(query, { wait: 200 })
+
   const fuse = useMemo(() => createDriveFuse(items), [items])
 
   const results = useMemo(
-    () => searchDriveItems(fuse, items, query),
-    [fuse, items, query],
+    () => searchDriveItems(fuse, items, debouncedQuery),
+    [fuse, items, debouncedQuery],
   )
 
   const folders = results.filter((item) => item.kind === 'folder')

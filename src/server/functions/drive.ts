@@ -37,6 +37,22 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
       .from(folders)
       .where(and(eq(folders.userId, userId), isNull(folders.deletedAt)))
 
+    const fileCountRows = await db
+      .select({
+        folderId: files.folderId,
+        fileCount: count(files.id),
+      })
+      .from(files)
+      .where(and(eq(files.userId, userId), isNull(files.deletedAt)))
+      .groupBy(files.folderId)
+
+    const fileCountByFolder = new Map<string, number>()
+    for (const row of fileCountRows) {
+      if (row.folderId) {
+        fileCountByFolder.set(row.folderId, Number(row.fileCount))
+      }
+    }
+
     const profile = firstOrThrow(
       await db
         .select({
@@ -66,7 +82,10 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
         defaultShareExpiresIn: profile.defaultShareExpiresIn,
         confirmDelete: profile.confirmDelete,
       },
-      folders: folderTree,
+      folders: folderTree.map((folder) => ({
+        ...folder,
+        fileCount: fileCountByFolder.get(folder.id) ?? 0,
+      })),
       stats: {
         fileCount: Number(fileStats?.fileCount ?? 0),
         folderCount: Number(folderStats?.folderCount ?? 0),

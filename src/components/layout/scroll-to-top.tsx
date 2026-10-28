@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useThrottledCallback } from '@tanstack/react-pacer'
 import { useRouterState } from '@tanstack/react-router'
 import { ArrowUp } from 'lucide-react'
 import {
@@ -65,8 +66,15 @@ export function ScrollToTopButton({ className }: { className?: string }) {
   const [visible, setVisible] = useState(false)
   const controlsRef = useRef<ScrollControls | null>(null)
 
+  const updateVisibility = useThrottledCallback(
+    (y: number) => {
+      setVisible(y > SHOW_AFTER_PX)
+    },
+    { wait: 120 },
+  )
+
   useMotionValueEvent(scrollY, 'change', (y) => {
-    setVisible(y > SHOW_AFTER_PX)
+    updateVisibility(y)
   })
 
   const progress = useSpring(scrollYProgress, {

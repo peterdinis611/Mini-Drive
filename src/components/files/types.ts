@@ -23,4 +23,6 @@ export type FolderTreeNode = {
   id: string
   parentId: string | null
   name: string
+  /** Direct (non-trashed) files in this folder — optional for legacy callers */
+  fileCount?: number
 }
