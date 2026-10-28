@@ -18,9 +18,10 @@ const config = defineConfig({
     external: ['better-sqlite3'],
   },
   optimizeDeps: {
-    exclude: ['better-sqlite3'],
-    // Avoid RSC "inconsistently optimized" warn storms that balloon Vite memory.
-    include: ['radix-ui', '@clerk/tanstack-react-start'],
+    // better-sqlite3: native addon. radix-ui: "use client" tree — prebundling it
+    // triggers RSC "inconsistently optimized" spam for every @radix-ui/* package.
+    exclude: ['better-sqlite3', 'radix-ui'],
+    include: ['@clerk/tanstack-react-start'],
   },
   build: {
     target: 'es2022',

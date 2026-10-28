@@ -12,11 +12,11 @@ export const getSiteUrl = createIsomorphicFn()
 
 export const SITE = {
   name: APP_NAME,
-  tagline: 'Súkromný archív súborov so safe-url zdieľaním',
+  tagline: 'Súkromný archív so safe-url',
   description:
-    'Mini Drive je súkromné cloud úložisko: nahrávaj súbory, organizuj priečinky, orež obrázky a zdieľaj cez dočasné safe-url odkazy bez odhalenia interných kľúčov.',
+    'Mini Drive je súkromný archív súborov: nahrávaj, organizuj priečinky a zdieľaj cez dočasné safe-url odkazy bez odhalenia interných kľúčov.',
   shortDescription:
-    'Súkromné úložisko súborov so safe-url zdieľaním, košom a verziami.',
+    'Súkromný archív so safe-url, košom a kvótou.',
   locale: 'sk_SK',
   language: 'sk',
   keywords: [
@@ -28,8 +28,8 @@ export const SITE = {
     'UploadThing',
     'TanStack Start',
   ] as const,
-  themeColorLight: '#008ea8',
-  themeColorDark: '#0e1014',
+  themeColorLight: '#f3faf6',
+  themeColorDark: '#0b1f2a',
   author: APP_NAME,
   category: 'BusinessApplication',
 } as const

@@ -53,9 +53,23 @@ export function buildContentSecurityPolicy(
     ['script-src', scriptSrc],
     [
       'style-src',
-      ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      [
+        "'self'",
+        "'unsafe-inline'",
+        'https://fonts.googleapis.com',
+        'https://api.fontshare.com',
+        'https://cdn.fontshare.com',
+      ],
     ],
-    ['font-src', ["'self'", 'https://fonts.gstatic.com', 'data:']],
+    [
+      'font-src',
+      [
+        "'self'",
+        'https://fonts.gstatic.com',
+        'https://cdn.fontshare.com',
+        'data:',
+      ],
+    ],
     [
       'img-src',
       [
@@ -67,6 +81,8 @@ export function buildContentSecurityPolicy(
         'https://*.ufs.sh',
         'https://utfs.io',
         'https://*.uploadthing.com',
+        'https://picsum.photos',
+        'https://fastly.picsum.photos',
       ],
     ],
     [

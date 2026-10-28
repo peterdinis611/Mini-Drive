@@ -36,6 +36,9 @@ interface MyRouterContext {
 const FONT_STYLESHEET =
   'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap'
 
+const LANDING_FONT_STYLESHEET =
+  'https://fonts.googleapis.com/css2?family=Great+Vibes&family=Sora:wght@400;600;700&display=swap'
+
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => {
     const defaultSeo = buildSeoHead({
@@ -86,6 +89,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
           href: 'https://fonts.gstatic.com',
           crossOrigin: 'anonymous',
         },
+        { rel: 'preconnect', href: 'https://api.fontshare.com' },
+        {
+          rel: 'preconnect',
+          href: 'https://cdn.fontshare.com',
+          crossOrigin: 'anonymous',
+        },
         {
           rel: 'preload',
           as: 'style',
@@ -94,6 +103,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         {
           rel: 'stylesheet',
           href: FONT_STYLESHEET,
+        },
+        {
+          rel: 'stylesheet',
+          href: LANDING_FONT_STYLESHEET,
         },
         {
           rel: 'stylesheet',
