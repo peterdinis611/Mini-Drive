@@ -193,7 +193,7 @@ export function OnboardingWizard({ initial }: Props) {
 
         <section
           aria-live="polite"
-          className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm backdrop-blur-md sm:p-6"
+          className="rounded-2xl border-2 border-foreground/12 bg-card/90 p-5 shadow-none backdrop-blur-md sm:p-6 dark:border-primary/30"
         >
           <SwapPresence id={step}>
             {step === 1 ? (
@@ -343,10 +343,10 @@ function PreferencesStep({
                 <button
                   key={option.value}
                   type="button"
-                  className={`rounded-md border p-4 text-left transition ${
+                  className={`rounded-2xl border-2 p-4 text-left transition ${
                     selected
-                      ? 'border-primary bg-accent'
-                      : 'border-border hover:bg-muted/60'
+                      ? 'border-primary bg-primary/15'
+                      : 'border-foreground/12 hover:bg-muted/60 dark:border-primary/30'
                   }`}
                   aria-pressed={selected}
                   onClick={() => onViewChange(option.value)}

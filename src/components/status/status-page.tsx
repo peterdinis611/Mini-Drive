@@ -119,20 +119,20 @@ export function StatusPage({
         >
           <p
             className={cn(
-              'inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] uppercase',
+              'inline-flex items-center gap-2 text-sm font-medium',
               isNotFound ? 'text-primary' : 'text-destructive',
             )}
           >
             <span
               className={cn(
-                'size-1.5 rounded-full',
+                'size-2 rounded-full',
                 isNotFound ? 'bg-primary' : 'bg-destructive',
               )}
             />
             {isNotFound ? 'Stránka nenájdená' : 'Chyba servera'}
           </p>
 
-          <h1 className="text-[clamp(1.75rem,4.5vw,2.75rem)] leading-[1.08] font-semibold tracking-tight text-foreground">
+          <h1 className="font-display text-[clamp(1.75rem,4.5vw,2.75rem)] leading-[1.08] tracking-tight text-foreground">
             {title}
           </h1>
 

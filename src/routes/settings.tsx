@@ -137,7 +137,7 @@ function SettingsPage() {
       <FadeIn className="mx-auto max-w-xl">
         <Stagger slow className="space-y-6">
           <StaggerItem>
-            <section className="space-y-4 rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6">
+            <section className="space-y-4 rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 sm:p-6 dark:border-primary/30">
               <h2 className="font-display text-xl">Profil</h2>
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -172,7 +172,7 @@ function SettingsPage() {
           </StaggerItem>
 
           <StaggerItem>
-            <section className="space-y-4 rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6">
+            <section className="space-y-4 rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 sm:p-6 dark:border-primary/30">
               <h2 className="font-display text-xl">Vzhľad</h2>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Téma</p>
@@ -290,7 +290,7 @@ function SettingsPage() {
           </StaggerItem>
 
           <StaggerItem>
-            <section className="space-y-4 rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6">
+            <section className="space-y-4 rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 sm:p-6 dark:border-primary/30">
               <div className="flex items-start gap-3">
                 <span className="mt-0.5 flex size-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-primary">
                   <Link2 className="size-4" aria-hidden />
@@ -345,7 +345,7 @@ function SettingsPage() {
           </StaggerItem>
 
           <StaggerItem>
-            <section className="space-y-4 rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6">
+            <section className="space-y-4 rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 sm:p-6 dark:border-primary/30">
               <div className="flex items-start gap-3">
                 <span className="mt-0.5 flex size-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-primary">
                   <KeyRound className="size-4" aria-hidden />
@@ -369,7 +369,7 @@ function SettingsPage() {
           </StaggerItem>
 
           <StaggerItem>
-            <section className="rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6">
+            <section className="rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 sm:p-6 dark:border-primary/30">
               <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
                 <span className="flex size-20 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/50 text-primary sm:size-24">
                   <HardDrive className="size-7" aria-hidden />
@@ -418,7 +418,7 @@ function SettingsPage() {
           </StaggerItem>
 
           <StaggerItem>
-            <section className="space-y-3 rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6">
+            <section className="space-y-3 rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 sm:p-6 dark:border-primary/30">
               <div className="flex items-start gap-3">
                 <span className="mt-0.5 flex size-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-primary">
                   <Shield className="size-4" aria-hidden />

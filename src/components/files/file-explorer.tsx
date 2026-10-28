@@ -521,7 +521,11 @@ export function FileExplorer({
               type="button"
               variant="ghost"
               size="icon"
-              className={view === 'list' ? 'bg-primary text-primary-foreground' : 'rounded-none'}
+              className={
+                view === 'list'
+                  ? 'rounded-none bg-primary text-primary-foreground'
+                  : 'rounded-none'
+              }
               aria-label="Zoznam"
               onClick={() => void setUrlState({ view: 'list' })}
             >
@@ -531,7 +535,11 @@ export function FileExplorer({
               type="button"
               variant="ghost"
               size="icon"
-              className={view === 'grid' ? 'bg-primary text-primary-foreground' : 'rounded-none'}
+              className={
+                view === 'grid'
+                  ? 'rounded-none bg-primary text-primary-foreground'
+                  : 'rounded-none'
+              }
               aria-label="Mriežka"
               onClick={() => void setUrlState({ view: 'grid' })}
             >
@@ -661,7 +669,7 @@ export function FileExplorer({
               className="rounded-2xl border border-dashed border-border/80 bg-muted/20"
             />
           ) : view === 'list' ? (
-            <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/40">
+            <div className="overflow-hidden rounded-2xl border-2 border-foreground/12 bg-card/60 dark:border-primary/30">
               <DataTable
                 columns={listColumns}
                 data={listItems}
@@ -790,7 +798,7 @@ export function FileExplorer({
         </FadeIn>
 
         {selectedIds.size > 0 ? (
-          <div className="sticky bottom-4 z-20 flex flex-wrap items-center gap-2 rounded-xl border border-border/80 bg-card/95 px-3 py-2 shadow-lg backdrop-blur-sm">
+          <div className="sticky bottom-4 z-20 flex flex-wrap items-center gap-2 rounded-full border-2 border-foreground/15 bg-card/95 px-3 py-2 shadow-none backdrop-blur-sm dark:border-primary/35">
             <span className="text-sm font-medium">
               {selectedIds.size} vybraných
             </span>

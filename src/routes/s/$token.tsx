@@ -133,7 +133,7 @@ function PublicImageViewer({
       initial={reduce ? false : 'hidden'}
       animate="show"
     >
-      <div className="overflow-hidden rounded-2xl border border-border/80 bg-background/80 shadow-lg backdrop-blur-md">
+      <div className="overflow-hidden rounded-2xl border-2 border-foreground/15 bg-card/90 shadow-none backdrop-blur-md dark:border-primary/35">
         <div className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
           <div className="min-w-0">
             <h1 className="truncate font-display text-lg">{fileName}</h1>
@@ -190,7 +190,7 @@ function ShareCard({
 
   return (
     <motion.div
-      className="w-full rounded-2xl border border-border/80 bg-background/80 p-8 text-center shadow-lg backdrop-blur-md"
+      className="w-full rounded-2xl border-2 border-foreground/15 bg-card/90 p-8 text-center shadow-none backdrop-blur-md dark:border-primary/35"
       variants={reduce ? undefined : scaleIn}
       initial={reduce ? false : 'hidden'}
       animate="show"
