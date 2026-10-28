@@ -133,6 +133,7 @@ export const updateSettingsSchema = z
     themePreference: themePreferenceSchema.optional(),
     defaultShareExpiresIn: expiresInSchema.optional(),
     confirmDelete: z.boolean().optional(),
+    customHotkeys: z.string().max(20_000).nullable().optional(),
   })
   .refine(
     (data) =>
@@ -140,7 +141,8 @@ export const updateSettingsSchema = z
       data.viewPreference !== undefined ||
       data.themePreference !== undefined ||
       data.defaultShareExpiresIn !== undefined ||
-      data.confirmDelete !== undefined,
+      data.confirmDelete !== undefined ||
+      data.customHotkeys !== undefined,
     { message: 'Nie je čo uložiť' },
   )
 
@@ -280,6 +282,76 @@ export const listFileVersionsSchema = z.object({
 export const restoreFileVersionSchema = z.object({
   fileId: idSchema,
   versionId: idSchema,
+})
+
+export const favoriteTargetSchema = z.object({
+  targetType: z.enum(['file', 'folder']),
+  targetId: idSchema,
+})
+
+export const tagNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Názov tagu je povinný')
+  .max(40, 'Max. 40 znakov')
+
+export const createTagSchema = z.object({
+  name: tagNameSchema,
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, 'Neplatná farba')
+    .optional(),
+})
+
+export const deleteTagSchema = z.object({
+  tagId: idSchema,
+})
+
+export const setFileTagsSchema = z.object({
+  fileId: idSchema,
+  tagIds: uniqueIdArraySchema(0, 20, {
+    max: 'Najviac 20 tagov na súbor',
+  }),
+})
+
+export const setFolderTagsSchema = z.object({
+  folderId: idSchema,
+  tagIds: uniqueIdArraySchema(0, 20, {
+    max: 'Najviac 20 tagov na priečinok',
+  }),
+})
+
+export const smartFolderRulesSchema = z.object({
+  query: z.string().trim().max(200).optional(),
+  kind: z
+    .enum(['all', 'image', 'pdf', 'video', 'audio', 'text'])
+    .optional(),
+  tagId: idSchema.optional(),
+  duplicatesOnly: z.boolean().optional(),
+})
+
+export const createSmartFolderSchema = z.object({
+  name: folderNameSchema,
+  rules: smartFolderRulesSchema,
+})
+
+export const deleteSmartFolderSchema = z.object({
+  smartFolderId: idSchema,
+})
+
+export const zipFolderSchema = z.object({
+  folderId: idSchema,
+})
+
+export const bulkDownloadUrlsSchema = z.object({
+  fileIds: uniqueIdArraySchema(1, 50, {
+    min: 'Vyber aspoň jeden súbor',
+    max: 'Naraz najviac 50 súborov',
+  }),
+})
+
+export const saveCustomHotkeysSchema = z.object({
+  customHotkeys: z.string().max(20_000),
 })
 
 export const imagePreviewUrlsSchema = z.object({

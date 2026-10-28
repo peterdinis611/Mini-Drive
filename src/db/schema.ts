@@ -39,6 +39,8 @@ export const user = sqliteTable('user', {
     .notNull()
     .default(true),
   onboardingStep: integer('onboarding_step').notNull().default(1),
+  /** JSON map of TanStack Hotkeys custom bindings. */
+  customHotkeys: text('custom_hotkeys'),
 })
 
 export const session = sqliteTable(
@@ -158,12 +160,116 @@ export const files = sqliteTable(
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
     deletedAt: integer('deleted_at', { mode: 'timestamp_ms' }),
     currentVersion: integer('current_version').notNull().default(1),
+    /** SHA-256 of file bytes — duplicate detection. */
+    contentHash: text('content_hash'),
+    /** Extracted plain text for full-text / Fuse search (truncated). */
+    contentText: text('content_text'),
   },
   (table) => [
     index('files_userId_idx').on(table.userId),
     index('files_folderId_idx').on(table.folderId),
     index('files_deletedAt_idx').on(table.deletedAt),
+    index('files_contentHash_idx').on(table.userId, table.contentHash),
   ],
+)
+
+/** Pinned files / folders for quick access. */
+export const favorites = sqliteTable(
+  'favorites',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    targetType: text('target_type', { enum: ['file', 'folder'] }).notNull(),
+    targetId: text('target_id').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+  },
+  (table) => [
+    uniqueIndex('favorites_user_target_uidx').on(
+      table.userId,
+      table.targetType,
+      table.targetId,
+    ),
+    index('favorites_userId_idx').on(table.userId),
+  ],
+)
+
+export const tags = sqliteTable(
+  'tags',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    color: text('color').notNull().default('#2f6fed'),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+  },
+  (table) => [
+    uniqueIndex('tags_user_name_uidx').on(table.userId, table.name),
+    index('tags_userId_idx').on(table.userId),
+  ],
+)
+
+export const fileTags = sqliteTable(
+  'file_tags',
+  {
+    fileId: text('file_id')
+      .notNull()
+      .references(() => files.id, { onDelete: 'cascade' }),
+    tagId: text('tag_id')
+      .notNull()
+      .references(() => tags.id, { onDelete: 'cascade' }),
+  },
+  (table) => [
+    uniqueIndex('file_tags_uidx').on(table.fileId, table.tagId),
+    index('file_tags_tagId_idx').on(table.tagId),
+  ],
+)
+
+export const folderTags = sqliteTable(
+  'folder_tags',
+  {
+    folderId: text('folder_id')
+      .notNull()
+      .references(() => folders.id, { onDelete: 'cascade' }),
+    tagId: text('tag_id')
+      .notNull()
+      .references(() => tags.id, { onDelete: 'cascade' }),
+  },
+  (table) => [
+    uniqueIndex('folder_tags_uidx').on(table.folderId, table.tagId),
+    index('folder_tags_tagId_idx').on(table.tagId),
+  ],
+)
+
+/** Saved smart-folder rules (JSON filter). */
+export const smartFolders = sqliteTable(
+  'smart_folders',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    /** JSON: { query?, kind?, tagId?, duplicatesOnly? } */
+    rulesJson: text('rules_json').notNull().default('{}'),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+  },
+  (table) => [index('smart_folders_userId_idx').on(table.userId)],
 )
 
 /** Archived prior revisions of a file (current blob stays on `files`). */
@@ -247,6 +353,9 @@ export const userRelations = relations(user, ({ many }) => ({
   accounts: many(account),
   folders: many(folders),
   files: many(files),
+  favorites: many(favorites),
+  tags: many(tags),
+  smartFolders: many(smartFolders),
 }))
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -288,6 +397,52 @@ export const filesRelations = relations(files, ({ one, many }) => ({
   }),
   shareLinks: many(shareLinks),
   versions: many(fileVersions),
+  fileTags: many(fileTags),
+}))
+
+export const favoritesRelations = relations(favorites, ({ one }) => ({
+  user: one(user, {
+    fields: [favorites.userId],
+    references: [user.id],
+  }),
+}))
+
+export const tagsRelations = relations(tags, ({ one, many }) => ({
+  user: one(user, {
+    fields: [tags.userId],
+    references: [user.id],
+  }),
+  fileTags: many(fileTags),
+  folderTags: many(folderTags),
+}))
+
+export const fileTagsRelations = relations(fileTags, ({ one }) => ({
+  file: one(files, {
+    fields: [fileTags.fileId],
+    references: [files.id],
+  }),
+  tag: one(tags, {
+    fields: [fileTags.tagId],
+    references: [tags.id],
+  }),
+}))
+
+export const folderTagsRelations = relations(folderTags, ({ one }) => ({
+  folder: one(folders, {
+    fields: [folderTags.folderId],
+    references: [folders.id],
+  }),
+  tag: one(tags, {
+    fields: [folderTags.tagId],
+    references: [tags.id],
+  }),
+}))
+
+export const smartFoldersRelations = relations(smartFolders, ({ one }) => ({
+  user: one(user, {
+    fields: [smartFolders.userId],
+    references: [user.id],
+  }),
 }))
 
 export const fileVersionsRelations = relations(fileVersions, ({ one }) => ({
@@ -325,3 +480,6 @@ export type FileRecord = typeof files.$inferSelect
 export type FileVersion = typeof fileVersions.$inferSelect
 export type ShareLink = typeof shareLinks.$inferSelect
 export type ShareAccessLog = typeof shareAccessLogs.$inferSelect
+export type Favorite = typeof favorites.$inferSelect
+export type Tag = typeof tags.$inferSelect
+export type SmartFolder = typeof smartFolders.$inferSelect

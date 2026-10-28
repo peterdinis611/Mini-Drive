@@ -7,11 +7,7 @@ export function loadCustomHotkeys(): CustomHotkeys {
   try {
     const raw = window.localStorage.getItem(HOTKEYS_STORAGE_KEY)
     if (!raw) return {}
-    const parsed = JSON.parse(raw) as unknown
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      return {}
-    }
-    return parsed as CustomHotkeys
+    return parseCustomHotkeys(raw)
   } catch {
     return {}
   }
@@ -24,4 +20,21 @@ export function saveCustomHotkeys(custom: CustomHotkeys) {
   } catch {
     // ignore quota / private mode
   }
+}
+
+export function parseCustomHotkeys(raw: string | null | undefined): CustomHotkeys {
+  if (!raw) return {}
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return {}
+    }
+    return parsed as CustomHotkeys
+  } catch {
+    return {}
+  }
+}
+
+export function serializeCustomHotkeys(custom: CustomHotkeys): string {
+  return JSON.stringify(custom)
 }

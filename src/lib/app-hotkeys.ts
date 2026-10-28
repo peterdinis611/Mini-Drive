@@ -82,6 +82,14 @@ export const appHotkeys = defineAppHotkeys({
     },
     options: { timeout: 800 },
   },
+  'ui.hotkeys-help': {
+    hotkey: 'Shift+/',
+    meta: {
+      name: 'Cheat sheet skratiek',
+      description: '? — zoznam klávesových skratiek',
+      group: 'Rozhranie',
+    },
+  },
 })
 
 declare module '@tanstack/hotkeys' {

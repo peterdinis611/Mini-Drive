@@ -62,6 +62,7 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
           themePreference: user.themePreference,
           defaultShareExpiresIn: user.defaultShareExpiresIn,
           confirmDelete: user.confirmDelete,
+          customHotkeys: user.customHotkeys,
         })
         .from(user)
         .where(eq(user.id, userId))
@@ -81,6 +82,7 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
         themePreference: profile.themePreference,
         defaultShareExpiresIn: profile.defaultShareExpiresIn,
         confirmDelete: profile.confirmDelete,
+        customHotkeys: profile.customHotkeys,
       },
       folders: folderTree.map((folder) => ({
         ...folder,
@@ -155,6 +157,7 @@ export const getDriveSearchIndex = createServerFn({ method: 'GET' }).handler(
           size: files.size,
           mimeType: files.mimeType,
           folderId: files.folderId,
+          contentText: files.contentText,
         })
         .from(files)
         .where(and(eq(files.userId, userId), isNull(files.deletedAt)))

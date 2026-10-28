@@ -44,4 +44,71 @@ export function ensureSqliteSchema(sqlite: Database.Database) {
   )
   addUserColumn('onboarded_at', `"onboarded_at" integer`)
   addUserColumn('image', `"image" text`)
+  addUserColumn('custom_hotkeys', `"custom_hotkeys" text`)
+
+  const fileCols = new Set(
+    (
+      sqlite.prepare(`PRAGMA table_info("files")`).all() as Array<{
+        name: string
+      }>
+    ).map((row) => row.name),
+  )
+
+  if (fileCols.size > 0) {
+    if (!fileCols.has('content_hash')) {
+      sqlite.exec(`ALTER TABLE "files" ADD COLUMN "content_hash" text`)
+    }
+    if (!fileCols.has('content_text')) {
+      sqlite.exec(`ALTER TABLE "files" ADD COLUMN "content_text" text`)
+    }
+    sqlite.exec(
+      `CREATE INDEX IF NOT EXISTS "files_contentHash_idx" ON "files" ("user_id", "content_hash")`,
+    )
+  }
+
+  sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS "favorites" (
+      "id" text PRIMARY KEY NOT NULL,
+      "user_id" text NOT NULL REFERENCES "user"("id") ON DELETE cascade,
+      "target_type" text NOT NULL,
+      "target_id" text NOT NULL,
+      "created_at" integer NOT NULL DEFAULT (cast(unixepoch('subsecond') * 1000 as integer))
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS "favorites_user_target_uidx"
+      ON "favorites" ("user_id", "target_type", "target_id");
+    CREATE INDEX IF NOT EXISTS "favorites_userId_idx" ON "favorites" ("user_id");
+
+    CREATE TABLE IF NOT EXISTS "tags" (
+      "id" text PRIMARY KEY NOT NULL,
+      "user_id" text NOT NULL REFERENCES "user"("id") ON DELETE cascade,
+      "name" text NOT NULL,
+      "color" text NOT NULL DEFAULT '#2f6fed',
+      "created_at" integer NOT NULL DEFAULT (cast(unixepoch('subsecond') * 1000 as integer))
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS "tags_user_name_uidx" ON "tags" ("user_id", "name");
+    CREATE INDEX IF NOT EXISTS "tags_userId_idx" ON "tags" ("user_id");
+
+    CREATE TABLE IF NOT EXISTS "file_tags" (
+      "file_id" text NOT NULL REFERENCES "files"("id") ON DELETE cascade,
+      "tag_id" text NOT NULL REFERENCES "tags"("id") ON DELETE cascade
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS "file_tags_uidx" ON "file_tags" ("file_id", "tag_id");
+    CREATE INDEX IF NOT EXISTS "file_tags_tagId_idx" ON "file_tags" ("tag_id");
+
+    CREATE TABLE IF NOT EXISTS "folder_tags" (
+      "folder_id" text NOT NULL REFERENCES "folders"("id") ON DELETE cascade,
+      "tag_id" text NOT NULL REFERENCES "tags"("id") ON DELETE cascade
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS "folder_tags_uidx" ON "folder_tags" ("folder_id", "tag_id");
+    CREATE INDEX IF NOT EXISTS "folder_tags_tagId_idx" ON "folder_tags" ("tag_id");
+
+    CREATE TABLE IF NOT EXISTS "smart_folders" (
+      "id" text PRIMARY KEY NOT NULL,
+      "user_id" text NOT NULL REFERENCES "user"("id") ON DELETE cascade,
+      "name" text NOT NULL,
+      "rules_json" text NOT NULL DEFAULT '{}',
+      "created_at" integer NOT NULL DEFAULT (cast(unixepoch('subsecond') * 1000 as integer))
+    );
+    CREATE INDEX IF NOT EXISTS "smart_folders_userId_idx" ON "smart_folders" ("user_id");
+  `)
 }

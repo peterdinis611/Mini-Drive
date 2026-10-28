@@ -14,6 +14,7 @@ export type DriveSearchFile = {
   size: number
   mimeType: string
   folderId: string | null
+  contentText?: string | null
 }
 
 export type DriveSearchItem =
@@ -32,6 +33,7 @@ export type DriveSearchItem =
       folderId: string | null
       size: number
       pathLabel: string
+      contentText?: string
     }
 
 function buildFolderPath(
@@ -77,6 +79,7 @@ export function buildDriveSearchItems(
     folderId: file.folderId,
     size: file.size,
     pathLabel: buildFolderPath(file.folderId, foldersById),
+    contentText: file.contentText?.slice(0, 8_000) || undefined,
   }))
 
   return [...folderItems, ...fileItems]
@@ -86,9 +89,10 @@ export function createDriveFuse(items: DriveSearchItem[]) {
   return new Fuse(items, {
     ...DRIVE_FUSE_OPTIONS,
     keys: [
-      { name: 'name', weight: 0.7 },
-      { name: 'pathLabel', weight: 0.2 },
-      { name: 'mimeType', weight: 0.1 },
+      { name: 'name', weight: 0.55 },
+      { name: 'contentText', weight: 0.25 },
+      { name: 'pathLabel', weight: 0.12 },
+      { name: 'mimeType', weight: 0.08 },
     ],
   })
 }

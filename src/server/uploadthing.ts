@@ -198,6 +198,15 @@ export const uploadRouter = {
             mimeType,
             name: parsedName.data,
           })
+          void import('#/server/file-index.server').then(({ indexUploadedFile }) =>
+            indexUploadedFile({
+              fileId: replaced.id,
+              uploadthingKey: file.key,
+              mimeType,
+              name: replaced.name,
+              size: replaced.size,
+            }),
+          )
           return {
             fileId: replaced.id,
             name: replaced.name,
@@ -239,6 +248,16 @@ export const uploadRouter = {
             createdAt: files.createdAt,
           }),
         'Nepodarilo sa uložiť súbor',
+      )
+
+      void import('#/server/file-index.server').then(({ indexUploadedFile }) =>
+        indexUploadedFile({
+          fileId: created.id,
+          uploadthingKey: file.key,
+          mimeType,
+          name: created.name,
+          size: created.size,
+        }),
       )
 
       return {

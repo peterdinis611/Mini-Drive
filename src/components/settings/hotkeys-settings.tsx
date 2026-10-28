@@ -150,8 +150,8 @@ export function HotkeysSettings() {
           <div>
             <h2 className="font-display text-xl">Klávesové skratky</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              TanStack Hotkeys — zmeň väzby; uložia sa lokálne v tomto
-              prehliadači.
+              TanStack Hotkeys — zmeň väzby; sync na účet + localStorage.
+              Cheat sheet: <kbd className="rounded border px-1 font-mono text-[11px]">?</kbd>
             </p>
           </div>
         </div>

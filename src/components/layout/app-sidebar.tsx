@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 
 import { BrandMark } from '#/components/brand-mark'
+import { FavoritesNav } from '#/components/layout/favorites-nav'
 import { FolderTree } from '#/components/layout/folder-tree'
 import { ThemeToggle } from '#/components/theme-toggle'
 import { Avatar, AvatarFallback } from '#/components/ui/avatar'
@@ -139,8 +140,10 @@ export function AppSidebar({
         </ul>
       </nav>
 
+      <FavoritesNav onNavigate={onNavigate} className="mt-3" />
+
       <section
-        className="mt-4 flex min-h-0 flex-1 flex-col gap-2 px-2 pb-2"
+        className="mt-3 flex min-h-0 flex-1 flex-col gap-2 px-2 pb-2"
         aria-labelledby="sidebar-folders-heading"
       >
         <header className="flex items-center justify-between gap-2 px-1.5">

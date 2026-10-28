@@ -1,17 +1,29 @@
-import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from 'react'
 import { useDebouncedValue } from '@tanstack/react-pacer'
 import { Link, useNavigate, useRouter } from '@tanstack/react-router'
 import {
+  Archive,
+  Copy,
   Download,
   Eye,
   Folder,
   FolderPlus,
   Grid2X2,
+  History,
   List,
   MoreHorizontal,
   Pencil,
   Search,
   Share2,
+  Star,
+  Tag,
   Trash2,
   FolderInput,
   Upload,
@@ -31,6 +43,9 @@ import { ShareDialog } from '#/components/files/share-dialog'
 import { DriveSearchTrigger } from '#/components/files/drive-search-dialog'
 import { FileThumbnail } from '#/components/files/file-thumbnail'
 import { FilePreviewDialog } from '#/components/files/file-preview-dialog'
+import { FileVersionsDialog } from '#/components/files/file-versions-dialog'
+import { FileTagsDialog } from '#/components/files/file-tags-dialog'
+import { DuplicatesDialog } from '#/components/files/duplicates-dialog'
 import { FolderDropTarget } from '#/components/files/folder-drop-target'
 import { useDriveUpload } from '#/components/files/use-drive-upload'
 import { useImagePreviews } from '#/components/files/use-image-previews'
@@ -87,6 +102,11 @@ import {
   moveFolder,
   renameFolder,
 } from '#/server/functions/folders'
+import { toggleFavorite } from '#/server/functions/favorites'
+import {
+  downloadFolderZip,
+  getBulkDownloadUrls,
+} from '#/server/functions/zip'
 import type {
   BreadcrumbItem as Crumb,
   DriveFile,
@@ -128,6 +148,9 @@ type DialogState =
   | { type: 'bulk-move' }
   | { type: 'delete-folder'; folder: DriveFolder }
   | { type: 'share-file'; file: DriveFile }
+  | { type: 'versions'; file: DriveFile }
+  | { type: 'tags'; file: DriveFile }
+  | { type: 'duplicates' }
   | null
 
 type DriveListItem =
@@ -337,6 +360,95 @@ export function FileExplorer({
     if (file) setDialog({ type: 'share-file', file })
   }, [files, selectedIds])
 
+  const handleBulkDownload = useCallback(() => {
+    const fileIds = [...selectedIds]
+    if (fileIds.length === 0) return
+    void run(async () => {
+      const items = await getBulkDownloadUrls({ data: { fileIds } })
+      for (const item of items) {
+        const anchor = document.createElement('a')
+        anchor.href = item.url
+        anchor.download = item.name
+        anchor.rel = 'noopener'
+        anchor.target = '_blank'
+        document.body.appendChild(anchor)
+        anchor.click()
+        anchor.remove()
+      }
+    }, fileIds.length === 1 ? 'Sťahovanie pripravené' : `${fileIds.length} súborov`)
+  }, [run, selectedIds])
+
+  const handleToggleFavorite = useCallback(
+    (targetType: 'file' | 'folder', targetId: string) => {
+      void run(
+        () => toggleFavorite({ data: { targetType, targetId } }),
+        'Obľúbené aktualizované',
+      )
+    },
+    [run],
+  )
+
+  const handleFolderZip = useCallback(
+    (folder: DriveFolder) => {
+      void run(async () => {
+        const result = await downloadFolderZip({
+          data: { folderId: folder.id },
+        })
+        const binary = atob(result.base64)
+        const bytes = new Uint8Array(binary.length)
+        for (let i = 0; i < binary.length; i += 1) {
+          bytes[i] = binary.charCodeAt(i)
+        }
+        const blob = new Blob([bytes], { type: 'application/zip' })
+        const url = URL.createObjectURL(blob)
+        const anchor = document.createElement('a')
+        anchor.href = url
+        anchor.download = result.name
+        document.body.appendChild(anchor)
+        anchor.click()
+        anchor.remove()
+        URL.revokeObjectURL(url)
+      }, `Zip (${folder.name}) pripravený`)
+    },
+    [run],
+  )
+
+  const dragUrlCache = useRef(new Map<string, { url: string; mimeType: string; name: string }>())
+
+  const prefetchDragUrl = useCallback((file: DriveFile) => {
+    if (dragUrlCache.current.has(file.id)) return
+    void getFileDownloadUrl({ data: { fileId: file.id } })
+      .then((result) => {
+        dragUrlCache.current.set(file.id, {
+          url: result.url,
+          mimeType: file.mimeType,
+          name: file.name,
+        })
+      })
+      .catch(() => {
+        // ignore — drag-out falls back to text/plain
+      })
+  }, [])
+
+  const handleFileDragStart = useCallback(
+    (event: React.DragEvent, file: DriveFile) => {
+      event.dataTransfer.effectAllowed = 'copy'
+      event.dataTransfer.setData('text/plain', file.name)
+      const cached = dragUrlCache.current.get(file.id)
+      if (cached) {
+        try {
+          event.dataTransfer.setData(
+            'DownloadURL',
+            `${cached.mimeType}:${cached.name}:${cached.url}`,
+          )
+        } catch {
+          // DownloadURL not supported in all browsers
+        }
+      }
+    },
+    [],
+  )
+
   const allFilteredSelected =
     filteredFiles.length > 0 &&
     filteredFiles.every((file) => selectedIds.has(file.id))
@@ -475,6 +587,8 @@ export function FileExplorer({
                   onRename={() => setDialog({ type: 'rename-folder', folder })}
                   onMove={() => setDialog({ type: 'move-folder', folder })}
                   onDelete={() => setDialog({ type: 'delete-folder', folder })}
+                  onZip={() => handleFolderZip(folder)}
+                  onFavorite={() => handleToggleFavorite('folder', folder.id)}
                 />
               )
             }
@@ -508,6 +622,9 @@ export function FileExplorer({
                   )
                 }}
                 onShare={() => setDialog({ type: 'share-file', file })}
+                onVersions={() => setDialog({ type: 'versions', file })}
+                onTags={() => setDialog({ type: 'tags', file })}
+                onFavorite={() => handleToggleFavorite('file', file.id)}
               />
             )
           },
@@ -522,6 +639,8 @@ export function FileExplorer({
       allFilteredSelected,
       confirmTrash,
       filteredFiles,
+      handleFolderZip,
+      handleToggleFavorite,
       handleUpload,
       isUploading,
       openPreview,
@@ -587,6 +706,14 @@ export function FileExplorer({
           >
             <Upload />
             {showUpload ? 'Skryť upload' : 'Nahrať'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setDialog({ type: 'duplicates' })}
+          >
+            <Copy />
+            Duplikáty
           </Button>
           <Button
             type="button"
@@ -749,6 +876,10 @@ export function FileExplorer({
                           onDelete={() =>
                             setDialog({ type: 'delete-folder', folder })
                           }
+                          onZip={() => handleFolderZip(folder)}
+                          onFavorite={() =>
+                            handleToggleFavorite('folder', folder.id)
+                          }
                         />
                       </div>
                     </motion.div>
@@ -762,6 +893,13 @@ export function FileExplorer({
                     whileHover={reduce ? undefined : { y: -1 }}
                     transition={riseTransition}
                   >
+                    <div
+                      draggable
+                      onPointerDown={() => prefetchDragUrl(file)}
+                      onDragStart={(event) =>
+                        handleFileDragStart(event, file)
+                      }
+                    >
                     <button
                       type="button"
                       className="flex w-full items-start gap-3 text-left"
@@ -817,7 +955,15 @@ export function FileExplorer({
                         onShare={() =>
                           setDialog({ type: 'share-file', file })
                         }
+                        onVersions={() =>
+                          setDialog({ type: 'versions', file })
+                        }
+                        onTags={() => setDialog({ type: 'tags', file })}
+                        onFavorite={() =>
+                          handleToggleFavorite('file', file.id)
+                        }
                       />
+                    </div>
                     </div>
                   </motion.div>
                 </StaggerItem>
@@ -831,6 +977,15 @@ export function FileExplorer({
             <span className="text-sm font-medium">
               {selectedIds.size} vybraných
             </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handleBulkDownload}
+            >
+              <Download />
+              Stiahnuť
+            </Button>
             <Button
               type="button"
               size="sm"
@@ -858,6 +1013,19 @@ export function FileExplorer({
             >
               <Share2 />
               Zdieľať
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={selectedIds.size !== 1}
+              onClick={() => {
+                const fileId = [...selectedIds][0]
+                if (fileId) handleToggleFavorite('file', fileId)
+              }}
+            >
+              <Star />
+              Pin
             </Button>
             <Button
               type="button"
@@ -1014,6 +1182,27 @@ export function FileExplorer({
         }}
         onSavedToDrive={() => refresh()}
       />
+
+      <FileVersionsDialog
+        open={dialog?.type === 'versions'}
+        fileId={dialog?.type === 'versions' ? dialog.file.id : null}
+        fileName={dialog?.type === 'versions' ? dialog.file.name : ''}
+        onOpenChange={(open) => !open && setDialog(null)}
+        onRestored={() => refresh()}
+      />
+
+      <DuplicatesDialog
+        open={dialog?.type === 'duplicates'}
+        onOpenChange={(open) => !open && setDialog(null)}
+        onChanged={() => refresh()}
+      />
+
+      <FileTagsDialog
+        open={dialog?.type === 'tags'}
+        fileId={dialog?.type === 'tags' ? dialog.file.id : null}
+        fileName={dialog?.type === 'tags' ? dialog.file.name : ''}
+        onOpenChange={(open) => !open && setDialog(null)}
+      />
     </AppShell>
     </DndProvider>
   )
@@ -1023,10 +1212,14 @@ function FolderActions({
   onRename,
   onMove,
   onDelete,
+  onZip,
+  onFavorite,
 }: {
   onRename: () => void
   onMove: () => void
   onDelete: () => void
+  onZip: () => void
+  onFavorite: () => void
 }) {
   return (
     <DropdownMenu>
@@ -1047,6 +1240,12 @@ function FolderActions({
         <DropdownMenuItem onClick={onMove}>
           <FolderInput /> Presunúť
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={onZip}>
+          <Archive /> Stiahnuť ZIP
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onFavorite}>
+          <Star /> Obľúbené
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={onDelete}>
           <Trash2 /> Zmazať
@@ -1064,6 +1263,9 @@ function FileActions({
   onDownload,
   onDelete,
   onShare,
+  onVersions,
+  onTags,
+  onFavorite,
 }: {
   canPreview?: boolean
   onPreview?: () => void
@@ -1072,6 +1274,9 @@ function FileActions({
   onDownload: () => void
   onDelete: () => void
   onShare: () => void
+  onVersions: () => void
+  onTags: () => void
+  onFavorite: () => void
 }) {
   return (
     <DropdownMenu>
@@ -1102,6 +1307,15 @@ function FileActions({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onShare}>
           <Share2 /> Zdieľať
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onVersions}>
+          <History /> Verzie
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onTags}>
+          <Tag /> Tagy
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onFavorite}>
+          <Star /> Obľúbené
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={onDelete}>
