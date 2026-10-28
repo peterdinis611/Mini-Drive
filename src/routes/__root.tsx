@@ -21,7 +21,7 @@ import { NotFoundPage, RoutePending } from '#/components/status/status-page'
 import { Toaster } from '#/components/toast/toaster'
 import { APP_NAME } from '#/lib/constants'
 import { SITE } from '#/lib/site'
-import { appJsonLd, buildSeoHead } from '#/lib/seo'
+import { appJsonLd } from '#/lib/seo'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import appCss from '../styles.css?url'
 
@@ -36,13 +36,8 @@ const FONT_STYLESHEET =
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => {
-    const defaultSeo = buildSeoHead({
-      title: `${APP_NAME} — ${SITE.tagline}`,
-      description: SITE.description,
-      path: '/',
-      brandSuffix: false,
-    })
-
+    // Document chrome only — page title/description/OG come from route heads
+    // so we do not duplicate competing meta tags on every navigation.
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -72,7 +67,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
           name: 'referrer',
           content: 'strict-origin-when-cross-origin',
         },
-        ...defaultSeo.meta,
+        { name: 'application-name', content: APP_NAME },
       ],
       links: [
         { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
@@ -103,7 +98,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
           rel: 'stylesheet',
           href: appCss,
         },
-        ...defaultSeo.links,
       ],
       scripts: [appJsonLd()],
     }
@@ -144,6 +138,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <ThemeProvider>
           <ThemedClerkProvider>
             <ThemeSync />
+            <a className="skip-to-content" href="#main-content">
+              Preskočiť na obsah
+            </a>
             <AppErrorBoundary variant="page" name="shell">
               {children}
             </AppErrorBoundary>

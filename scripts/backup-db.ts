@@ -20,6 +20,8 @@ import {
   defaultBackupFileName,
   encryptDbBackup,
 } from '../src/lib/db-backup'
+import { getFileBytesSync } from '../src/lib/file-bytes'
+import { formatFileSize } from '../src/lib/format'
 
 config({ path: ['.env.local', '.env'] })
 
@@ -54,6 +56,8 @@ const outPath = resolve(
 
 mkdirSync(dirname(outPath), { recursive: true })
 
+const sourceBytes = getFileBytesSync(dbPath)
+
 const tmp = resolve(tmpdir(), `mini-drive-backup-${randomUUID()}.db`)
 try {
   copyFileSync(dbPath, tmp)
@@ -68,4 +72,7 @@ try {
   }
 }
 
-console.log(`Encrypted backup → ${outPath}`)
+const backupBytes = getFileBytesSync(outPath)
+console.log(
+  `Encrypted backup → ${outPath} (${formatFileSize(sourceBytes)} → ${formatFileSize(backupBytes)})`,
+)

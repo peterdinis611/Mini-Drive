@@ -9,6 +9,8 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
 import { decryptDbBackup } from '../src/lib/db-backup'
+import { getFileBytesSync } from '../src/lib/file-bytes'
+import { formatFileSize } from '../src/lib/format'
 
 config({ path: ['.env.local', '.env'] })
 
@@ -46,10 +48,14 @@ const { input, out } = parseArgs(process.argv.slice(2))
 const inPath = resolve(process.cwd(), input)
 const outPath = resolve(process.cwd(), out)
 
+const archiveBytes = getFileBytesSync(inPath)
 const blob = readFileSync(inPath)
 const plaintext = decryptDbBackup(blob, passphrase)
 
 mkdirSync(dirname(outPath), { recursive: true })
 writeFileSync(outPath, plaintext)
 
-console.log(`Restored DB → ${outPath}`)
+const restoredBytes = getFileBytesSync(outPath)
+console.log(
+  `Restored DB → ${outPath} (${formatFileSize(archiveBytes)} → ${formatFileSize(restoredBytes)})`,
+)

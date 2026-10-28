@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
-import { buildSeoHead } from '#/lib/seo'
+import { buildSeoHead, landingPageJsonLd } from '#/lib/seo'
 import { SITE } from '#/lib/site'
 import { APP_NAME } from '#/lib/constants'
 import { getLandingPageRsc } from '#/server/rsc/public-pages'
@@ -22,6 +22,7 @@ export const Route = createFileRoute('/')({
       description: SITE.description,
       path: '/',
       brandSuffix: false,
+      jsonLd: [landingPageJsonLd()],
     }),
   component: HomePage,
 })

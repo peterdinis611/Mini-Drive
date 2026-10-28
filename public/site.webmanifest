@@ -1,16 +1,16 @@
 {
   "name": "Mini Drive",
   "short_name": "Mini Drive",
-  "description": "Súkromné úložisko súborov so safe-url zdieľaním, košom a verziami.",
+  "description": "Súkromný archív súborov so safe-url zdieľaním, košom a kvótou.",
   "start_url": "/files",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0e1014",
-  "theme_color": "#008ea8",
+  "background_color": "#12161f",
+  "theme_color": "#7eb8ff",
   "lang": "sk",
   "dir": "ltr",
-  "categories": ["productivity", "utilities"],
+  "categories": ["productivity", "utilities", "business"],
   "icons": [
     {
       "src": "/favicon.svg",

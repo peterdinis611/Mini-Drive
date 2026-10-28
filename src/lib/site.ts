@@ -15,23 +15,31 @@ export const SITE = {
   tagline: 'Súkromný archív so safe-url',
   description:
     'Mini Drive je súkromný archív súborov: nahrávaj, organizuj priečinky a zdieľaj cez dočasné safe-url odkazy bez odhalenia interných kľúčov.',
-  shortDescription:
-    'Súkromný archív so safe-url, košom a kvótou.',
+  shortDescription: 'Súkromný archív so safe-url, košom a kvótou.',
   locale: 'sk_SK',
   language: 'sk',
   keywords: [
     'Mini Drive',
+    'súkromný archív',
     'cloud úložisko',
-    'súkromné súbory',
-    'safe url',
     'zdieľanie súborov',
-    'UploadThing',
-    'TanStack Start',
+    'safe url',
+    'dočasný odkaz',
+    'priečinky',
+    'kôš súborov',
   ] as const,
   themeColorLight: '#f6faf7',
   themeColorDark: '#12161f',
   author: APP_NAME,
   category: 'BusinessApplication',
+  features: [
+    'Súkromné úložisko súborov',
+    'Safe-url zdieľanie s expiráciou',
+    'Priečinky a organizácia',
+    'Verzie a úpravy obrázkov',
+    'Kôš s retenčnou politikou',
+    'Tvrdá kvóta úložiska',
+  ] as const,
 } as const
 
 /** Indexable marketing / auth surfaces. */

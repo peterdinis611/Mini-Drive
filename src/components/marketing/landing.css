@@ -249,6 +249,13 @@
   inset: 0;
   pointer-events: none;
   z-index: 3;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.landing-card-item {
+  display: contents;
 }
 
 .landing-bloom {
