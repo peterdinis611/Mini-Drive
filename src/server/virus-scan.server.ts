@@ -1,4 +1,4 @@
-import { createConnection } from 'node:net'
+import { scanBuffer, Verdict, type ScanOptions } from 'pompelmi'
 
 import { UPLOAD_LIMITS } from '#/lib/constants'
 import {
@@ -13,27 +13,55 @@ export type ShareVirusScanResult = {
   engines: string[]
 }
 
-function clamavConfig(): { host: string; port: number } | null {
+/** Resolve pompelmi / ClamAV connection from env. */
+export function resolveClamavOptions(): ScanOptions | null {
+  const socket = process.env.CLAMAV_SOCKET?.trim()
+  if (socket) {
+    return {
+      socket,
+      timeout: Number(process.env.CLAMAV_TIMEOUT_MS ?? '30000') || 30_000,
+    }
+  }
+
   const host = process.env.CLAMAV_HOST?.trim()
-  if (!host) return null
-  const port = Number(process.env.CLAMAV_PORT ?? '3310')
-  if (!Number.isFinite(port) || port <= 0) return null
-  return { host, port }
+  if (host) {
+    const port = Number(process.env.CLAMAV_PORT ?? '3310')
+    if (!Number.isFinite(port) || port <= 0) return null
+    return {
+      host,
+      port,
+      timeout: Number(process.env.CLAMAV_TIMEOUT_MS ?? '30000') || 30_000,
+    }
+  }
+
+  // Spawn local `clamscan` (pompelmi installs / finds the binary).
+  if (process.env.CLAMAV_LOCAL === '1') {
+    return {}
+  }
+
+  return null
 }
 
 function requireClamav(): boolean {
   return process.env.VIRUS_SCAN_REQUIRE_CLAMAV === '1'
 }
 
+/** Skip network/AV in Vitest unless VIRUS_SCAN=force. */
+function virusScanDisabled(): boolean {
+  if (process.env.VIRUS_SCAN === 'off') return true
+  if (process.env.VIRUS_SCAN === 'force') return false
+  return Boolean(process.env.VITEST)
+}
+
 /**
  * Scan file bytes before creating a public share.
- * Always runs heuristics; ClamAV INSTREAM if CLAMAV_HOST is set.
+ * Always runs heuristics; ClamAV via pompelmi when configured.
  */
 export async function scanBytesForShare(
   bytes: Uint8Array,
   meta: { fileName: string; mimeType: string },
 ): Promise<ShareVirusScanResult> {
-  if (process.env.VITEST || process.env.VIRUS_SCAN === 'off') {
+  if (virusScanDisabled()) {
     return { verdict: 'skipped', findings: [], engines: ['skipped'] }
   }
 
@@ -44,19 +72,36 @@ export async function scanBytesForShare(
   engines.push(heuristic.engine)
   findings.push(...heuristic.findings)
 
-  const clam = clamavConfig()
+  const clam = resolveClamavOptions()
   if (clam) {
     try {
-      const clamResult = await scanWithClamav(bytes, clam)
-      engines.push('clamav')
-      if (clamResult.infected) {
+      const buffer = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes)
+      const verdict = await scanBuffer(buffer, clam)
+      engines.push('pompelmi')
+
+      if (verdict === Verdict.Malicious) {
         findings.push({
-          code: clamResult.signature ?? 'CLAMAV',
-          detail: clamResult.raw,
+          code: 'CLAMAV',
+          detail: 'ClamAV (pompelmi): Malicious',
         })
+      } else if (verdict === Verdict.ScanError) {
+        engines.push('pompelmi-error')
+        if (requireClamav()) {
+          return {
+            verdict: 'error',
+            findings: [
+              {
+                code: 'CLAMAV_UNAVAILABLE',
+                detail: 'ClamAV sken zlyhal (ScanError)',
+              },
+            ],
+            engines,
+          }
+        }
       }
+      // Verdict.Clean — continue
     } catch (err) {
-      engines.push('clamav-error')
+      engines.push('pompelmi-error')
       if (requireClamav()) {
         return {
           verdict: 'error',
@@ -79,7 +124,8 @@ export async function scanBytesForShare(
       findings: [
         {
           code: 'CLAMAV_REQUIRED',
-          detail: 'VIRUS_SCAN_REQUIRE_CLAMAV=1, ale CLAMAV_HOST nie je nastavený',
+          detail:
+            'VIRUS_SCAN_REQUIRE_CLAMAV=1, ale chýba CLAMAV_HOST / CLAMAV_SOCKET / CLAMAV_LOCAL=1',
         },
       ],
       engines,
@@ -101,7 +147,7 @@ export async function scanUploadThingFileForShare(args: {
   mimeType: string
   size: number
 }): Promise<ShareVirusScanResult> {
-  if (process.env.VITEST || process.env.VIRUS_SCAN === 'off') {
+  if (virusScanDisabled()) {
     return { verdict: 'skipped', findings: [], engines: ['skipped'] }
   }
 
@@ -141,63 +187,6 @@ export async function scanUploadThingFileForShare(args: {
   return scanBytesForShare(buffer, {
     fileName: args.fileName,
     mimeType: args.mimeType,
-  })
-}
-
-type ClamResult = { infected: boolean; signature?: string; raw: string }
-
-async function scanWithClamav(
-  bytes: Uint8Array,
-  cfg: { host: string; port: number },
-): Promise<ClamResult> {
-  return new Promise((resolve, reject) => {
-    const socket = createConnection({ host: cfg.host, port: cfg.port })
-    const chunks: Buffer[] = []
-    let settled = false
-
-    const fail = (err: Error) => {
-      if (settled) return
-      settled = true
-      socket.destroy()
-      reject(err)
-    }
-
-    const ok = (result: ClamResult) => {
-      if (settled) return
-      settled = true
-      socket.destroy()
-      resolve(result)
-    }
-
-    socket.setTimeout(30_000)
-    socket.on('timeout', () => fail(new Error('ClamAV timeout')))
-    socket.on('error', (err) => fail(err))
-    socket.on('data', (chunk) => chunks.push(Buffer.from(chunk)))
-    socket.on('end', () => {
-      const raw = Buffer.concat(chunks).toString('utf8').replace(/\0/g, '').trim()
-      // e.g. "stream: Eicar-Test-Signature FOUND" or "stream: OK"
-      const infected = /\sFOUND$/i.test(raw)
-      const signature = infected
-        ? raw.replace(/^stream:\s*/i, '').replace(/\sFOUND$/i, '').trim()
-        : undefined
-      ok({ infected, signature, raw })
-    })
-
-    socket.on('connect', () => {
-      // zINSTREAM null-terminated
-      socket.write(Buffer.from('zINSTREAM\0'))
-      const chunkSize = 64 * 1024
-      for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-        const slice = bytes.subarray(offset, offset + chunkSize)
-        const header = Buffer.alloc(4)
-        header.writeUInt32BE(slice.length, 0)
-        socket.write(header)
-        socket.write(Buffer.from(slice))
-      }
-      const end = Buffer.alloc(4)
-      end.writeUInt32BE(0, 0)
-      socket.write(end)
-    })
   })
 }
 

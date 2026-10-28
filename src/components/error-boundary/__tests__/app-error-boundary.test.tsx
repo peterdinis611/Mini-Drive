@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppErrorBoundary } from '#/components/error-boundary/app-error-boundary'
 import { SectionErrorFallback } from '#/components/error-boundary/section-error-fallback'
 
-function Boom({ message = 'Sekcia padla' }: { message?: string }) {
+function Boom({ message = 'Sekcia padla' }: { message?: string }): never {
   throw new Error(message)
 }
 
