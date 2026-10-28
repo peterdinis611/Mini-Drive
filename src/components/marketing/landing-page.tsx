@@ -3,6 +3,11 @@ import { Link } from '@tanstack/react-router'
 import { APP_NAME } from '#/lib/constants'
 
 import { LandingCollage } from './fragments/landing-collage'
+import {
+  LandingAuthFooterLinks,
+  LandingGuestCta,
+} from './fragments/landing-guest-cta'
+import { LandingStartButton } from './fragments/landing-start-button'
 import { LandingThemeToggle } from './fragments/landing-theme-toggle'
 import './landing.css'
 
@@ -96,12 +101,7 @@ export function LandingPage() {
               </Link>
             </nav>
             <LandingThemeToggle />
-            <Link className="landing-start" to="/sign-up/$" preload="intent">
-              <span className="landing-start-label">Začať</span>
-              <span className="landing-start-arrow" aria-hidden>
-                <ArrowGlyph />
-              </span>
-            </Link>
+            <LandingStartButton arrow={<ArrowGlyph />} />
           </div>
         </header>
 
@@ -116,12 +116,16 @@ export function LandingPage() {
                 Súkromný archív na nahrávanie, priečinky a dočasné odkazy — bez
                 odhalenia interných kľúčov a bez verejného cloudu.
               </p>
-              <Link className="landing-cta" to="/sign-up/$" preload="intent">
-                Začať nahrávať zadarmo
-                <span className="landing-cta-arrow" aria-hidden>
-                  <ArrowGlyph />
-                </span>
-              </Link>
+              <LandingGuestCta
+                className="landing-cta"
+                guestLabel="Začať nahrávať zadarmo"
+                signedInLabel="Pokračovať do Drive"
+                arrow={
+                  <span className="landing-cta-arrow" aria-hidden>
+                    <ArrowGlyph />
+                  </span>
+                }
+              />
             </header>
 
             <ul className="landing-card-rail" aria-label="Funkcie produktu">
@@ -161,13 +165,11 @@ export function LandingPage() {
             <LandingCollage />
 
             <p className="landing-block-cta">
-              <Link
+              <LandingGuestCta
                 className="landing-ghost-pill"
-                to="/sign-up/$"
-                preload="intent"
-              >
-                Pripravený nahrávať
-              </Link>
+                guestLabel="Pripravený nahrávať"
+                signedInLabel="Otvoriť Drive"
+              />
             </p>
           </section>
 
@@ -233,25 +235,23 @@ export function LandingPage() {
             <p>
               Účet zadarmo. Safe-url, priečinky, kôš a kvóta sú súčasť produktu.
             </p>
-            <Link className="landing-cta" to="/sign-up/$" preload="intent">
-              Vytvoriť účet
-              <span className="landing-cta-arrow" aria-hidden>
-                <ArrowGlyph />
-              </span>
-            </Link>
+            <LandingGuestCta
+              className="landing-cta"
+              guestLabel="Vytvoriť účet"
+              signedInLabel="Otvoriť Drive"
+              arrow={
+                <span className="landing-cta-arrow" aria-hidden>
+                  <ArrowGlyph />
+                </span>
+              }
+            />
           </aside>
         </main>
 
         <footer className="landing-foot">
           <p>Kôš · kvóta · verzie obrázkov</p>
           <nav aria-label="Účet">
-            <Link to="/sign-in/$" preload="intent">
-              Prihlásenie
-            </Link>
-            {' · '}
-            <Link to="/sign-up/$" preload="intent">
-              Registrácia
-            </Link>
+            <LandingAuthFooterLinks />
           </nav>
           <p>
             <small>

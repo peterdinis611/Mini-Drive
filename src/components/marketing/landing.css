@@ -175,7 +175,8 @@
 .landing a.landing-start:link,
 .landing a.landing-start:visited,
 .landing a.landing-start:hover,
-.landing-start {
+.landing-start,
+.landing-start--pending {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
@@ -200,7 +201,8 @@
 .dark .landing a.landing-start:link,
 .dark .landing a.landing-start:visited,
 .dark .landing a.landing-start:hover,
-.dark .landing-start {
+.dark .landing-start,
+.dark .landing-start--pending {
   background: var(--lp-accent);
   color: #071018;
   -webkit-text-fill-color: #071018;

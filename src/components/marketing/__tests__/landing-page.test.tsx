@@ -1,5 +1,5 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { APP_NAME } from '#/lib/constants'
 
@@ -32,6 +32,12 @@ vi.mock('next-themes', () => ({
   useTheme: () => ({ resolvedTheme: 'light', setTheme: vi.fn() }),
 }))
 
+const useAuth = vi.fn(() => ({ isLoaded: true, isSignedIn: false }))
+
+vi.mock('@clerk/tanstack-react-start', () => ({
+  useAuth: () => useAuth(),
+}))
+
 vi.mock('#/components/marketing/fragments/landing-collage', () => ({
   LandingCollage: () => <div data-testid="landing-collage" />,
 }))
@@ -40,6 +46,10 @@ import { LandingPage } from '#/components/marketing/landing-page'
 
 afterEach(() => {
   cleanup()
+})
+
+beforeEach(() => {
+  useAuth.mockReturnValue({ isLoaded: true, isSignedIn: false })
 })
 
 describe('LandingPage', () => {
@@ -70,9 +80,28 @@ describe('LandingPage', () => {
     expect(
       screen.getByRole('link', { name: /Začať nahrávať zadarmo/i }),
     ).toHaveAttribute('href', '/sign-up/$')
+    expect(screen.getByRole('link', { name: 'Začať' })).toHaveAttribute(
+      'href',
+      '/sign-up/$',
+    )
     expect(
       screen.getByRole('link', { name: 'Prihlásenie' }),
     ).toHaveAttribute('href', '/sign-in/$')
+  })
+
+  it('swaps nav Začať for Drive when signed in', () => {
+    useAuth.mockReturnValue({ isLoaded: true, isSignedIn: true })
+
+    render(<LandingPage />)
+
+    expect(screen.queryByRole('link', { name: 'Začať' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Drive' })).toHaveAttribute(
+      'href',
+      '/files',
+    )
+    expect(
+      screen.getByRole('link', { name: /Pokračovať do Drive/i }),
+    ).toHaveAttribute('href', '/files')
   })
 
   it('exposes in-page section anchors', () => {
