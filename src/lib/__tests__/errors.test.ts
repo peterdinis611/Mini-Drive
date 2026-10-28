@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
 import {
@@ -6,6 +6,7 @@ import {
   firstZodFieldErrors,
   formatZodError,
   getErrorMessage,
+  reportError,
   toError,
 } from '#/lib/errors'
 
@@ -90,5 +91,19 @@ describe('firstZodFieldErrors', () => {
         password: 'Príliš krátke',
       })
     }
+  })
+})
+
+describe('reportError', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('logs in DEV with optional context and stack', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    reportError(new Error('x'), 'preview', { componentStack: 'at Foo' })
+    expect(errorSpy).toHaveBeenCalled()
+    expect(String(errorSpy.mock.calls[0]?.[0])).toContain('preview')
+    expect(errorSpy).toHaveBeenCalledWith('at Foo')
   })
 })

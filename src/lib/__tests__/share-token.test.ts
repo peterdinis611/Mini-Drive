@@ -45,4 +45,29 @@ describe('resolveShareStatus', () => {
       }),
     ).toBe('revoked')
   })
+
+  it('accepts Date instances for expiry and revoke', () => {
+    expect(
+      resolveShareStatus({
+        expiresAt: new Date(Date.now() + 60_000),
+        revokedAt: null,
+      }),
+    ).toBe('active')
+
+    expect(
+      resolveShareStatus({
+        expiresAt: new Date(Date.now() + 60_000),
+        revokedAt: new Date(),
+      }),
+    ).toBe('revoked')
+  })
+
+  it('prefers revoked over expired', () => {
+    expect(
+      resolveShareStatus({
+        expiresAt: Date.now() - 1,
+        revokedAt: Date.now(),
+      }),
+    ).toBe('revoked')
+  })
 })
