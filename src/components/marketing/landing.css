@@ -1,26 +1,26 @@
 /* Mini Drive landing — playful framed stage (Chainly-inspired, files not crypto) */
 .landing {
-  /* Light: paper mint + navy + lime */
-  --lp-bg: #f6faf7;
-  --lp-bg-deep: #d8f0e2;
-  --lp-ink: #071820;
-  --lp-muted: #243846;
-  --lp-accent: #b6ec2e;
-  --lp-accent-ink: #071820;
-  --lp-lilac: #cfe8ff;
+  /* Light: day cobalt — clean paper + solid blue signal */
+  --lp-bg: #f5f7fb;
+  --lp-bg-deep: #dfe7f4;
+  --lp-ink: #101828;
+  --lp-muted: #475467;
+  --lp-accent: #2f6fed;
+  --lp-accent-ink: #ffffff;
+  --lp-lilac: #dbe7ff;
   --lp-lilac-deep: #7eb8ff;
-  --lp-frame: #071820;
+  --lp-frame: #101828;
   --lp-card: #ffffff;
   --lp-chip: #ffffff;
-  --lp-outer: #071820;
-  --lp-panel: #071820;
-  --lp-panel-ink: #f6faf7;
-  --lp-panel-muted: rgba(246, 250, 247, 0.72);
-  --lp-positive: #178a45;
-  --lp-bar: #9adf5a;
-  --lp-shadow: rgba(7, 24, 32, 0.1);
-  --lp-border-soft: rgba(7, 24, 32, 0.12);
-  --lp-plate: rgba(246, 250, 247, 0.92);
+  --lp-outer: #101828;
+  --lp-panel: #101828;
+  --lp-panel-ink: #f5f7fb;
+  --lp-panel-muted: rgba(245, 247, 251, 0.72);
+  --lp-positive: #0f7a4a;
+  --lp-bar: #5b8fff;
+  --lp-shadow: rgba(16, 24, 40, 0.1);
+  --lp-border-soft: rgba(16, 24, 40, 0.12);
+  --lp-plate: rgba(255, 255, 255, 0.94);
   --lp-font: 'Sora', 'IBM Plex Sans', ui-sans-serif, sans-serif;
   --lp-script: 'Great Vibes', cursive;
   --lp-margin: clamp(0.85rem, 2vw, 1.35rem);
@@ -128,7 +128,7 @@
 .landing-theme-toggle:hover {
   background: var(--lp-accent);
   color: var(--lp-accent-ink);
-  border-color: var(--lp-accent-ink);
+  border-color: var(--lp-accent);
 }
 
 .dark .landing-theme-toggle {
@@ -181,7 +181,7 @@
   align-items: center;
   gap: 0.55rem;
   padding: 0.55rem 0.65rem 0.55rem 1.05rem;
-  background: #071820;
+  background: #101828;
   color: #ffffff;
   -webkit-text-fill-color: #ffffff;
   border-radius: 999px;
@@ -218,7 +218,7 @@
   height: 1.65rem;
   border-radius: 999px;
   background: #ffffff;
-  color: #071820;
+  color: #101828;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -332,8 +332,8 @@
   margin-top: 0.35rem;
   padding: 0.55rem 0.65rem 0.55rem 1.25rem;
   background: var(--lp-accent);
-  color: #071820;
-  -webkit-text-fill-color: #071820;
+  color: #101828;
+  -webkit-text-fill-color: #101828;
   border-radius: 999px;
   font-size: 0.95rem;
   font-weight: 700;
@@ -358,7 +358,7 @@
   height: 2.1rem;
   border-radius: 999px;
   background: var(--lp-ink);
-  color: #b6ec2e;
+  color: #2f6fed;
   display: grid;
   place-items: center;
 }
@@ -698,7 +698,7 @@
 }
 
 .landing-file-dot--pdf {
-  background: #c8f135;
+  background: #5b8fff;
 }
 .landing-file-dot--zip {
   background: #9ad7ff;
@@ -761,13 +761,13 @@
   width: 4.5rem;
   height: 4.5rem;
   border-radius: 1.15rem;
-  border: 2.5px solid #071820;
+  border: 2.5px solid #101828;
   display: grid;
   place-items: center;
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.04em;
-  color: #071820;
+  color: #101828;
   box-shadow: 4px 6px 0 var(--lp-shadow);
 }
 
@@ -843,13 +843,13 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 999px;
-  border: 2.5px solid var(--lp-accent-ink);
+  border: 2.5px solid var(--lp-ink);
   display: grid;
   place-items: center;
   font-size: 1.35rem;
   font-weight: 700;
   background: var(--lp-card);
-  color: var(--lp-accent-ink);
+  color: var(--lp-ink);
 }
 
 .landing-fun-tile p {
@@ -1003,7 +1003,7 @@
   line-height: 1.5;
 }
 
-/* Light: lime CTA on dark panel. Dark: dark CTA on lime panel. */
+/* Light: cobalt CTA on dark panel. Dark: ink CTA on blue panel. */
 .landing-final .landing-cta {
   background: var(--lp-accent);
   color: var(--lp-accent-ink);
@@ -1018,7 +1018,7 @@
 
 .landing-final .landing-cta-arrow {
   background: var(--lp-ink);
-  color: #b6ec2e;
+  color: #2f6fed;
 }
 
 .dark .landing-final .landing-cta-arrow {

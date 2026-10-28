@@ -117,7 +117,7 @@ export function QuickActionsFab() {
                 transition={{ ...springSnappy, delay: index * 0.03 }}
                 onClick={() => run(action.onSelect)}
               >
-                <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25">
+                <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-primary ring-1 ring-primary/25">
                   <action.icon className="size-4" aria-hidden />
                 </span>
                 <span className="min-w-0 flex-1 font-medium">{action.label}</span>

@@ -28,7 +28,7 @@ export const SITE = {
     'priečinky',
     'kôš súborov',
   ] as const,
-  themeColorLight: '#f6faf7',
+  themeColorLight: '#f5f7fb',
   themeColorDark: '#12161f',
   author: APP_NAME,
   category: 'BusinessApplication',

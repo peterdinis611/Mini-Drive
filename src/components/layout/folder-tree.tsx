@@ -206,7 +206,7 @@ export function FolderTree({ folders, activeFolderId, onNavigate }: Props) {
                     className={cn(
                       'group flex h-[34px] items-center gap-2 rounded-xl px-2 text-sm transition',
                       activeFolderId === null
-                        ? 'bg-primary/18 font-medium text-primary ring-1 ring-primary/35 dark:bg-primary/15 dark:text-primary'
+                        ? 'bg-primary/12 font-medium text-primary ring-1 ring-primary/30 dark:bg-primary/15'
                         : 'text-muted-foreground hover:bg-sidebar-accent/80 hover:text-foreground',
                     )}
                   >
@@ -214,7 +214,7 @@ export function FolderTree({ folders, activeFolderId, onNavigate }: Props) {
                       className={cn(
                         'inline-flex size-6 shrink-0 items-center justify-center rounded-lg',
                         activeFolderId === null
-                          ? 'bg-primary/25 text-primary'
+                          ? 'bg-primary/20 text-primary'
                           : 'bg-sidebar-accent text-muted-foreground group-hover:text-foreground',
                       )}
                       aria-hidden
@@ -229,7 +229,7 @@ export function FolderTree({ folders, activeFolderId, onNavigate }: Props) {
                       className={cn(
                         'shrink-0 rounded-md px-1.5 py-0.5 font-meta text-[10px] tabular-nums',
                         activeFolderId === null
-                          ? 'bg-primary/20 text-primary'
+                          ? 'bg-primary/15 text-primary'
                           : 'bg-sidebar-accent/80 text-muted-foreground/80',
                       )}
                     >
@@ -297,7 +297,7 @@ function FolderTreeEmpty() {
       aria-label="Prázdny strom priečinkov"
     >
       <span
-        className="inline-flex size-9 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/25"
+        className="inline-flex size-9 items-center justify-center rounded-xl bg-primary/12 text-primary ring-1 ring-primary/25"
         aria-hidden
       >
         <Folders className="size-4" />
@@ -335,7 +335,7 @@ function FolderTreeRow({
       className={cn(
         'group relative flex h-[34px] items-center gap-0.5 rounded-xl transition',
         row.isActive
-          ? 'bg-primary/18 font-medium text-primary ring-1 ring-primary/30 dark:bg-primary/15'
+          ? 'bg-primary/12 font-medium text-primary ring-1 ring-primary/30 dark:bg-primary/15'
           : row.isAncestorOfActive
             ? 'bg-sidebar-accent/50 text-foreground'
             : 'hover:bg-sidebar-accent/75',

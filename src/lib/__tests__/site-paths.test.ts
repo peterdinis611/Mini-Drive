@@ -28,11 +28,11 @@ describe('site paths after Clerk migration', () => {
 })
 
 describe('SITE metadata', () => {
-  it('carries Slovak branding and mint/navy theme tokens', () => {
+  it('carries Slovak branding and cobalt/slate theme tokens', () => {
     expect(SITE.name).toBe(APP_NAME)
     expect(SITE.language).toBe('sk')
     expect(SITE.locale).toBe('sk_SK')
-    expect(SITE.themeColorLight).toBe('#f6faf7')
+    expect(SITE.themeColorLight).toBe('#f5f7fb')
     expect(SITE.themeColorDark).toBe('#12161f')
     expect(SITE.description.length).toBeGreaterThan(40)
     expect(SITE.features.length).toBeGreaterThanOrEqual(4)

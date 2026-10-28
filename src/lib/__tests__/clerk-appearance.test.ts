@@ -13,7 +13,7 @@ describe('clerkAppearance', () => {
   it('defaults to the light landing palette', () => {
     expect(clerkAppearance).toBe(clerkAppearanceLight)
     expect(clerkAppearanceLight.variables.colorBackground).toBe('#ffffff')
-    expect(clerkAppearanceLight.variables.colorPrimary).toBe('#b6ec2e')
+    expect(clerkAppearanceLight.variables.colorPrimary).toBe('#2f6fed')
   })
 
   it('uses an explicit dark slate/blue palette', () => {
@@ -24,8 +24,9 @@ describe('clerkAppearance', () => {
 
   it('uses an explicit light palette with dark text on light surfaces', () => {
     expect(clerkAppearanceLight.variables.colorBackground).toBe('#ffffff')
-    expect(clerkAppearanceLight.variables.colorText).toBe('#071820')
-    expect(clerkAppearanceLight.variables.colorInputText).toBe('#071820')
+    expect(clerkAppearanceLight.variables.colorText).toBe('#101828')
+    expect(clerkAppearanceLight.variables.colorInputText).toBe('#101828')
+    expect(clerkAppearanceLight.variables.colorPrimary).toBe('#2f6fed')
   })
 
   it('avoids Tailwind semantic theme classes that flip under .dark', () => {

@@ -74,7 +74,7 @@ const ASPECTS: Array<{ id: AspectId; label: string; value: number | undefined }>
     { id: 'A4', label: 'A4', value: 210 / 297 },
   ]
 
-const STROKE_COLORS = ['#ffffff', '#b6ec2e', '#7eb8ff', '#f43f5e', '#fbbf24'] as const
+const STROKE_COLORS = ['#ffffff', '#2f6fed', '#7eb8ff', '#f43f5e', '#fbbf24'] as const
 
 const STROKE_WIDTHS = [
   { id: 's', label: 'Tenké', value: 0.006 },
