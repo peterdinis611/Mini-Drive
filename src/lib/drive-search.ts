@@ -1,5 +1,7 @@
 import Fuse from 'fuse.js'
 
+import { DRIVE_FUSE_OPTIONS } from '#/lib/fuse-options'
+
 export type DriveSearchFolder = {
   id: string
   parentId: string | null
@@ -82,15 +84,12 @@ export function buildDriveSearchItems(
 
 export function createDriveFuse(items: DriveSearchItem[]) {
   return new Fuse(items, {
+    ...DRIVE_FUSE_OPTIONS,
     keys: [
       { name: 'name', weight: 0.7 },
       { name: 'pathLabel', weight: 0.2 },
       { name: 'mimeType', weight: 0.1 },
     ],
-    threshold: 0.38,
-    ignoreLocation: true,
-    includeScore: true,
-    minMatchCharLength: 1,
   })
 }
 

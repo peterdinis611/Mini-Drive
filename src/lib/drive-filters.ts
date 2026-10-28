@@ -1,4 +1,7 @@
+import Fuse from 'fuse.js'
+
 import { getFileKind, type FileKind } from '#/lib/file-kind'
+import { DRIVE_FUSE_OPTIONS } from '#/lib/fuse-options'
 
 export type DriveKindFilter =
   | 'all'
@@ -26,9 +29,14 @@ export function filterDriveFolders<T extends FilterableFolder>(
   query: string,
 ): T[] {
   if (kind !== 'all') return []
-  const q = query.trim().toLowerCase()
+  const q = query.trim()
   if (!q) return folders
-  return folders.filter((folder) => folder.name.toLowerCase().includes(q))
+
+  const fuse = new Fuse(folders, {
+    ...DRIVE_FUSE_OPTIONS,
+    keys: [{ name: 'name', weight: 1 }],
+  })
+  return fuse.search(q).map((result) => result.item)
 }
 
 export function filterDriveFiles<T extends FilterableFile>(
@@ -36,15 +44,24 @@ export function filterDriveFiles<T extends FilterableFile>(
   kind: DriveKindFilter,
   query: string,
 ): T[] {
-  const q = query.trim().toLowerCase()
-  return files.filter((file) => {
-    if (kind !== 'all') {
-      const fileKind = getFileKind(file.mimeType, file.name)
-      if (!matchesKindFilter(fileKind, kind)) return false
-    }
-    if (q && !file.name.toLowerCase().includes(q)) return false
-    return true
+  const kindFiltered =
+    kind === 'all'
+      ? files
+      : files.filter((file) =>
+          matchesKindFilter(getFileKind(file.mimeType, file.name), kind),
+        )
+
+  const q = query.trim()
+  if (!q) return kindFiltered
+
+  const fuse = new Fuse(kindFiltered, {
+    ...DRIVE_FUSE_OPTIONS,
+    keys: [
+      { name: 'name', weight: 0.85 },
+      { name: 'mimeType', weight: 0.15 },
+    ],
   })
+  return fuse.search(q).map((result) => result.item)
 }
 
 function matchesKindFilter(fileKind: FileKind, kind: DriveKindFilter): boolean {

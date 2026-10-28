@@ -28,6 +28,12 @@ describe('filterDriveFolders', () => {
   it('filters by name query case-insensitively', () => {
     expect(filterDriveFolders(folders, 'all', 'demo')).toEqual([folders[0]])
   })
+
+  it('fuzzy-matches folder names via Fuse.js', () => {
+    expect(filterDriveFolders(folders, 'all', 'archiv').map((f) => f.id)).toEqual([
+      'f2',
+    ])
+  })
 })
 
 describe('filterDriveFiles', () => {
@@ -54,5 +60,11 @@ describe('filterDriveFiles', () => {
       filterDriveFiles(files, 'image', 'photo').map((f) => f.id),
     ).toEqual(['1'])
     expect(filterDriveFiles(files, 'image', 'doc')).toEqual([])
+  })
+
+  it('fuzzy-matches file names via Fuse.js', () => {
+    expect(filterDriveFiles(files, 'all', 'phote').map((f) => f.id)).toEqual([
+      '1',
+    ])
   })
 })

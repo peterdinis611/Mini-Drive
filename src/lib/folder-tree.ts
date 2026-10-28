@@ -1,4 +1,7 @@
+import Fuse from 'fuse.js'
+
 import type { FolderTreeNode } from '#/components/files/types'
+import { DRIVE_FUSE_OPTIONS } from '#/lib/fuse-options'
 
 export type FolderTreeItem = FolderTreeNode & {
   children: FolderTreeItem[]
@@ -86,7 +89,8 @@ export function flattenFolderRows(
     defaultOpenDepth?: number
   },
 ): FlatFolderRow[] {
-  const filter = options.filter?.trim().toLocaleLowerCase('sk') ?? ''
+  const filter = options.filter?.trim() ?? ''
+  const matchedIds = filter ? matchFolderIdsWithFuse(tree, filter) : null
   const defaultOpenDepth = options.defaultOpenDepth ?? 1
   const activeAncestors = new Set(
     options.activeFolderId
@@ -98,21 +102,17 @@ export function flattenFolderRows(
 
   const visit = (nodes: FolderTreeItem[], depth: number) => {
     for (const node of nodes) {
-      const matchesSelf =
-        !filter ||
-        node.name.toLocaleLowerCase('sk').includes(filter) ||
-        node.pathLabel.toLocaleLowerCase('sk').includes(filter)
-
-      const matchingDescendant = filter
-        ? hasMatchingDescendant(node, filter)
+      const matchesSelf = !matchedIds || matchedIds.has(node.id)
+      const matchingDescendant = matchedIds
+        ? hasMatchedDescendant(node, matchedIds)
         : false
 
-      if (filter && !matchesSelf && !matchingDescendant) {
+      if (matchedIds && !matchesSelf && !matchingDescendant) {
         continue
       }
 
       const isOpen =
-        filter && matchingDescendant
+        matchedIds && matchingDescendant
           ? true
           : (options.open[node.id] ?? depth < defaultOpenDepth)
 
@@ -139,13 +139,37 @@ export function flattenFolderRows(
   return rows
 }
 
-function hasMatchingDescendant(node: FolderTreeItem, filter: string): boolean {
+/** Fuzzy-match folder ids (name + path) via Fuse.js. */
+export function matchFolderIdsWithFuse(
+  tree: FolderTreeItem[],
+  query: string,
+): Set<string> {
+  const flat: FolderTreeItem[] = []
+  const walk = (nodes: FolderTreeItem[]) => {
+    for (const node of nodes) {
+      flat.push(node)
+      if (node.children.length > 0) walk(node.children)
+    }
+  }
+  walk(tree)
+
+  const fuse = new Fuse(flat, {
+    ...DRIVE_FUSE_OPTIONS,
+    keys: [
+      { name: 'name', weight: 0.75 },
+      { name: 'pathLabel', weight: 0.25 },
+    ],
+  })
+
+  return new Set(fuse.search(query.trim()).map((result) => result.item.id))
+}
+
+function hasMatchedDescendant(
+  node: FolderTreeItem,
+  matchedIds: Set<string>,
+): boolean {
   for (const child of node.children) {
-    if (
-      child.name.toLocaleLowerCase('sk').includes(filter) ||
-      child.pathLabel.toLocaleLowerCase('sk').includes(filter) ||
-      hasMatchingDescendant(child, filter)
-    ) {
+    if (matchedIds.has(child.id) || hasMatchedDescendant(child, matchedIds)) {
       return true
     }
   }

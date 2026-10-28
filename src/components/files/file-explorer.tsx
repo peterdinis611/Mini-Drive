@@ -661,7 +661,7 @@ export function FileExplorer({
               onChange={(event) => setFilterDraft(event.target.value)}
               placeholder="Filtrovať…"
               className="h-8 pl-8"
-              aria-label="Filtrovať podľa názvu"
+              aria-label="Filtrovať súbory a priečinky"
             />
           </div>
         </div>

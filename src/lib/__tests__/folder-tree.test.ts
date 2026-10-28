@@ -55,6 +55,16 @@ describe('flattenFolderRows', () => {
     })
     expect(rows.map((r) => r.id)).toEqual(['a', 'b', 'c'])
   })
+
+  it('fuzzy-filters folder tree via Fuse.js', () => {
+    const tree = buildFolderTree(folders)
+    const rows = flattenFolderRows(tree, {
+      open: {},
+      activeFolderId: null,
+      filter: 'chalie',
+    })
+    expect(rows.map((r) => r.id)).toEqual(['a', 'b', 'c'])
+  })
 })
 
 describe('collectExpandableFolderIds', () => {
