@@ -1,10 +1,11 @@
 import { APP_NAME } from '#/lib/constants'
 
+import { LandingCollage } from './fragments/landing-collage'
+import { LandingThemeToggle } from './fragments/landing-theme-toggle'
 import './landing.css'
 
 /**
- * Marketing landing — playful framed stage inspired by product showcases,
- * adapted for private file archive + safe-url sharing.
+ * Marketing landing — playful framed stage + collage / steps / CTA.
  */
 export function LandingPage() {
   return (
@@ -17,10 +18,11 @@ export function LandingPage() {
           <div className="landing-nav-right">
             <nav className="landing-pill-nav" aria-label="Sekcie">
               <a href="#archiv">Archív</a>
-              <a href="#zdielanie">Zdieľanie</a>
+              <a href="#vsetko">Všetko</a>
+              <a href="#ako">Ako</a>
               <a href="#sukromie">Súkromie</a>
-              <a href="#kos">Kôš</a>
             </nav>
+            <LandingThemeToggle />
             <a className="landing-start" href="/sign-up">
               Začať
               <span className="landing-start-arrow" aria-hidden>
@@ -77,11 +79,11 @@ export function LandingPage() {
           <div className="landing-center">
             <p className="landing-badge">Nahraj. Zoraď. Pošli safe-url.</p>
             <h1 id="archiv">Súbory jednoducho</h1>
-            <p id="zdielanie">
+            <p>
               Súkromný archív na nahrávanie, priečinky a dočasné odkazy — bez
               odhalenia interných kľúčov a bez verejného cloudu.
             </p>
-            <a className="landing-cta" href="/sign-up" id="sukromie">
+            <a className="landing-cta" href="/sign-up">
               Začať nahrávať zadarmo
               <span className="landing-cta-arrow" aria-hidden>
                 →
@@ -90,8 +92,102 @@ export function LandingPage() {
           </div>
         </section>
 
+        <section className="landing-block" id="vsetko" aria-labelledby="collage-title">
+          <div className="landing-block-head">
+            <span className="landing-step-index">01 — 04</span>
+            <h2 id="collage-title">Všetko na jednom mieste</h2>
+          </div>
+
+          <LandingCollage />
+
+          <div className="landing-block-cta">
+            <a className="landing-ghost-pill" href="/sign-up">
+              Pripravený nahrávať
+            </a>
+          </div>
+        </section>
+
+        <section className="landing-block" id="ako" aria-labelledby="steps-title">
+          <div className="landing-block-head">
+            <span className="landing-step-index">02 — 04</span>
+            <h2 id="steps-title">Tri ťahy do safe-url</h2>
+          </div>
+
+          <ol className="landing-steps">
+            <li>
+              <span className="landing-steps-num">01</span>
+              <h3>Nahraj súbor</h3>
+              <p>Drag & drop alebo výber. Súbor ide rovno do private ACL.</p>
+            </li>
+            <li>
+              <span className="landing-steps-num">02</span>
+              <h3>Nastav expiráciu</h3>
+              <p>Hodina, deň alebo týždeň. Potom odkaz sám zomrie.</p>
+            </li>
+            <li>
+              <span className="landing-steps-num">03</span>
+              <h3>Pošli odkaz</h3>
+              <p>Safe-url bez CDN kľúča. Revoke kedykoľvek jedným klikom.</p>
+            </li>
+          </ol>
+        </section>
+
+        <section
+          className="landing-block landing-privacy"
+          id="sukromie"
+          aria-labelledby="privacy-title"
+        >
+          <div className="landing-block-head">
+            <span className="landing-step-index">03 — 04</span>
+            <h2 id="privacy-title">Súkromné, kým ty nerozhodneš</h2>
+          </div>
+
+          <div className="landing-privacy-grid">
+            <article>
+              <h3>Private ACL</h3>
+              <p>
+                Nič nie je public by default. Verejný prístup ide len cez
+                dočasný safe-url.
+              </p>
+            </article>
+            <article>
+              <h3>Audit otvorení</h3>
+              <p>
+                Každé kliknutie s hashed IP. Vieš, kto otvoril — bez zbytočných
+                PII.
+              </p>
+            </article>
+            <article>
+              <h3>Kôš s retenčou</h3>
+              <p>
+                Soft-delete, obnovenie a automatický výmaz po retenčnom okne.
+              </p>
+            </article>
+            <article>
+              <h3>Tvrdá kvóta</h3>
+              <p>
+                Vidíš GB namiesto nekonečného „cloud free“. Archív má hranice.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section className="landing-final" aria-labelledby="final-title">
+          <p className="landing-badge">04 — 04</p>
+          <h2 id="final-title">Postav si svoj archív</h2>
+          <p>
+            Účet zadarmo. Safe-url, priečinky, kôš a kvóta sú súčasť produktu.
+          </p>
+          <a className="landing-cta" href="/sign-up">
+            Vytvoriť účet
+            <span className="landing-cta-arrow" aria-hidden>
+              →
+            </span>
+          </a>
+        </section>
+
         <footer className="landing-foot">
-          <p id="kos">Kôš s retenčou · kvóta · verzie obrázkov</p>
+          <p>Kôš · kvóta · verzie obrázkov</p>
           <p>
             <a href="/sign-in">Prihlásenie</a>
             {' · '}
