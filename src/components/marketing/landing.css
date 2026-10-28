@@ -219,13 +219,15 @@
   color: #071820;
   display: grid;
   place-items: center;
-  font-size: 0.85rem;
-  line-height: 1;
   flex-shrink: 0;
 }
 
+.landing-start-arrow svg {
+  display: block;
+}
+
 .dark .landing-start-arrow {
-  background: #0c0a14;
+  background: #071018;
   color: var(--lp-accent);
 }
 
@@ -354,10 +356,18 @@
   height: 2.1rem;
   border-radius: 999px;
   background: var(--lp-ink);
-  color: var(--lp-accent);
+  color: #b6ec2e;
   display: grid;
   place-items: center;
-  font-size: 1rem;
+}
+
+.landing-cta-arrow svg {
+  display: block;
+}
+
+.dark .landing-cta-arrow {
+  background: var(--lp-accent-ink);
+  color: var(--lp-accent);
 }
 
 /* Floating polaroid cards (desktop absolute; mobile grid in rail) */
@@ -467,8 +477,9 @@
 }
 
 .landing-card-art svg {
-  width: 72%;
-  height: 72%;
+  width: 78%;
+  height: 78%;
+  overflow: visible;
 }
 
 @keyframes landing-float {
@@ -621,6 +632,14 @@
   color: var(--lp-muted);
 }
 
+.landing-ui-card header h3 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
 .landing-ui-card header em {
   font-style: normal;
   color: var(--lp-positive);
@@ -644,6 +663,11 @@
   display: flex;
   gap: 0.65rem;
   align-items: center;
+}
+
+.landing-ui-card--recent li > p {
+  margin: 0;
+  min-width: 0;
 }
 
 .landing-ui-card--recent strong {
@@ -883,9 +907,13 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.85rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .landing-privacy-grid article {
+  height: 100%;
   background: var(--lp-card);
   border: 2.5px solid var(--lp-ink);
   border-radius: 1.25rem;
@@ -910,26 +938,26 @@
   color: var(--lp-muted);
 }
 
-.landing-privacy-grid article:nth-child(2) {
+.landing-privacy-grid > li:nth-child(2) article {
   background: var(--lp-lilac);
 }
 
-.landing-privacy-grid article:nth-child(3) {
+.landing-privacy-grid > li:nth-child(3) article {
   background: var(--lp-accent);
   color: var(--lp-accent-ink);
 }
 
-.landing-privacy-grid article:nth-child(3) p {
+.landing-privacy-grid > li:nth-child(3) article p {
   color: var(--lp-accent-ink);
   opacity: 0.92;
 }
 
-.landing-privacy-grid article:nth-child(2) h3,
-.landing-privacy-grid article:nth-child(2) p {
+.landing-privacy-grid > li:nth-child(2) article h3,
+.landing-privacy-grid > li:nth-child(2) article p {
   color: var(--lp-ink);
 }
 
-.dark .landing-privacy-grid article:nth-child(2) {
+.dark .landing-privacy-grid > li:nth-child(2) article {
   background: var(--lp-lilac);
 }
 
@@ -977,11 +1005,18 @@
 .landing-final .landing-cta {
   background: var(--lp-accent);
   color: var(--lp-accent-ink);
+  -webkit-text-fill-color: var(--lp-accent-ink);
 }
 
 .dark .landing-final .landing-cta {
   background: var(--lp-accent-ink);
-  color: var(--lp-accent);
+  color: #eef3f8;
+  -webkit-text-fill-color: #eef3f8;
+}
+
+.landing-final .landing-cta-arrow {
+  background: var(--lp-ink);
+  color: #b6ec2e;
 }
 
 .dark .landing-final .landing-cta-arrow {

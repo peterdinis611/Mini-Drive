@@ -157,6 +157,7 @@ export function AppShell({
             </header>
 
             <motion.main
+              id="main-content"
               className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-8"
               initial={reduce ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}

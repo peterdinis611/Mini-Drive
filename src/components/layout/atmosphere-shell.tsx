@@ -47,7 +47,8 @@ export function AtmosphereShell({
           </motion.header>
         ) : null}
 
-        <div
+        <main
+          id="main-content"
           className={cn(
             'relative z-10 mx-auto flex w-full flex-1 flex-col px-4 pb-12 sm:px-8',
             wide ? 'max-w-2xl' : 'max-w-md',
@@ -55,7 +56,7 @@ export function AtmosphereShell({
           )}
         >
           {children}
-        </div>
+        </main>
       </div>
     </div>
   )

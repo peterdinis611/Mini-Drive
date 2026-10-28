@@ -22,14 +22,15 @@ export function AuthShell({ children, className }: Props) {
           <ThemeToggle />
         </header>
 
-        <div
+        <main
+          id="main-content"
           className={cn(
             'relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 pb-12 sm:px-8',
             className,
           )}
         >
           {children}
-        </div>
+        </main>
       </div>
     </div>
   )

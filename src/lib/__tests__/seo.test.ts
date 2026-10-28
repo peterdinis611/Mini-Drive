@@ -6,11 +6,12 @@ import {
   appJsonLd,
   authPageHead,
   buildSeoHead,
+  landingPageJsonLd,
   privateAppHead,
 } from '#/lib/seo'
 
 describe('buildSeoHead', () => {
-  it('adds brand suffix and index robots by default', () => {
+  it('adds brand suffix, robots, canonical and hreflang', () => {
     const head = buildSeoHead({
       title: 'Prihlásenie',
       path: '/login',
@@ -27,7 +28,10 @@ describe('buildSeoHead', () => {
     expect(head.meta.some((m) => 'name' in m && m.name === 'keywords')).toBe(
       true,
     )
-    expect(head.links[0]?.rel).toBe('canonical')
+    expect(head.links.some((l) => l.rel === 'canonical')).toBe(true)
+    expect(head.links.some((l) => l.rel === 'alternate' && l.hrefLang === 'sk')).toBe(
+      true,
+    )
     expect(head.links[0]?.href).toMatch(/\/login$/)
   })
 
@@ -43,13 +47,25 @@ describe('buildSeoHead', () => {
     expect(authPageHead('login').links[0]?.href).toMatch(/\/sign-in$/)
     expect(authPageHead('register').links[0]?.href).toMatch(/\/sign-up$/)
   })
+
+  it('attaches optional page JSON-LD scripts', () => {
+    const head = buildSeoHead({
+      title: 'Home',
+      path: '/',
+      brandSuffix: false,
+      jsonLd: [landingPageJsonLd()],
+    })
+    expect(head.scripts?.length).toBe(1)
+    expect(head.scripts?.[0]?.type).toBe('application/ld+json')
+    expect(head.scripts?.[0]?.children).toContain('WebPage')
+  })
 })
 
 describe('appJsonLd', () => {
   it('emits Organization + WebSite + WebApplication graph', () => {
     const script = appJsonLd()
     const parsed = JSON.parse(script.children) as {
-      '@graph': Array<{ '@type': string; name?: string }>
+      '@graph': Array<{ '@type': string; name?: string; featureList?: string[] }>
     }
     const types = parsed['@graph'].map((node) => node['@type'])
     expect(types).toEqual(
@@ -57,5 +73,14 @@ describe('appJsonLd', () => {
     )
     expect(parsed['@graph'].some((n) => n.name === APP_NAME)).toBe(true)
     expect(SITE.description.length).toBeGreaterThan(40)
+    expect(SITE.features.length).toBeGreaterThan(3)
+  })
+})
+
+describe('landingPageJsonLd', () => {
+  it('describes the homepage WebPage', () => {
+    const node = landingPageJsonLd()
+    expect(node['@type']).toBe('WebPage')
+    expect(node.inLanguage).toBe('sk')
   })
 })

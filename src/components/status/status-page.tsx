@@ -53,7 +53,10 @@ export function StatusPage({
         <ThemeToggle />
       </motion.header>
 
-      <main className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-6 pb-20 sm:px-10">
+      <main
+        id="main-content"
+        className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-6 pb-20 sm:px-10"
+      >
         {/* One composition: brand-scale code + copy + CTAs */}
         <div className="relative">
           <motion.p

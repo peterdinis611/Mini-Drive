@@ -45,24 +45,31 @@ export function LandingCollage() {
   }, [])
 
   return (
-    <div className="landing-collage-stage" ref={stageRef}>
+    <section
+      className="landing-collage-stage"
+      ref={stageRef}
+      aria-label="Ukážka archívu"
+    >
       <article
         className="landing-ui-card landing-ui-card--recent landing-bob"
         data-parallax="18"
         style={{ animationDelay: '0s' }}
       >
         <header>
-          <span>Nedávne nahratia</span>
+          <h3>Nedávne nahratia</h3>
           <span aria-hidden>↗</span>
         </header>
         <ul>
           {RECENT.map((row) => (
             <li key={row.name}>
-              <span className={`landing-file-dot landing-file-dot--${row.tone}`} />
-              <div>
+              <span
+                className={`landing-file-dot landing-file-dot--${row.tone}`}
+                aria-hidden
+              />
+              <p>
                 <strong>{row.name}</strong>
                 <small>{row.meta}</small>
-              </div>
+              </p>
             </li>
           ))}
         </ul>
@@ -74,10 +81,14 @@ export function LandingCollage() {
         style={{ animationDelay: '0.35s' }}
       >
         <header>
-          <span>Úložisko</span>
+          <h3>Úložisko</h3>
           <em>+0,4 GB</em>
         </header>
-        <p className="landing-chart-total">6,2 / 100 GB</p>
+        <p className="landing-chart-total">
+          <data value="6.2">6,2</data>
+          {' / '}
+          <data value="100">100 GB</data>
+        </p>
         <div className="landing-bars" aria-hidden>
           <i style={{ height: '42%' }} />
           <i style={{ height: '68%' }} />
@@ -87,7 +98,7 @@ export function LandingCollage() {
         </div>
       </article>
 
-      <div
+      <aside
         className="landing-stack-panel landing-bob"
         data-parallax="10"
         style={{ animationDelay: '0.7s' }}
@@ -97,7 +108,7 @@ export function LandingCollage() {
         <FileToken className="landing-token landing-token--b" label="ZIP" fill="#9ad7ff" />
         <FileToken className="landing-token landing-token--c" label="PNG" fill="#9ad7ff" />
         <FileToken className="landing-token landing-token--d" label="DOC" fill="#ffd27a" />
-      </div>
+      </aside>
 
       <figure
         className="landing-photo-tile landing-bob"
@@ -106,11 +117,12 @@ export function LandingCollage() {
       >
         <img
           src="/marketing/filing-cabinet.jpg"
-          alt=""
+          alt="Archívna skriňa so šanónmi v kancelárii"
           width={640}
           height={800}
           loading="lazy"
         />
+        <figcaption className="sr-only">Fyzický archív ako metafora produktu</figcaption>
       </figure>
 
       <figure
@@ -120,14 +132,15 @@ export function LandingCollage() {
       >
         <img
           src="/marketing/twilight-ridge.jpg"
-          alt=""
+          alt="Krajina pri súmraku — pokojný priestor pre tvoje súbory"
           width={900}
           height={1200}
           loading="lazy"
         />
+        <figcaption className="sr-only">Atmosféra súkromného archívu</figcaption>
       </figure>
 
-      <div
+      <aside
         className="landing-fun-tile landing-bob"
         data-parallax="32"
         style={{ animationDelay: '0.9s' }}
@@ -135,8 +148,8 @@ export function LandingCollage() {
       >
         <span className="landing-fun-mark">+</span>
         <p>Drag & drop. Hotovo.</p>
-      </div>
-    </div>
+      </aside>
+    </section>
   )
 }
 
