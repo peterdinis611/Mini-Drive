@@ -3,10 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { PUBLIC_PATHS } from '#/lib/site'
 
 function getSiteUrl() {
-  const raw =
-    process.env.APP_URL ??
-    process.env.BETTER_AUTH_URL ??
-    'http://localhost:3000'
+  const raw = process.env.APP_URL ?? 'http://localhost:3000'
   return raw.replace(/\/$/, '')
 }
 
@@ -26,13 +23,15 @@ export const Route = createFileRoute('/sitemap.xml')({
         const siteUrl = getSiteUrl()
         const lastmod = new Date().toISOString().slice(0, 10)
 
-        const urls = PUBLIC_PATHS.map((path, index) => {
-          const loc = `${siteUrl}${path}`
-          const priority = index === 0 ? '1.0' : '0.8'
+        const urls = PUBLIC_PATHS.map((path) => {
+          const loc = path === '/' ? siteUrl : `${siteUrl}${path}`
+          const priority =
+            path === '/' ? '1.0' : path === '/sign-up' ? '0.9' : '0.8'
+          const changefreq = path === '/' ? 'weekly' : 'monthly'
           return `  <url>
     <loc>${escapeXml(loc)}</loc>
     <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>
   </url>`
         }).join('\n')

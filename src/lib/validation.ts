@@ -26,6 +26,8 @@ const RESERVED_NAMES = new Set([
 
 export const viewPreferenceSchema = z.enum(['grid', 'list'])
 
+export const themePreferenceSchema = z.enum(['light', 'dark', 'system'])
+
 export const displayNameSchema = z
   .string()
   .trim()
@@ -39,6 +41,7 @@ export const emailSchema = z
   .email('Neplatný email')
   .max(254, 'Email je príliš dlhý')
 
+/** Registration / password change — strong minimum. */
 export const passwordSchema = z
   .string()
   .min(
@@ -50,9 +53,21 @@ export const passwordSchema = z
     `Heslo môže mať najviac ${AUTH_LIMITS.passwordMax} znakov`,
   )
 
+/**
+ * Login only — do not enforce new min length so existing accounts can still sign in.
+ * Server still verifies the hash; client just needs a non-empty secret.
+ */
+export const loginPasswordSchema = z
+  .string()
+  .min(1, 'Heslo je povinné')
+  .max(
+    AUTH_LIMITS.passwordMax,
+    `Heslo môže mať najviac ${AUTH_LIMITS.passwordMax} znakov`,
+  )
+
 export const loginSchema = z.object({
   email: emailSchema,
-  password: passwordSchema,
+  password: loginPasswordSchema,
 })
 
 export const registerSchema = z.object({
@@ -96,15 +111,6 @@ export const onboardingPreferencesSchema = z.object({
   viewPreference: viewPreferenceSchema,
 })
 
-export const updateSettingsSchema = z
-  .object({
-    name: displayNameSchema.optional(),
-    viewPreference: viewPreferenceSchema.optional(),
-  })
-  .refine((data) => data.name !== undefined || data.viewPreference !== undefined, {
-    message: 'Nie je čo uložiť',
-  })
-
 export const expiresInSchema = z
   .number()
   .int()
@@ -114,12 +120,45 @@ export const expiresInSchema = z
     { message: 'Neplatná platnosť odkazu' },
   )
 
+export const updateSettingsSchema = z
+  .object({
+    name: displayNameSchema.optional(),
+    viewPreference: viewPreferenceSchema.optional(),
+    themePreference: themePreferenceSchema.optional(),
+    defaultShareExpiresIn: expiresInSchema.optional(),
+    confirmDelete: z.boolean().optional(),
+  })
+  .refine(
+    (data) =>
+      data.name !== undefined ||
+      data.viewPreference !== undefined ||
+      data.themePreference !== undefined ||
+      data.defaultShareExpiresIn !== undefined ||
+      data.confirmDelete !== undefined,
+    { message: 'Nie je čo uložiť' },
+  )
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: loginPasswordSchema,
+    newPassword: passwordSchema,
+    confirmPassword: passwordSchema,
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Heslá sa nezhodujú',
+    path: ['confirmPassword'],
+  })
+
 export const createShareLinkSchema = z.object({
   fileId: z.string().uuid('Neplatné ID súboru'),
   expiresIn: expiresInSchema,
 })
 
 export const revokeShareLinkSchema = z.object({
+  shareId: z.string().uuid('Neplatné ID odkazu'),
+})
+
+export const listShareAccessLogsSchema = z.object({
   shareId: z.string().uuid('Neplatné ID odkazu'),
 })
 

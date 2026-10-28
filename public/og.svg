@@ -1,17 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" fill="none" viewBox="0 0 1200 630">
-  <rect width="1200" height="630" fill="#ffffff"/>
-  <rect width="1200" height="630" fill="url(#g)"/>
+  <rect width="1200" height="630" fill="#0e1014"/>
   <defs>
-    <linearGradient id="g" x1="80" y1="40" x2="1120" y2="600" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#e7f3ff"/>
-      <stop offset="0.55" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#f7f6f3"/>
-    </linearGradient>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#2a303c" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(980 160) rotate(90) scale(420 520)">
+      <stop stop-color="#22d3ee" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <rect x="72" y="72" width="72" height="72" rx="16" fill="#2383e2"/>
-  <path d="M94 126V90h12.6c7.65 0 12.45 4.35 12.45 10.65 0 4.35-2.4 7.8-6.3 9.45L124.1 126h-9.15l-8.85-13.65H103V126H94zm9-20.55h3.45c3.3 0 5.4-1.8 5.4-4.5s-2.1-4.5-5.4-4.5H103v9z" fill="#fff"/>
-  <text x="168" y="122" fill="#37352f" font-family="Georgia, serif" font-size="48" font-weight="600">Mini Drive</text>
-  <text x="72" y="280" fill="#37352f" font-family="Georgia, serif" font-size="64" font-weight="500">Súkromné úlo~isko súborov</text>
-  <text x="72" y="360" fill="#787774" font-family="system-ui, sans-serif" font-size="32">Safe-url zdie>anie · prieinky · UploadThing</text>
-  <rect x="72" y="520" width="180" height="8" rx="4" fill="#2383e2"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect x="0" y="0" width="6" height="630" fill="#22d3ee" opacity="0.7"/>
+  <rect x="72" y="72" width="64" height="64" rx="4" fill="#22d3ee"/>
+  <text x="92" y="116" fill="#041016" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="36" font-weight="700">M</text>
+  <text x="156" y="118" fill="#e8eaed" font-family="ui-sans-serif, system-ui, sans-serif" font-size="42" font-weight="600" letter-spacing="-0.5">Mini Drive</text>
+  <text x="72" y="280" fill="#e8eaed" font-family="ui-sans-serif, system-ui, sans-serif" font-size="58" font-weight="600" letter-spacing="-1.2">Súkromný archív súborov</text>
+  <text x="72" y="350" fill="#8b93a3" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="26">safe-url · prie?inky · kôš · verzie</text>
+  <rect x="72" y="520" width="160" height="6" rx="1" fill="#22d3ee"/>
+  <text x="72" y="560" fill="#5c6370" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" letter-spacing="2">INDUSTRIAL ARCHIVE</text>
 </svg>

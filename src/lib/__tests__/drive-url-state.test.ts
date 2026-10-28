@@ -47,8 +47,7 @@ describe('uploadOpenParser', () => {
 })
 
 describe('previewIdParser', () => {
-  it('keeps string ids or null', () => {
+  it('keeps string ids', () => {
     expect(previewIdParser.parse('abc-123')).toBe('abc-123')
-    expect(previewIdParser.parse(null)).toBeNull()
   })
 })

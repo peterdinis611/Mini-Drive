@@ -15,9 +15,18 @@ export const updateSettings = createServerFn({ method: 'POST' })
     await db
       .update(user)
       .set({
-        ...(data.name ? { name: data.name } : {}),
-        ...(data.viewPreference
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.viewPreference !== undefined
           ? { viewPreference: data.viewPreference }
+          : {}),
+        ...(data.themePreference !== undefined
+          ? { themePreference: data.themePreference }
+          : {}),
+        ...(data.defaultShareExpiresIn !== undefined
+          ? { defaultShareExpiresIn: data.defaultShareExpiresIn }
+          : {}),
+        ...(data.confirmDelete !== undefined
+          ? { confirmDelete: data.confirmDelete }
           : {}),
       })
       .where(eq(user.id, session.user.id))

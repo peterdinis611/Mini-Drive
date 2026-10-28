@@ -1,7 +1,7 @@
 export const APP_NAME = 'Mini Drive'
 
 /** Hard per-user storage ceiling (enforced on upload / replace). */
-export const STORAGE_QUOTA_BYTES = 10 * 1024 ** 3
+export const STORAGE_QUOTA_BYTES = 100 * 1024 ** 3
 
 /** Soft-deleted items older than this are eligible for permanent purge. */
 export const TRASH_RETENTION_DAYS = 30
@@ -21,7 +21,8 @@ export const UPLOAD_LIMITS = {
 } as const
 
 export const AUTH_LIMITS = {
-  passwordMin: 8,
+  /** Enforced on register / password change (Better Auth + Zod). */
+  passwordMin: 12,
   passwordMax: 128,
   nameMax: 100,
 } as const
@@ -41,6 +42,15 @@ export const SHARE_RATE_LIMIT = {
   limit: 30,
   windowMs: 60_000,
 } as const
+
+/** Authenticated createShare rate limit (per user, sliding window). */
+export const CREATE_SHARE_RATE_LIMIT = {
+  limit: 10,
+  windowMs: 60_000,
+} as const
+
+/** Max stored audit rows returned per share in the UI. */
+export const SHARE_ACCESS_LOG_LIMIT = 50
 
 export const NAME_MAX_LENGTH = 255
 // Control chars (U+0000–U+001F) are rejected in folder/file names

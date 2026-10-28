@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
 import {
   Check,
+  ClipboardCopy,
   Copy,
   Crop,
   Download,
+  Eraser,
   ExternalLink,
   FlipHorizontal2,
   FlipVertical2,
@@ -14,16 +16,20 @@ import {
   Loader2,
   Maximize2,
   Minimize2,
+  PenLine,
   RefreshCw,
   RotateCcw,
   RotateCw,
   Save,
+  SlidersHorizontal,
   Type,
+  Undo2,
   X,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react'
 
+import { ImageDrawLayer } from '#/components/files/previews/image-draw-layer'
 import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
 import {
@@ -33,10 +39,16 @@ import {
   TooltipTrigger,
 } from '#/components/ui/tooltip'
 import {
+  clampViewZoom,
   downloadBlob,
   getCroppedImageBlob,
+  getTransformedImageBlob,
   withCroppedName,
+  withEditedName,
+  type DrawStroke,
 } from '#/lib/crop-image'
+import { formatFileSize } from '#/lib/format'
+import { loadImageMeta, saveImageMeta } from '#/lib/image-meta'
 import { toast } from '#/lib/toast'
 import { uploadFiles } from '#/lib/uploadthing'
 import { cn } from '#/lib/utils'
@@ -45,6 +57,7 @@ import type { PreviewShellProps } from './types'
 
 type AspectId = 'free' | '1:1' | '4:3' | '16:9' | '3:2'
 type ViewFit = 'contain' | 'actual'
+type ViewerMode = 'view' | 'crop' | 'draw'
 
 const ASPECTS: Array<{ id: AspectId; label: string; value: number | undefined }> =
   [
@@ -54,6 +67,8 @@ const ASPECTS: Array<{ id: AspectId; label: string; value: number | undefined }>
     { id: '3:2', label: '3:2', value: 3 / 2 },
     { id: '16:9', label: '16:9', value: 16 / 9 },
   ]
+
+const STROKE_COLORS = ['#ffffff', '#b6ec2e', '#7eb8ff', '#f43f5e', '#fbbf24'] as const
 
 function ToolButton({
   label,
@@ -96,17 +111,22 @@ export function ImageBlock({
   url,
   fileName,
   mimeType,
+  fileSize,
   fileId,
   folderId = null,
   onRequestShare,
   onSavedToDrive,
 }: PreviewShellProps) {
+  const rootRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
+
   const [failed, setFailed] = useState(false)
   const [imageLoading, setImageLoading] = useState(true)
-  const [cropping, setCropping] = useState(false)
+  const [mode, setMode] = useState<ViewerMode>('view')
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [viewZoom, setViewZoom] = useState(1)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
   const [rotation, setRotation] = useState(0)
   const [flipH, setFlipH] = useState(false)
   const [flipV, setFlipV] = useState(false)
@@ -115,13 +135,45 @@ export function ImageBlock({
   const [busy, setBusy] = useState(false)
   const [fit, setFit] = useState<ViewFit>('contain')
   const [showMeta, setShowMeta] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
+  const [brightness, setBrightness] = useState(1)
+  const [contrast, setContrast] = useState(1)
   const [caption, setCaption] = useState('')
   const [altText, setAltText] = useState(fileName)
   const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(
     null,
   )
+  const [strokes, setStrokes] = useState<DrawStroke[]>([])
+  const [strokeColor, setStrokeColor] = useState<string>(STROKE_COLORS[1])
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  const panDrag = useRef<{
+    pointerId: number
+    startX: number
+    startY: number
+    originX: number
+    originY: number
+  } | null>(null)
 
   const aspect = ASPECTS.find((item) => item.id === aspectId)?.value
+  const cropping = mode === 'crop'
+  const drawing = mode === 'draw'
+  const hasEdits =
+    rotation !== 0 ||
+    flipH ||
+    flipV ||
+    viewZoom !== 1 ||
+    fit !== 'contain' ||
+    brightness !== 1 ||
+    contrast !== 1 ||
+    strokes.length > 0
+  const hasExportableEdits =
+    rotation !== 0 ||
+    flipH ||
+    flipV ||
+    brightness !== 1 ||
+    contrast !== 1 ||
+    strokes.length > 0
 
   const onCropComplete = useCallback((_area: Area, pixels: Area) => {
     setCroppedAreaPixels(pixels)
@@ -131,20 +183,28 @@ export function ImageBlock({
     setCrop({ x: 0, y: 0 })
     setZoom(1)
     setViewZoom(1)
+    setPan({ x: 0, y: 0 })
     setRotation(0)
     setFlipH(false)
     setFlipV(false)
     setAspectId('free')
+    setBrightness(1)
+    setContrast(1)
+    setStrokes([])
+    setFit('contain')
+    setMode('view')
   }
 
   useEffect(() => {
+    const meta = loadImageMeta(fileId, fileName)
     setFailed(false)
     setImageLoading(true)
-    setCropping(false)
-    setCaption('')
-    setAltText(fileName)
+    setMode('view')
+    setCaption(meta.caption)
+    setAltText(meta.altText)
     setNaturalSize(null)
     setViewZoom(1)
+    setPan({ x: 0, y: 0 })
     setFit('contain')
     setCrop({ x: 0, y: 0 })
     setZoom(1)
@@ -152,12 +212,110 @@ export function ImageBlock({
     setFlipH(false)
     setFlipV(false)
     setAspectId('free')
-  }, [url, fileName])
+    setBrightness(1)
+    setContrast(1)
+    setStrokes([])
+    setShowMeta(Boolean(meta.caption))
+    setShowFilters(false)
+  }, [url, fileName, fileId])
+
+  useEffect(() => {
+    saveImageMeta(fileId, { caption, altText })
+  }, [fileId, caption, altText])
+
+  useEffect(() => {
+    function onFsChange() {
+      setIsFullscreen(document.fullscreenElement === rootRef.current)
+    }
+    document.addEventListener('fullscreenchange', onFsChange)
+    return () => document.removeEventListener('fullscreenchange', onFsChange)
+  }, [])
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return
+      }
+      if (event.key === 'Escape' && mode !== 'view') {
+        event.preventDefault()
+        setMode('view')
+        return
+      }
+      if (cropping) return
+      switch (event.key.toLowerCase()) {
+        case '+':
+        case '=':
+          event.preventDefault()
+          setViewZoom((v) => clampViewZoom(v + 0.1))
+          break
+        case '-':
+        case '_':
+          event.preventDefault()
+          setViewZoom((v) => clampViewZoom(v - 0.1))
+          break
+        case '0':
+          event.preventDefault()
+          setViewZoom(1)
+          setPan({ x: 0, y: 0 })
+          setFit('contain')
+          break
+        case 'r':
+          if (!event.shiftKey) {
+            event.preventDefault()
+            setRotation((v) => ((v + 90) % 360 + 360) % 360)
+          }
+          break
+        case 'c':
+          event.preventDefault()
+          setMode('crop')
+          break
+        case 'd':
+          event.preventDefault()
+          setMode((m) => {
+            if (m === 'draw') return 'view'
+            if (rotation % 360 !== 0) {
+              toast.error('Pred kreslením nastav rotáciu na 0°')
+              return m
+            }
+            return 'draw'
+          })
+          break
+        case 'f':
+          event.preventDefault()
+          void toggleFullscreen()
+          break
+        default:
+          break
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [mode, cropping, rotation])
 
   function exitCrop() {
-    setCropping(false)
+    setMode('view')
     setCrop({ x: 0, y: 0 })
     setZoom(1)
+  }
+
+  async function toggleFullscreen() {
+    const el = rootRef.current
+    if (!el) return
+    try {
+      if (document.fullscreenElement === el) {
+        await document.exitFullscreen()
+      } else {
+        await el.requestFullscreen()
+      }
+    } catch {
+      toast.error('Fullscreen nie je dostupný')
+    }
   }
 
   async function copyLink() {
@@ -169,16 +327,52 @@ export function ImageBlock({
     }
   }
 
-  async function buildCroppedFile() {
-    if (!croppedAreaPixels) return null
+  async function copyImage() {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      if (!('clipboard' in navigator) || !window.ClipboardItem) {
+        toast.error('Schránka nepodporuje obrázky')
+        return
+      }
+      await navigator.clipboard.write([
+        new ClipboardItem({ [blob.type || 'image/png']: blob }),
+      ])
+      toast.success('Obrázok v schránke')
+    } catch {
+      toast.error('Kopírovanie obrázka zlyhalo')
+    }
+  }
+
+  function exportOptions() {
     const outMime = mimeType.startsWith('image/') ? mimeType : 'image/jpeg'
-    const blob = await getCroppedImageBlob(url, croppedAreaPixels, rotation, {
+    return {
       flipHorizontal: flipH,
       flipVertical: flipV,
       mimeType: outMime,
+      brightness,
+      contrast,
+      strokes,
+    }
+  }
+
+  async function buildCroppedFile() {
+    if (!croppedAreaPixels) return null
+    const blob = await getCroppedImageBlob(
+      url,
+      croppedAreaPixels,
+      rotation,
+      exportOptions(),
+    )
+    return new File([blob], withCroppedName(fileName), {
+      type: exportOptions().mimeType,
     })
-    const name = withCroppedName(fileName)
-    return new File([blob], name, { type: outMime })
+  }
+
+  async function buildEditedFile() {
+    const opts = exportOptions()
+    const blob = await getTransformedImageBlob(url, rotation, opts)
+    return new File([blob], withEditedName(fileName), { type: opts.mimeType })
   }
 
   async function applyCropAndDownload() {
@@ -196,7 +390,7 @@ export function ImageBlock({
     }
   }
 
-  async function applyCropAndSave(mode: 'replace' | 'saveAs') {
+  async function applyCropAndSave(saveMode: 'replace' | 'saveAs') {
     if (!fileId) {
       toast.error('Chýba ID súboru')
       return
@@ -208,13 +402,13 @@ export function ImageBlock({
       await uploadFiles('driveUploader', {
         files: [file],
         input: {
-          folderId: mode === 'saveAs' ? folderId : null,
-          replaceFileId: mode === 'replace' ? fileId : null,
-          saveAsName: mode === 'saveAs' ? file.name : null,
+          folderId: saveMode === 'saveAs' ? folderId : null,
+          replaceFileId: saveMode === 'replace' ? fileId : null,
+          saveAsName: saveMode === 'saveAs' ? file.name : null,
         },
       })
       toast.success(
-        mode === 'replace'
+        saveMode === 'replace'
           ? 'Uložené ako nová verzia'
           : 'Uložené ako nový súbor',
       )
@@ -224,6 +418,76 @@ export function ImageBlock({
       toast.error('Uloženie do Drive zlyhalo')
     } finally {
       setBusy(false)
+    }
+  }
+
+  async function saveEdits(saveMode: 'download' | 'replace' | 'saveAs') {
+    setBusy(true)
+    try {
+      const file = await buildEditedFile()
+      if (saveMode === 'download') {
+        downloadBlob(file, file.name)
+        toast.success('Úpravy stiahnuté')
+        return
+      }
+      if (!fileId) {
+        toast.error('Chýba ID súboru')
+        return
+      }
+      await uploadFiles('driveUploader', {
+        files: [file],
+        input: {
+          folderId: saveMode === 'saveAs' ? folderId : null,
+          replaceFileId: saveMode === 'replace' ? fileId : null,
+          saveAsName: saveMode === 'saveAs' ? file.name : null,
+        },
+      })
+      toast.success(
+        saveMode === 'replace'
+          ? 'Úpravy uložené ako nová verzia'
+          : 'Úpravy uložené ako nový súbor',
+      )
+      resetTransforms()
+      onSavedToDrive?.()
+    } catch {
+      toast.error('Export úprav zlyhal')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function onStageWheel(event: React.WheelEvent) {
+    if (cropping) return
+    event.preventDefault()
+    const delta = event.deltaY > 0 ? -0.1 : 0.1
+    setViewZoom((value) => clampViewZoom(value + delta))
+  }
+
+  function onStagePointerDown(event: React.PointerEvent) {
+    if (cropping || drawing || viewZoom <= 1) return
+    if (event.button !== 0) return
+    panDrag.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: pan.x,
+      originY: pan.y,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  function onStagePointerMove(event: React.PointerEvent) {
+    const drag = panDrag.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    setPan({
+      x: drag.originX + (event.clientX - drag.startX),
+      y: drag.originY + (event.clientY - drag.startY),
+    })
+  }
+
+  function onStagePointerUp(event: React.PointerEvent) {
+    if (panDrag.current?.pointerId === event.pointerId) {
+      panDrag.current = null
     }
   }
 
@@ -246,22 +510,42 @@ export function ImageBlock({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="flex h-[min(72vh,680px)] flex-col bg-[#0c0e12]">
-        <div className="relative z-20 flex flex-wrap items-center justify-center gap-0.5 border-b border-white/10 bg-[#12151b]/90 px-2 py-1.5 backdrop-blur-md">
+      <div
+        ref={rootRef}
+        className="flex h-[min(72vh,680px)] flex-col bg-[#0c0e12] data-[fs=true]:h-screen"
+        data-fs={isFullscreen || undefined}
+      >
+        <div className="relative z-20 flex flex-wrap items-center gap-0.5 border-b border-white/10 bg-[#12151b]/90 px-2 py-1.5 backdrop-blur-md">
+          <div className="mr-auto hidden min-w-0 max-w-[28%] px-1 lg:block">
+            <p className="truncate text-[11px] text-white/55">{fileName}</p>
+            <p className="truncate text-[10px] text-white/35">
+              {formatFileSize(fileSize)}
+              {mimeType ? ` · ${mimeType}` : ''}
+            </p>
+          </div>
+
           {!cropping ? (
             <>
-              <ToolButton label="Orezať" onClick={() => setCropping(true)}>
+              <ToolButton
+                label="Orezať (C)"
+                active={false}
+                onClick={() => setMode('crop')}
+              >
                 <Crop className="size-4" />
               </ToolButton>
               <ToolButton
                 label="Otočiť doľava"
-                onClick={() => setRotation((value) => (value - 90) % 360)}
+                onClick={() =>
+                  setRotation((value) => ((value - 90) % 360 + 360) % 360)
+                }
               >
                 <RotateCcw className="size-4" />
               </ToolButton>
               <ToolButton
-                label="Otočiť doprava"
-                onClick={() => setRotation((value) => (value + 90) % 360)}
+                label="Otočiť doprava (R)"
+                onClick={() =>
+                  setRotation((value) => ((value + 90) % 360 + 360) % 360)
+                }
               >
                 <RotateCw className="size-4" />
               </ToolButton>
@@ -281,27 +565,24 @@ export function ImageBlock({
               </ToolButton>
               <div className="mx-1 h-5 w-px bg-white/10" />
               <ToolButton
-                label="Oddialiť"
-                onClick={() =>
-                  setViewZoom((value) => Math.max(0.5, Number((value - 0.1).toFixed(2))))
-                }
+                label="Oddialiť (−)"
+                onClick={() => setViewZoom((value) => clampViewZoom(value - 0.1))}
               >
                 <ZoomOut className="size-4" />
               </ToolButton>
               <ToolButton
-                label="Priblížiť"
-                onClick={() =>
-                  setViewZoom((value) => Math.min(3, Number((value + 0.1).toFixed(2))))
-                }
+                label="Priblížiť (+)"
+                onClick={() => setViewZoom((value) => clampViewZoom(value + 0.1))}
               >
                 <ZoomIn className="size-4" />
               </ToolButton>
               <ToolButton
-                label={fit === 'contain' ? 'Skutočná veľkosť' : 'Prispôsobiť'}
+                label={fit === 'contain' ? 'Skutočná veľkosť (0)' : 'Prispôsobiť (0)'}
                 active={fit === 'actual'}
                 onClick={() => {
                   setFit((value) => (value === 'contain' ? 'actual' : 'contain'))
                   setViewZoom(1)
+                  setPan({ x: 0, y: 0 })
                 }}
               >
                 {fit === 'contain' ? (
@@ -311,6 +592,26 @@ export function ImageBlock({
                 )}
               </ToolButton>
               <div className="mx-1 h-5 w-px bg-white/10" />
+              <ToolButton
+                label="Kresliť (D)"
+                active={drawing}
+                onClick={() => {
+                  if (rotation % 360 !== 0) {
+                    toast.error('Pred kreslením nastav rotáciu na 0°')
+                    return
+                  }
+                  setMode((m) => (m === 'draw' ? 'view' : 'draw'))
+                }}
+              >
+                <PenLine className="size-4" />
+              </ToolButton>
+              <ToolButton
+                label="Jas / kontrast"
+                active={showFilters}
+                onClick={() => setShowFilters((value) => !value)}
+              >
+                <SlidersHorizontal className="size-4" />
+              </ToolButton>
               <ToolButton
                 label="Popis / alt text"
                 active={showMeta}
@@ -322,29 +623,37 @@ export function ImageBlock({
                 <Copy className="size-4" />
               </ToolButton>
               <ToolButton
+                label="Kopírovať obrázok"
+                onClick={() => void copyImage()}
+              >
+                <ClipboardCopy className="size-4" />
+              </ToolButton>
+              <ToolButton
                 label="Otvoriť na novej karte"
                 onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
               >
                 <ExternalLink className="size-4" />
               </ToolButton>
               <ToolButton
+                label="Fullscreen (F)"
+                active={isFullscreen}
+                onClick={() => void toggleFullscreen()}
+              >
+                {isFullscreen ? (
+                  <Minimize2 className="size-4" />
+                ) : (
+                  <Maximize2 className="size-4" />
+                )}
+              </ToolButton>
+              <ToolButton
                 label="Reset úprav"
                 onClick={resetTransforms}
-                disabled={
-                  rotation === 0 &&
-                  !flipH &&
-                  !flipV &&
-                  viewZoom === 1 &&
-                  fit === 'contain'
-                }
+                disabled={!hasEdits}
               >
                 <RefreshCw className="size-4" />
               </ToolButton>
               {fileId && onRequestShare ? (
-                <ToolButton
-                  label="Safe URL (zdieľať)"
-                  onClick={onRequestShare}
-                >
+                <ToolButton label="Safe URL (zdieľať)" onClick={onRequestShare}>
                   <Link2 className="size-4" />
                 </ToolButton>
               ) : null}
@@ -361,6 +670,37 @@ export function ImageBlock({
               >
                 <Download className="size-4" />
               </ToolButton>
+              {hasExportableEdits ? (
+                <>
+                  <div className="mx-1 h-5 w-px bg-white/10" />
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 gap-1.5 bg-white text-black hover:bg-white/90"
+                    disabled={busy}
+                    onClick={() => void saveEdits('download')}
+                  >
+                    {busy ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <Download className="size-3.5" />
+                    )}
+                    Export
+                  </Button>
+                  {fileId ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-8 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
+                      disabled={busy}
+                      onClick={() => void saveEdits('replace')}
+                    >
+                      <Save className="size-3.5" />
+                      Uložiť
+                    </Button>
+                  ) : null}
+                </>
+              ) : null}
             </>
           ) : (
             <>
@@ -412,7 +752,7 @@ export function ImageBlock({
                   <Button
                     type="button"
                     size="sm"
-                    className="h-8 gap-1.5 bg-cyan-400 text-black hover:bg-cyan-300"
+                    className="h-8 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
                     disabled={busy || !croppedAreaPixels}
                     onClick={() => void applyCropAndSave('replace')}
                   >
@@ -453,7 +793,91 @@ export function ImageBlock({
           )}
         </div>
 
-        <div className="relative min-h-0 flex-1">
+        {drawing ? (
+          <div className="flex flex-wrap items-center gap-2 border-b border-white/10 bg-[#12151b]/80 px-3 py-1.5">
+            <span className="text-[10px] tracking-wide text-white/40 uppercase">
+              Pero
+            </span>
+            {STROKE_COLORS.map((color) => (
+              <button
+                key={color}
+                type="button"
+                aria-label={`Farba ${color}`}
+                className={cn(
+                  'size-5 rounded-full ring-offset-2 ring-offset-[#12151b]',
+                  strokeColor === color && 'ring-2 ring-white',
+                )}
+                style={{ backgroundColor: color }}
+                onClick={() => setStrokeColor(color)}
+              />
+            ))}
+            <ToolButton
+              label="Späť ťah"
+              disabled={strokes.length === 0}
+              onClick={() => setStrokes((s) => s.slice(0, -1))}
+            >
+              <Undo2 className="size-4" />
+            </ToolButton>
+            <ToolButton
+              label="Vymazať kresbu"
+              disabled={strokes.length === 0}
+              onClick={() => setStrokes([])}
+            >
+              <Eraser className="size-4" />
+            </ToolButton>
+            <span className="text-[11px] text-white/40">
+              {strokes.length} ťahov · Esc ukončí kreslenie
+            </span>
+          </div>
+        ) : null}
+
+        {showFilters ? (
+          <div className="grid gap-3 border-b border-white/10 bg-[#12151b]/80 px-4 py-2 sm:grid-cols-2">
+            <label className="flex items-center gap-3 text-[11px] text-white/55">
+              Jas
+              <input
+                type="range"
+                min={0.4}
+                max={1.8}
+                step={0.05}
+                value={brightness}
+                onChange={(e) => setBrightness(Number(e.target.value))}
+                className="flex-1 accent-primary"
+              />
+              <span className="w-8 tabular-nums text-white/70">
+                {Math.round(brightness * 100)}%
+              </span>
+            </label>
+            <label className="flex items-center gap-3 text-[11px] text-white/55">
+              Kontrast
+              <input
+                type="range"
+                min={0.4}
+                max={1.8}
+                step={0.05}
+                value={contrast}
+                onChange={(e) => setContrast(Number(e.target.value))}
+                className="flex-1 accent-primary"
+              />
+              <span className="w-8 tabular-nums text-white/70">
+                {Math.round(contrast * 100)}%
+              </span>
+            </label>
+          </div>
+        ) : null}
+
+        <div
+          ref={stageRef}
+          className={cn(
+            'relative min-h-0 flex-1',
+            viewZoom > 1 && !cropping && !drawing && 'cursor-grab active:cursor-grabbing',
+          )}
+          onWheel={onStageWheel}
+          onPointerDown={onStagePointerDown}
+          onPointerMove={onStagePointerMove}
+          onPointerUp={onStagePointerUp}
+          onPointerCancel={onStagePointerUp}
+        >
           {imageLoading ? (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-[#0c0e12]/80 text-sm text-white/60">
               <Loader2 className="size-6 animate-spin text-white/80" />
@@ -479,19 +903,21 @@ export function ImageBlock({
               }}
             />
           ) : (
-            <div className="flex h-full items-center justify-center overflow-auto p-4">
+            <div className="flex h-full items-center justify-center overflow-hidden p-4">
               <div
-                className="relative max-h-full max-w-full transition-transform duration-200"
+                className="relative max-h-full max-w-full transition-transform duration-150"
                 style={{
-                  transform: `rotate(${rotation}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1}) scale(${viewZoom})`,
+                  transform: `translate(${pan.x}px, ${pan.y}px) rotate(${rotation}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1}) scale(${viewZoom})`,
+                  filter: `brightness(${brightness}) contrast(${contrast})`,
                 }}
               >
                 <img
                   src={url}
                   alt={altText || fileName}
                   referrerPolicy="no-referrer"
+                  draggable={false}
                   className={cn(
-                    'rounded-md object-contain shadow-[0_18px_50px_-24px_rgba(0,0,0,0.55)] ring-1 ring-white/10',
+                    'rounded-md object-contain shadow-[0_18px_50px_-24px_rgba(0,0,0,0.55)] ring-1 ring-white/10 select-none',
                     fit === 'contain'
                       ? 'max-h-[min(56vh,520px)] max-w-full'
                       : 'max-w-none',
@@ -504,18 +930,29 @@ export function ImageBlock({
                   onLoad={(event) => {
                     const img = event.currentTarget
                     setImageLoading(false)
-                    setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight })
+                    setNaturalSize({
+                      w: img.naturalWidth,
+                      h: img.naturalHeight,
+                    })
                     if (img.naturalWidth < 2 || img.naturalHeight < 2) {
                       setFailed(true)
                     }
                   }}
+                />
+                <ImageDrawLayer
+                  enabled={drawing && rotation % 360 === 0}
+                  color={strokeColor}
+                  widthNorm={0.01}
+                  strokes={strokes}
+                  onChange={setStrokes}
+                  flipHorizontal={flipH}
+                  flipVertical={flipV}
                 />
               </div>
             </div>
           )}
         </div>
 
-        {/* Notion-like caption / meta strip */}
         <div className="space-y-2 border-t border-white/10 bg-[#12151b]/95 px-4 py-3 backdrop-blur-md">
           {showMeta ? (
             <div className="grid gap-2 sm:grid-cols-2">
@@ -552,7 +989,13 @@ export function ImageBlock({
             </button>
           )}
           <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-white/35">
-            <span className="truncate">{fileName}</span>
+            <span className="truncate">
+              {fileName}
+              <span className="text-white/25">
+                {' '}
+                · {formatFileSize(fileSize)}
+              </span>
+            </span>
             <span>
               {naturalSize
                 ? `${naturalSize.w}×${naturalSize.h}px`
@@ -560,15 +1003,15 @@ export function ImageBlock({
                   ? '…'
                   : '—'}
               {viewZoom !== 1 ? ` · ${Math.round(viewZoom * 100)}%` : ''}
+              {strokes.length > 0 ? ` · ${strokes.length} ťahov` : ''}
             </span>
           </div>
           {cropping ? (
             <p className="text-center text-[11px] text-white/40">
-              Posuň a priblíž, potom „Orezať a stiahnuť“.
+              Posuň a priblíž, potom ulož alebo stiahni orez.
             </p>
           ) : null}
         </div>
-
       </div>
     </TooltipProvider>
   )

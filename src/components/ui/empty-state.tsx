@@ -42,7 +42,7 @@ export function EmptyState({
 
       <div className="relative z-10 flex flex-col items-center gap-5">
         <motion.span
-          className="flex size-14 items-center justify-center rounded-2xl border border-border bg-muted/60 text-primary shadow-sm"
+          className="flex size-14 items-center justify-center rounded-2xl border-2 border-foreground/15 bg-primary/15 text-foreground shadow-sm dark:border-primary/40 dark:bg-primary/20 dark:text-primary"
           animate={reduce ? undefined : { y: [0, -4, 0] }}
           transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
         >

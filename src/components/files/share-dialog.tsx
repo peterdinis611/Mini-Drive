@@ -24,6 +24,18 @@ type Props = {
   fileName: string
   onOpenChange: (open: boolean) => void
   onCreated?: () => void
+  /** From user settings — falls back to 1 hour. */
+  defaultExpiresIn?: number
+}
+
+function resolveDefaultExpiresIn(value: number | undefined) {
+  if (
+    value != null &&
+    SHARE_EXPIRY_PRESETS.some((preset) => preset.value === value)
+  ) {
+    return value
+  }
+  return SHARE_EXPIRY_PRESETS[1].value
 }
 
 export function ShareDialog({
@@ -32,9 +44,10 @@ export function ShareDialog({
   fileName,
   onOpenChange,
   onCreated,
+  defaultExpiresIn,
 }: Props) {
-  const [expiresIn, setExpiresIn] = useState<number>(
-    SHARE_EXPIRY_PRESETS[1].value,
+  const [expiresIn, setExpiresIn] = useState<number>(() =>
+    resolveDefaultExpiresIn(defaultExpiresIn),
   )
   const [pending, setPending] = useState(false)
   const [createdPath, setCreatedPath] = useState<string | null>(null)
@@ -44,9 +57,9 @@ export function ShareDialog({
     if (open) {
       setCreatedPath(null)
       setCopied(false)
-      setExpiresIn(SHARE_EXPIRY_PRESETS[1].value)
+      setExpiresIn(resolveDefaultExpiresIn(defaultExpiresIn))
     }
-  }, [open, fileId])
+  }, [open, fileId, defaultExpiresIn])
 
   async function handleCreate() {
     if (!fileId) {
@@ -96,7 +109,8 @@ export function ShareDialog({
         <DialogHeader>
           <DialogTitle>Zdieľať súbor</DialogTitle>
           <DialogDescription>
-            Safe-url pre „{fileName}“. UploadThing kľúč nikdy nie je v odkaze.
+            Safe-url pre „{fileName}“. Pred vytvorením odkazu sa súbor skenuje
+            na malware. UploadThing kľúč nikdy nie je v odkaze.
           </DialogDescription>
         </DialogHeader>
 
@@ -133,7 +147,7 @@ export function ShareDialog({
                     className={cn(
                       'rounded-md border p-3 text-left text-sm transition',
                       selected
-                        ? 'border-primary bg-accent'
+                        ? 'border-foreground bg-primary/25 dark:border-primary dark:bg-primary/20'
                         : 'border-border hover:bg-muted/60',
                     )}
                     onClick={() => setExpiresIn(preset.value)}

@@ -3,10 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { DISALLOW_PATHS, PUBLIC_PATHS } from '#/lib/site'
 
 function getSiteUrl() {
-  const raw =
-    process.env.APP_URL ??
-    process.env.BETTER_AUTH_URL ??
-    'http://localhost:3000'
+  const raw = process.env.APP_URL ?? 'http://localhost:3000'
   return raw.replace(/\/$/, '')
 }
 

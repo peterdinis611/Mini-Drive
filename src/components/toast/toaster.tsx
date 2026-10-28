@@ -61,7 +61,7 @@ export function Toaster() {
               key={item.id}
               layout
               role="status"
-              className="pointer-events-auto w-full max-w-[360px] overflow-hidden rounded-xl border border-border/80 bg-popover/95 text-popover-foreground shadow-lg backdrop-blur-md"
+              className="pointer-events-auto w-full max-w-[360px] overflow-hidden rounded-2xl border-2 border-foreground/15 bg-popover/95 text-popover-foreground shadow-none backdrop-blur-md dark:border-primary/35"
               initial={
                 reduce ? false : { opacity: 0, y: -12, scale: 0.96, x: 12 }
               }

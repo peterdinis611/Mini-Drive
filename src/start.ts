@@ -1,9 +1,15 @@
+import { clerkMiddleware } from '@clerk/tanstack-react-start/server'
 import {
   createCsrfMiddleware,
   createMiddleware,
   createStart,
 } from '@tanstack/react-start'
 import { setResponseHeader } from '@tanstack/react-start/server'
+
+import { silenceClerkDevKeySpam } from '#/lib/clerk-dev-silence'
+import { buildContentSecurityPolicy } from '#/lib/csp'
+
+silenceClerkDevKeySpam()
 
 const csrfMiddleware = createCsrfMiddleware({
   filter: (ctx) => ctx.handlerType === 'serverFn',
@@ -24,6 +30,12 @@ const securityHeadersMiddleware = createMiddleware().server(
       'camera=(), microphone=(), geolocation=(), payment=()',
     )
     setResponseHeader('X-DNS-Prefetch-Control', 'on')
+    setResponseHeader(
+      'Content-Security-Policy',
+      buildContentSecurityPolicy(
+        process.env.NODE_ENV === 'production' ? 'production' : 'development',
+      ),
+    )
 
     if (process.env.NODE_ENV === 'production') {
       setResponseHeader(
@@ -39,5 +51,9 @@ const securityHeadersMiddleware = createMiddleware().server(
 )
 
 export const startInstance = createStart(() => ({
-  requestMiddleware: [csrfMiddleware, securityHeadersMiddleware],
+  requestMiddleware: [
+    csrfMiddleware,
+    securityHeadersMiddleware,
+    clerkMiddleware(),
+  ],
 }))

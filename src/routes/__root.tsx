@@ -1,3 +1,6 @@
+import { silenceClerkDevKeySpam } from '#/lib/clerk-dev-silence'
+
+silenceClerkDevKeySpam()
 import {
   HeadContent,
   Outlet,
@@ -9,16 +12,16 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { NuqsAdapter } from 'nuqs/adapters/react'
 
+import { ThemedClerkProvider } from '#/components/clerk-provider'
 import { ThemeProvider } from '#/components/theme-provider'
-import {
-  NotFoundPage,
-  RoutePending,
-  ServerErrorPage,
-} from '#/components/status/status-page'
+import { ThemeSync } from '#/components/theme-sync'
+import { AppErrorBoundary } from '#/components/error-boundary/app-error-boundary'
+import { RouteError } from '#/components/error-boundary/route-error'
+import { NotFoundPage, RoutePending } from '#/components/status/status-page'
 import { Toaster } from '#/components/toast/toaster'
 import { APP_NAME } from '#/lib/constants'
 import { SITE } from '#/lib/site'
-import { appJsonLd, buildSeoHead } from '#/lib/seo'
+import { appJsonLd } from '#/lib/seo'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import appCss from '../styles.css?url'
 
@@ -29,17 +32,12 @@ interface MyRouterContext {
 }
 
 const FONT_STYLESHEET =
-  'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap'
+  'https://fonts.googleapis.com/css2?family=Great+Vibes&family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;600;700&display=swap'
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => {
-    const defaultSeo = buildSeoHead({
-      title: `${APP_NAME} — ${SITE.tagline}`,
-      description: SITE.description,
-      path: '/',
-      brandSuffix: false,
-    })
-
+    // Document chrome only — page title/description/OG come from route heads
+    // so we do not duplicate competing meta tags on every navigation.
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -49,7 +47,13 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         },
         {
           name: 'theme-color',
-          content: '#2383e2',
+          content: SITE.themeColorLight,
+          media: '(prefers-color-scheme: light)',
+        },
+        {
+          name: 'theme-color',
+          content: SITE.themeColorDark,
+          media: '(prefers-color-scheme: dark)',
         },
         {
           name: 'color-scheme',
@@ -59,7 +63,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
           name: 'format-detection',
           content: 'telephone=no',
         },
-        ...defaultSeo.meta,
+        {
+          name: 'referrer',
+          content: 'strict-origin-when-cross-origin',
+        },
+        { name: 'application-name', content: APP_NAME },
       ],
       links: [
         { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
@@ -69,6 +77,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         {
           rel: 'preconnect',
           href: 'https://fonts.gstatic.com',
+          crossOrigin: 'anonymous',
+        },
+        { rel: 'preconnect', href: 'https://api.fontshare.com' },
+        {
+          rel: 'preconnect',
+          href: 'https://cdn.fontshare.com',
           crossOrigin: 'anonymous',
         },
         {
@@ -84,7 +98,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
           rel: 'stylesheet',
           href: appCss,
         },
-        ...defaultSeo.links,
       ],
       scripts: [appJsonLd()],
     }
@@ -92,12 +105,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: RootComponent,
   pendingComponent: RoutePending,
   notFoundComponent: NotFoundPage,
-  errorComponent: ({ error, reset }) => (
-    <ServerErrorPage
-      error={error instanceof Error ? error : new Error('Neznáma chyba')}
-      reset={reset}
-    />
-  ),
+  errorComponent: RouteError,
   shellComponent: RootDocument,
 })
 
@@ -107,10 +115,15 @@ function RootComponent() {
   const serverSearch = useRouterState({
     select: (s) => s.location.searchStr,
   })
+  const pathname = useRouterState({
+    select: (s) => s.location.pathname,
+  })
 
   return (
     <NuqsAdapter serverSearch={serverSearch}>
-      <Outlet />
+      <AppErrorBoundary variant="page" name="root-outlet" resetKeys={[pathname]}>
+        <Outlet />
+      </AppErrorBoundary>
     </NuqsAdapter>
   )
 }
@@ -123,24 +136,32 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="min-h-svh antialiased">
         <ThemeProvider>
-          {children}
-          <Toaster />
+          <ThemedClerkProvider>
+            <ThemeSync />
+            <a className="skip-to-content" href="#main-content">
+              Preskočiť na obsah
+            </a>
+            <AppErrorBoundary variant="page" name="shell">
+              {children}
+            </AppErrorBoundary>
+            <Toaster />
+            {import.meta.env.DEV ? (
+              <TanStackDevtools
+                config={{
+                  position: 'bottom-right',
+                }}
+                plugins={[
+                  {
+                    name: 'Tanstack Router',
+                    render: <TanStackRouterDevtoolsPanel />,
+                  },
+                  TanStackQueryDevtools,
+                ]}
+              />
+            ) : null}
+            <Scripts />
+          </ThemedClerkProvider>
         </ThemeProvider>
-        {import.meta.env.DEV ? (
-          <TanStackDevtools
-            config={{
-              position: 'bottom-right',
-            }}
-            plugins={[
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-              TanStackQueryDevtools,
-            ]}
-          />
-        ) : null}
-        <Scripts />
       </body>
     </html>
   )

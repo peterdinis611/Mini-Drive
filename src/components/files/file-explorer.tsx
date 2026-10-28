@@ -109,6 +109,8 @@ type Props = {
     breadcrumbs: Crumb[]
     allFolders: FolderTreeNode[]
     viewPreference: 'grid' | 'list'
+    defaultShareExpiresIn?: number
+    confirmDelete?: boolean
   }
 }
 
@@ -271,14 +273,29 @@ export function FileExplorer({
     })
   }, [])
 
+  const confirmTrash = useCallback(
+    (message: string) => {
+      if (initial.confirmDelete === false) return true
+      return window.confirm(message)
+    },
+    [initial.confirmDelete],
+  )
+
   const handleBulkDelete = useCallback(() => {
     const fileIds = [...selectedIds]
     if (fileIds.length === 0) return
+    if (
+      !confirmTrash(
+        `Presunúť ${fileIds.length} súborov do koša?`,
+      )
+    ) {
+      return
+    }
     void run(
       () => bulkDeleteFiles({ data: { fileIds } }),
       'Presunuté do koša',
     ).then(clearSelection)
-  }, [clearSelection, run, selectedIds])
+  }, [clearSelection, confirmTrash, run, selectedIds])
 
   const handleBulkShare = useCallback(() => {
     if (selectedIds.size !== 1) return
@@ -444,12 +461,19 @@ export function FileExplorer({
                     window.open(result.url, '_blank', 'noopener,noreferrer')
                   }, 'Odkaz na stiahnutie pripravený')
                 }
-                onDelete={() =>
-                  run(
+                onDelete={() => {
+                  if (
+                    !confirmTrash(
+                      `Presunúť „${file.name}“ do koša?`,
+                    )
+                  ) {
+                    return
+                  }
+                  void run(
                     () => deleteFile({ data: { fileId: file.id } }),
                     'Presunuté do koša',
                   )
-                }
+                }}
                 onShare={() => setDialog({ type: 'share-file', file })}
               />
             )
@@ -463,6 +487,7 @@ export function FileExplorer({
       ]),
     [
       allFilteredSelected,
+      confirmTrash,
       filteredFiles,
       handleUpload,
       isUploading,
@@ -491,12 +516,16 @@ export function FileExplorer({
       actions={
         <>
           <DriveSearchDialog />
-          <div className="flex overflow-hidden rounded-md border border-border">
+          <div className="flex overflow-hidden rounded-full border-2 border-foreground/80 dark:border-primary/45">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className={view === 'list' ? 'bg-accent' : ''}
+              className={
+                view === 'list'
+                  ? 'rounded-none bg-primary text-primary-foreground'
+                  : 'rounded-none'
+              }
               aria-label="Zoznam"
               onClick={() => void setUrlState({ view: 'list' })}
             >
@@ -506,7 +535,11 @@ export function FileExplorer({
               type="button"
               variant="ghost"
               size="icon"
-              className={view === 'grid' ? 'bg-accent' : ''}
+              className={
+                view === 'grid'
+                  ? 'rounded-none bg-primary text-primary-foreground'
+                  : 'rounded-none'
+              }
               aria-label="Mriežka"
               onClick={() => void setUrlState({ view: 'grid' })}
             >
@@ -636,7 +669,7 @@ export function FileExplorer({
               className="rounded-2xl border border-dashed border-border/80 bg-muted/20"
             />
           ) : view === 'list' ? (
-            <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/40">
+            <div className="overflow-hidden rounded-2xl border-2 border-foreground/12 bg-card/60 dark:border-primary/30">
               <DataTable
                 columns={listColumns}
                 data={listItems}
@@ -739,12 +772,19 @@ export function FileExplorer({
                             )
                           }, 'Odkaz na stiahnutie pripravený')
                         }
-                        onDelete={() =>
-                          run(
+                        onDelete={() => {
+                          if (
+                            !confirmTrash(
+                              `Presunúť „${file.name}“ do koša?`,
+                            )
+                          ) {
+                            return
+                          }
+                          void run(
                             () => deleteFile({ data: { fileId: file.id } }),
                             'Presunuté do koša',
                           )
-                        }
+                        }}
                         onShare={() =>
                           setDialog({ type: 'share-file', file })
                         }
@@ -758,7 +798,7 @@ export function FileExplorer({
         </FadeIn>
 
         {selectedIds.size > 0 ? (
-          <div className="sticky bottom-4 z-20 flex flex-wrap items-center gap-2 rounded-xl border border-border/80 bg-card/95 px-3 py-2 shadow-lg backdrop-blur-sm">
+          <div className="sticky bottom-4 z-20 flex flex-wrap items-center gap-2 rounded-full border-2 border-foreground/15 bg-card/95 px-3 py-2 shadow-none backdrop-blur-sm dark:border-primary/35">
             <span className="text-sm font-medium">
               {selectedIds.size} vybraných
             </span>
@@ -932,12 +972,14 @@ export function FileExplorer({
         open={dialog?.type === 'share-file'}
         fileId={dialog?.type === 'share-file' ? dialog.file.id : null}
         fileName={dialog?.type === 'share-file' ? dialog.file.name : ''}
+        defaultExpiresIn={initial.defaultShareExpiresIn}
         onOpenChange={(open) => !open && setDialog(null)}
       />
 
       <FilePreviewDialog
         open={Boolean(previewFile)}
         file={previewFile}
+        defaultShareExpiresIn={initial.defaultShareExpiresIn}
         onOpenChange={(open) => {
           if (!open) void setUrlState({ preview: null })
         }}

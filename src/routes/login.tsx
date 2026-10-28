@@ -1,21 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
-import { AuthForm } from '#/components/auth/auth-form'
-import { requireGuestSession } from '#/lib/route-guards'
-import { buildSeoHead } from '#/lib/seo'
-
+/** Legacy path — Clerk lives at /sign-in. */
 export const Route = createFileRoute('/login')({
-  beforeLoad: requireGuestSession,
-  head: () =>
-    buildSeoHead({
-      title: 'Prihlásenie',
-      description:
-        'Prihlás sa do Mini Drive a spravuj svoje súbory, priečinky a safe-url zdieľania.',
-      path: '/login',
-    }),
-  component: LoginPage,
+  beforeLoad: () => {
+    throw redirect({ href: '/sign-in' })
+  },
 })
-
-function LoginPage() {
-  return <AuthForm mode="login" />
-}

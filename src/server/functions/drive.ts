@@ -43,6 +43,9 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
           name: user.name,
           email: user.email,
           viewPreference: user.viewPreference,
+          themePreference: user.themePreference,
+          defaultShareExpiresIn: user.defaultShareExpiresIn,
+          confirmDelete: user.confirmDelete,
         })
         .from(user)
         .where(eq(user.id, userId))
@@ -59,6 +62,9 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
         name: profile.name,
         email: profile.email,
         viewPreference: profile.viewPreference,
+        themePreference: profile.themePreference,
+        defaultShareExpiresIn: profile.defaultShareExpiresIn,
+        confirmDelete: profile.confirmDelete,
       },
       folders: folderTree,
       stats: {

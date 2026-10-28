@@ -23,7 +23,8 @@ import { Route as ApiUploadthingRouteImport } from './routes/api/uploadthing'
 import { Route as FilesIndexRouteImport } from './routes/files/index'
 import { Route as FilesFolderIdRouteImport } from './routes/files/$folderId'
 import { Route as STokenRouteImport } from './routes/s/$token'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
+import { Route as SignUpSplatRouteImport } from './routes/sign-up.$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -95,9 +96,14 @@ const STokenRoute = STokenRouteImport.update({
   path: '/s/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
+const SignInSplatRoute = SignInSplatRouteImport.update({
+  id: '/sign-in/$',
+  path: '/sign-in/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignUpSplatRoute = SignUpSplatRouteImport.update({
+  id: '/sign-up/$',
+  path: '/sign-up/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -115,8 +121,9 @@ export interface FileRoutesByFullPath {
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/files/$folderId': typeof FilesFolderIdRoute
   '/s/$token': typeof STokenRoute
+  '/sign-in/$': typeof SignInSplatRoute
+  '/sign-up/$': typeof SignUpSplatRoute
   '/files/': typeof FilesIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -132,8 +139,9 @@ export interface FileRoutesByTo {
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/files/$folderId': typeof FilesFolderIdRoute
   '/s/$token': typeof STokenRoute
+  '/sign-in/$': typeof SignInSplatRoute
+  '/sign-up/$': typeof SignUpSplatRoute
   '/files': typeof FilesIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -150,8 +158,9 @@ export interface FileRoutesById {
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/files/$folderId': typeof FilesFolderIdRoute
   '/s/$token': typeof STokenRoute
+  '/sign-in/$': typeof SignInSplatRoute
+  '/sign-up/$': typeof SignUpSplatRoute
   '/files/': typeof FilesIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -169,8 +178,9 @@ export interface FileRouteTypes {
     | '/api/uploadthing'
     | '/files/$folderId'
     | '/s/$token'
+    | '/sign-in/$'
+    | '/sign-up/$'
     | '/files/'
-    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -186,8 +196,9 @@ export interface FileRouteTypes {
     | '/api/uploadthing'
     | '/files/$folderId'
     | '/s/$token'
+    | '/sign-in/$'
+    | '/sign-up/$'
     | '/files'
-    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
@@ -203,8 +214,9 @@ export interface FileRouteTypes {
     | '/api/uploadthing'
     | '/files/$folderId'
     | '/s/$token'
+    | '/sign-in/$'
+    | '/sign-up/$'
     | '/files/'
-    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -221,8 +233,9 @@ export interface RootRouteChildren {
   ApiUploadthingRoute: typeof ApiUploadthingRoute
   FilesFolderIdRoute: typeof FilesFolderIdRoute
   STokenRoute: typeof STokenRoute
+  SignInSplatRoute: typeof SignInSplatRoute
+  SignUpSplatRoute: typeof SignUpSplatRoute
   FilesIndexRoute: typeof FilesIndexRoute
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -325,11 +338,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof STokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
+    '/sign-in/$': {
+      id: '/sign-in/$'
+      path: '/sign-in/$'
+      fullPath: '/sign-in/$'
+      preLoaderRoute: typeof SignInSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-up/$': {
+      id: '/sign-up/$'
+      path: '/sign-up/$'
+      fullPath: '/sign-up/$'
+      preLoaderRoute: typeof SignUpSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -349,8 +369,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUploadthingRoute: ApiUploadthingRoute,
   FilesFolderIdRoute: FilesFolderIdRoute,
   STokenRoute: STokenRoute,
+  SignInSplatRoute: SignInSplatRoute,
+  SignUpSplatRoute: SignUpSplatRoute,
   FilesIndexRoute: FilesIndexRoute,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

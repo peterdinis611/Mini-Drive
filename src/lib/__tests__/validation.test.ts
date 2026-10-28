@@ -28,14 +28,17 @@ describe('fileNameSchema', () => {
 })
 
 describe('auth schemas', () => {
-  it('validates email and password', () => {
+  it('validates email and passwords', () => {
     expect(emailSchema.parse('a@b.sk')).toBe('a@b.sk')
     expect(() => emailSchema.parse('not-email')).toThrow()
     expect(() => passwordSchema.parse('short')).toThrow()
-    expect(loginSchema.parse({ email: 'a@b.sk', password: '12345678' })).toEqual(
+    expect(() => passwordSchema.parse('12345678901')).toThrow() // 11 chars
+    expect(passwordSchema.parse('123456789012')).toBe('123456789012')
+    // Login still accepts shorter legacy passwords
+    expect(loginSchema.parse({ email: 'a@b.sk', password: 'oldpass1' })).toEqual(
       {
         email: 'a@b.sk',
-        password: '12345678',
+        password: 'oldpass1',
       },
     )
   })
@@ -58,6 +61,20 @@ describe('updateSettingsSchema', () => {
     expect(
       updateSettingsSchema.parse({ name: 'Peter', viewPreference: 'list' }),
     ).toEqual({ name: 'Peter', viewPreference: 'list' })
+  })
+
+  it('accepts theme, share expiry and confirmDelete', () => {
+    expect(
+      updateSettingsSchema.parse({
+        themePreference: 'dark',
+        defaultShareExpiresIn: 3600,
+        confirmDelete: false,
+      }),
+    ).toEqual({
+      themePreference: 'dark',
+      defaultShareExpiresIn: 3600,
+      confirmDelete: false,
+    })
   })
 })
 

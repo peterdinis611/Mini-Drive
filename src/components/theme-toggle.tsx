@@ -14,6 +14,7 @@ export function ThemeToggle() {
       type="button"
       variant="outline"
       size="icon"
+      className="size-10 border-2"
       aria-label={isDark ? 'Zapnúť svetlý režim' : 'Zapnúť tmavý režim'}
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
     >

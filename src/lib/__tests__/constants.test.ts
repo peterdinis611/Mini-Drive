@@ -9,8 +9,8 @@ import {
 } from '#/lib/constants'
 
 describe('storage + trash constants', () => {
-  it('defines a 10 GB hard quota', () => {
-    expect(STORAGE_QUOTA_BYTES).toBe(10 * 1024 ** 3)
+  it('defines a 100 GB hard quota', () => {
+    expect(STORAGE_QUOTA_BYTES).toBe(100 * 1024 ** 3)
   })
 
   it('keeps trash for 30 days', () => {

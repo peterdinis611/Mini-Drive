@@ -100,16 +100,16 @@ export function UploadZone({
     <motion.div
       ref={dropRef}
       className={cn(
-        'upload-dock relative overflow-hidden rounded-2xl border',
+        'upload-dock relative overflow-hidden rounded-2xl border-2',
         active
-          ? 'border-primary bg-accent/40 shadow-[0_0_0_1px_color-mix(in_oklab,var(--primary)_30%,transparent)]'
-          : 'border-border/80 bg-card/40',
+          ? 'border-primary bg-primary/10 shadow-[0_0_0_1px_color-mix(in_oklab,var(--primary)_30%,transparent)]'
+          : 'border-foreground/15 bg-card/60 dark:border-primary/35',
       )}
       animate={reduce ? undefined : { scale: active ? 1.008 : 1 }}
       transition={{ type: 'spring', stiffness: 380, damping: 28 }}
     >
       <div
-        className="upload-dock-grid pointer-events-none absolute inset-0 opacity-40"
+        className="upload-dock-grid pointer-events-none absolute inset-0 opacity-25"
         aria-hidden
       />
       <div

@@ -1,8 +1,9 @@
-import { useMemo, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { Link, createFileRoute, useRouter } from '@tanstack/react-router'
-import { Copy, Link2, Link2Off } from 'lucide-react'
+import { Copy, Eye, Link2, Link2Off } from 'lucide-react'
 import { toast } from '#/lib/toast'
 
+import { ShareAccessLogDialog } from '#/components/files/share-access-log-dialog'
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Button } from '#/components/ui/button'
@@ -40,6 +41,7 @@ function SharesPage() {
   const { chrome, shares } = Route.useLoaderData()
   const router = useRouter()
   const [pending, startTransition] = useTransition()
+  const [auditShare, setAuditShare] = useState<ShareRow | null>(null)
 
   const activeCount = useMemo(
     () => shares.filter((s) => s.status === 'active').length,
@@ -70,6 +72,19 @@ function SharesPage() {
           cell: ({ getValue }) => <StatusBadge status={getValue()} />,
           meta: { hideBelow: 'sm', mobileLabel: 'Stav' },
         }),
+        columnHelper.accessor('accessCount', {
+          header: 'Otvorenia',
+          cell: ({ row }) => (
+            <button
+              type="button"
+              className="font-meta text-sm text-primary underline-offset-2 hover:underline"
+              onClick={() => setAuditShare(row.original)}
+            >
+              {row.original.accessCount}
+            </button>
+          ),
+          meta: { hideBelow: 'sm', mobileLabel: 'Otvorenia' },
+        }),
         columnHelper.accessor('expiresAt', {
           header: 'Platnosť',
           cell: ({ getValue }) => (
@@ -95,6 +110,15 @@ function SharesPage() {
             const share = row.original
             return (
               <div className="inline-flex gap-1">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Audit otvorení"
+                  onClick={() => setAuditShare(share)}
+                >
+                  <Eye className="size-4" />
+                </Button>
                 <Button
                   type="button"
                   size="icon"
@@ -143,7 +167,7 @@ function SharesPage() {
           },
           meta: {
             actions: true,
-            headerClassName: 'w-40 text-right',
+            headerClassName: 'w-48 text-right',
             cellClassName: 'text-right',
           },
         }),
@@ -182,6 +206,15 @@ function SharesPage() {
           )}
         </section>
       </FadeIn>
+
+      <ShareAccessLogDialog
+        open={Boolean(auditShare)}
+        shareId={auditShare?.id ?? null}
+        fileName={auditShare?.fileName ?? ''}
+        onOpenChange={(open) => {
+          if (!open) setAuditShare(null)
+        }}
+      />
     </AppShell>
   )
 }

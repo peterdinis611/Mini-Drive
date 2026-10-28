@@ -6,7 +6,7 @@ import { getSession } from '#/server/session'
 export async function requireOnboardedSession() {
   const session = await getSession()
   if (!session) {
-    throw redirect({ to: '/login' })
+    throw redirect({ href: '/sign-in' })
   }
   if (!session.user.onboardedAt) {
     throw redirect({ to: '/onboarding' })
