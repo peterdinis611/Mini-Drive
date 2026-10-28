@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowLeft, Home, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Home, Loader2, RefreshCw } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 
 import { BrandMark } from '#/components/brand-mark'
@@ -250,42 +250,52 @@ export function RoutePending() {
   const reduce = useReducedMotion()
 
   return (
-    <div className="app-frame">
+    <div
+      className="app-frame"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
       <div className="app-frame-inner flex min-h-[inherit] flex-col bg-background">
-      <div className="border-b border-border/80 px-6 py-5 sm:px-10">
-        <motion.div
-          className="h-8 w-36 rounded-full bg-muted"
-          animate={reduce ? undefined : { opacity: [0.45, 0.85, 0.45] }}
-          transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      </div>
-      <div className="mx-auto w-full max-w-5xl flex-1 space-y-4 px-4 py-8 sm:px-8">
-        {[48, 72, 'full', 'full', '4/5'].map((width, i) => (
+        <div className="flex items-center justify-between border-b border-border/80 px-6 py-5 sm:px-10">
           <motion.div
-            key={i}
-            className={
-              width === 'full'
-                ? 'h-12 rounded-2xl bg-muted/60'
-                : width === '4/5'
-                  ? 'h-12 w-4/5 rounded-2xl bg-muted/60'
-                  : `h-10 rounded-2xl bg-muted ${width === 48 ? 'w-48' : 'w-72'}`
-            }
-            initial={reduce ? false : { opacity: 0, y: 6 }}
-            animate={
-              reduce ? { opacity: 1 } : { opacity: [0.4, 0.75, 0.4], y: 0 }
-            }
-            transition={{
-              opacity: {
-                duration: 1.4,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                delay: i * 0.08,
-              },
-              y: { duration: 0.35, delay: i * 0.05 },
-            }}
+            className="h-8 w-36 rounded-full bg-muted"
+            animate={reduce ? undefined : { opacity: [0.45, 0.85, 0.45] }}
+            transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
           />
-        ))}
-      </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+            <span>Načítavam…</span>
+          </div>
+        </div>
+        <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-4 py-8 sm:px-8">
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 py-16">
+            <motion.div
+              className="flex size-14 items-center justify-center rounded-full border-2 border-primary/25 bg-primary/10"
+              animate={reduce ? undefined : { scale: [1, 1.06, 1] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Loader2 className="size-6 animate-spin text-primary" aria-hidden />
+            </motion.div>
+            <p className="text-sm text-muted-foreground">Pripravujem stránku…</p>
+          </div>
+          <div className="space-y-3 pb-6">
+            {[1, 0.9, 0.75].map((scale, i) => (
+              <motion.div
+                key={i}
+                className="h-10 rounded-2xl bg-muted/60"
+                style={{ width: `${scale * 100}%` }}
+                animate={reduce ? undefined : { opacity: [0.4, 0.75, 0.4] }}
+                transition={{
+                  duration: 1.4,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: i * 0.1,
+                }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )

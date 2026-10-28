@@ -4,6 +4,7 @@ import { ArchiveRestore, Loader2, Trash2 } from 'lucide-react'
 import { toast } from '#/lib/toast'
 
 import { AppShell } from '#/components/layout/app-shell'
+import { AppShellPending } from '#/components/ui/preload-spinner'
 import { Button } from '#/components/ui/button'
 import { ConfirmWordDialog } from '#/components/ui/confirm-word-dialog'
 import { EmptyState } from '#/components/ui/empty-state'
@@ -33,6 +34,9 @@ export const Route = createFileRoute('/trash')({
     return { chrome, trash }
   },
   head: () => privateAppHead('Kôš', '/trash'),
+  pendingComponent: function TrashPending() {
+    return <AppShellPending label="Načítavam kôš…" />
+  },
   component: TrashPage,
 })
 

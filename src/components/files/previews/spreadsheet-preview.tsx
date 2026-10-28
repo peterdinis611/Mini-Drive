@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { FileSpreadsheet, Loader2 } from 'lucide-react'
+import { FileSpreadsheet } from 'lucide-react'
+
+import { PreviewLoading } from '#/components/ui/preload-spinner'
 
 import type { PreviewShellProps } from './types'
 
@@ -68,10 +70,10 @@ export function SpreadsheetPreview({
 
   if (loading) {
     return (
-      <div className="flex h-[min(70vh,640px)] items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" />
-        Načítavam tabuľku…
-      </div>
+      <PreviewLoading
+        className="h-[min(70vh,640px)]"
+        label="Načítavam tabuľku…"
+      />
     )
   }
 

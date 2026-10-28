@@ -1,7 +1,9 @@
+'use client'
+
 import { useEffect, useMemo, useState } from 'react'
 import { useDebouncedValue } from '@tanstack/react-pacer'
 import { useNavigate } from '@tanstack/react-router'
-import { FileIcon, Folder, Loader2, Search } from 'lucide-react'
+import { FileIcon, Folder, Search } from 'lucide-react'
 
 import {
   CommandDialog,
@@ -14,6 +16,7 @@ import {
   CommandShortcut,
 } from '#/components/ui/command'
 import { Button } from '#/components/ui/button'
+import { PreloadSpinner } from '#/components/ui/preload-spinner'
 import { formatFileSize } from '#/lib/format'
 import {
   buildDriveSearchItems,
@@ -21,16 +24,49 @@ import {
   searchDriveItems,
 } from '#/lib/drive-search'
 import type { DriveSearchItem } from '#/lib/drive-search'
+import { dispatchQuickAction, onQuickAction } from '#/lib/quick-actions'
 import { cn } from '#/lib/utils'
 import { getDriveSearchIndex } from '#/server/functions/drive'
 
-type Props = {
+type TriggerProps = {
   className?: string
   /** Compact trigger for mobile toolbar */
   compact?: boolean
 }
 
-export function DriveSearchDialog({ className, compact = false }: Props) {
+/** Toolbar button — opens the global search host via quick-action bus. */
+export function DriveSearchTrigger({
+  className,
+  compact = false,
+}: TriggerProps) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className={cn(
+        compact
+          ? 'h-9 w-full justify-start gap-2 px-3 font-normal text-muted-foreground'
+          : 'hidden h-9 min-w-[220px] justify-between gap-3 px-3 font-normal text-muted-foreground sm:inline-flex',
+        className,
+      )}
+      onClick={() => dispatchQuickAction('search')}
+      aria-label="Hľadať súbory a priečinky"
+    >
+      <span className="inline-flex items-center gap-2 truncate">
+        <Search className="size-4 shrink-0" aria-hidden />
+        <span className="truncate">Hľadať…</span>
+      </span>
+      {!compact ? (
+        <kbd className="pointer-events-none hidden items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground sm:inline-flex">
+          ⌘K
+        </kbd>
+      ) : null}
+    </Button>
+  )
+}
+
+/** Single global command palette — mount once in AppShell. */
+export function DriveSearchHost() {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -46,6 +82,12 @@ export function DriveSearchDialog({ className, compact = false }: Props) {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
+  useEffect(() => {
+    return onQuickAction((action) => {
+      if (action === 'search') setOpen(true)
+    })
   }, [])
 
   useEffect(() => {
@@ -107,99 +149,84 @@ export function DriveSearchDialog({ className, compact = false }: Props) {
   }
 
   return (
-    <>
-      <Button
-        type="button"
-        variant="outline"
-        className={cn(
-          compact
-            ? 'h-9 w-full justify-start gap-2 px-3 font-normal text-muted-foreground'
-            : 'hidden h-9 min-w-[220px] justify-between gap-3 px-3 font-normal text-muted-foreground sm:inline-flex',
-          className,
+    <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandInput
+        placeholder="Hľadať súbory a priečinky…"
+        value={query}
+        onValueChange={setQuery}
+      />
+      <CommandList>
+        {loading ? (
+          <PreloadSpinner
+            className="py-10"
+            size="sm"
+            label="Načítavam index…"
+          />
+        ) : (
+          <>
+            <CommandEmpty>
+              Nič sa nenašlo pre „{query.trim() || '…'}“.
+            </CommandEmpty>
+
+            {folders.length > 0 ? (
+              <CommandGroup heading="Priečinky">
+                {folders.map((item) => (
+                  <CommandItem
+                    key={`folder-${item.id}`}
+                    value={`folder ${item.name} ${item.pathLabel}`}
+                    onSelect={() => selectItem(item)}
+                  >
+                    <Folder className="text-primary" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{item.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {item.pathLabel}
+                      </p>
+                    </div>
+                    <CommandShortcut>otvoriť</CommandShortcut>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ) : null}
+
+            {folders.length > 0 && files.length > 0 ? (
+              <CommandSeparator />
+            ) : null}
+
+            {files.length > 0 ? (
+              <CommandGroup heading="Súbory">
+                {files.map((item) => (
+                  <CommandItem
+                    key={`file-${item.id}`}
+                    value={`file ${item.name} ${item.pathLabel} ${item.mimeType}`}
+                    onSelect={() => selectItem(item)}
+                  >
+                    <FileIcon className="text-muted-foreground" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{item.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {item.pathLabel} · {formatFileSize(item.size)}
+                      </p>
+                    </div>
+                    <CommandShortcut>prejsť</CommandShortcut>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ) : null}
+          </>
         )}
-        onClick={() => setOpen(true)}
-        aria-label="Hľadať súbory a priečinky"
-      >
-        <span className="inline-flex items-center gap-2 truncate">
-          <Search className="size-4 shrink-0" />
-          <span className="truncate">Hľadať…</span>
+      </CommandList>
+      <div className="flex items-center justify-between border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
+        <span>Fuzzy search · Fuse.js</span>
+        <span className="hidden sm:inline">
+          ↑↓ navigácia · ↵ výber · esc zatvoriť
         </span>
-        {!compact ? (
-          <kbd className="pointer-events-none hidden items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground sm:inline-flex">
-            ⌘K
-          </kbd>
-        ) : null}
-      </Button>
-
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput
-          placeholder="Hľadať súbory a priečinky…"
-          value={query}
-          onValueChange={setQuery}
-        />
-        <CommandList>
-          {loading ? (
-            <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" />
-              Načítavam index…
-            </div>
-          ) : (
-            <>
-              <CommandEmpty>Nič sa nenašlo pre „{query.trim() || '…'}“.</CommandEmpty>
-
-              {folders.length > 0 ? (
-                <CommandGroup heading="Priečinky">
-                  {folders.map((item) => (
-                    <CommandItem
-                      key={`folder-${item.id}`}
-                      value={`folder ${item.name} ${item.pathLabel}`}
-                      onSelect={() => selectItem(item)}
-                    >
-                      <Folder className="text-primary" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{item.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {item.pathLabel}
-                        </p>
-                      </div>
-                      <CommandShortcut>otvoriť</CommandShortcut>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              ) : null}
-
-              {folders.length > 0 && files.length > 0 ? (
-                <CommandSeparator />
-              ) : null}
-
-              {files.length > 0 ? (
-                <CommandGroup heading="Súbory">
-                  {files.map((item) => (
-                    <CommandItem
-                      key={`file-${item.id}`}
-                      value={`file ${item.name} ${item.pathLabel} ${item.mimeType}`}
-                      onSelect={() => selectItem(item)}
-                    >
-                      <FileIcon className="text-muted-foreground" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{item.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {item.pathLabel} · {formatFileSize(item.size)}
-                        </p>
-                      </div>
-                      <CommandShortcut>prejsť</CommandShortcut>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              ) : null}
-            </>
-          )}
-        </CommandList>
-        <div className="flex items-center justify-between border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
-          <span>Fuzzy search · Fuse.js</span>
-          <span className="hidden sm:inline">↑↓ navigácia · ↵ výber · esc zatvoriť</span>
-        </div>
-      </CommandDialog>
-    </>
+      </div>
+    </CommandDialog>
   )
+}
+
+/** @deprecated Prefer DriveSearchTrigger + DriveSearchHost */
+export function DriveSearchDialog(props: TriggerProps) {
+  return <DriveSearchTrigger {...props} />
 }

@@ -18,6 +18,7 @@ import {
 import { motion, useReducedMotion } from 'motion/react'
 
 import { AppShell } from '#/components/layout/app-shell'
+import { AppShellPending } from '#/components/ui/preload-spinner'
 import { usePersistTheme } from '#/hooks/use-persist-theme'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
@@ -55,6 +56,9 @@ export const Route = createFileRoute('/settings')({
   beforeLoad: requireOnboardedSession,
   loader: async () => getAppChrome(),
   head: () => privateAppHead('Nastavenia', '/settings'),
+  pendingComponent: function SettingsPending() {
+    return <AppShellPending label="Načítavam nastavenia…" />
+  },
   component: SettingsPage,
 })
 

@@ -115,7 +115,7 @@ export function ScrollToTopButton({ className }: { className?: string }) {
       {visible ? (
         <motion.div
           className={cn(
-            'pointer-events-auto fixed right-4 bottom-4 z-[60] sm:right-6 sm:bottom-6',
+            'pointer-events-auto fixed right-4 bottom-20 z-[55] sm:right-6 sm:bottom-24',
             className,
           )}
           initial={reduce ? false : { opacity: 0, y: 16, scale: 0.86 }}

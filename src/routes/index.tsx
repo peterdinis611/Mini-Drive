@@ -1,5 +1,8 @@
+import { Suspense } from 'react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
+import { RoutePending } from '#/components/status/status-page'
+import { PreloadSpinner } from '#/components/ui/preload-spinner'
 import { buildSeoHead, landingPageJsonLd } from '#/lib/seo'
 import { SITE } from '#/lib/site'
 import { APP_NAME } from '#/lib/constants'
@@ -24,10 +27,23 @@ export const Route = createFileRoute('/')({
       brandSuffix: false,
       jsonLd: [landingPageJsonLd()],
     }),
+  pendingComponent: RoutePending,
   component: HomePage,
 })
 
 function HomePage() {
   const { Renderable } = Route.useLoaderData()
-  return <>{Renderable}</>
+  return (
+    <Suspense
+      fallback={
+        <PreloadSpinner
+          className="min-h-svh"
+          size="lg"
+          label="Načítavam Chainly…"
+        />
+      }
+    >
+      {Renderable}
+    </Suspense>
+  )
 }

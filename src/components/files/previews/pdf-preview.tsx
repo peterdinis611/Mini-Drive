@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
-import { Loader2 } from 'lucide-react'
+
+import { PreviewLoading } from '#/components/ui/preload-spinner'
 
 import type { PreviewShellProps, ThemePreference } from './types'
 
@@ -16,14 +17,7 @@ type Props = PreviewShellProps & {
 export function PdfPreview({ url, theme }: Props) {
   return (
     <div className="h-[min(70vh,640px)] w-full bg-background">
-      <Suspense
-        fallback={
-          <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" />
-            Pripravujem PDF…
-          </div>
-        }
-      >
+      <Suspense fallback={<PreviewLoading className="h-full" label="Pripravujem PDF…" />}>
         <PDFViewer
           style={{ width: '100%', height: '100%' }}
           config={{

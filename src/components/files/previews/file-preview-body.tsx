@@ -1,20 +1,49 @@
+import { lazy, Suspense } from 'react'
+
 import { AppErrorBoundary } from '#/components/error-boundary/app-error-boundary'
+import { PreviewLoading } from '#/components/ui/preload-spinner'
 import type { FileKind } from '#/lib/file-kind'
 
 import { ArchivePreview } from './archive-preview'
 import { AudioPreview } from './audio-preview'
-import { CodePreview } from './code-preview'
 import { FallbackPreview } from './fallback-preview'
-import { ImagePreview } from './image-preview'
-import { PdfPreview } from './pdf-preview'
-import { SpreadsheetPreview } from './spreadsheet-preview'
-import { TextPreview } from './text-preview'
 import { VideoPreview } from './video-preview'
 import type { PreviewShellProps, ThemePreference } from './types'
+
+const ImagePreview = lazy(() =>
+  import('./image-preview').then((m) => ({ default: m.ImagePreview })),
+)
+const PdfPreview = lazy(() =>
+  import('./pdf-preview').then((m) => ({ default: m.PdfPreview })),
+)
+const TextPreview = lazy(() =>
+  import('./text-preview').then((m) => ({ default: m.TextPreview })),
+)
+const CodePreview = lazy(() =>
+  import('./code-preview').then((m) => ({ default: m.CodePreview })),
+)
+const SpreadsheetPreview = lazy(() =>
+  import('./spreadsheet-preview').then((m) => ({
+    default: m.SpreadsheetPreview,
+  })),
+)
 
 type Props = PreviewShellProps & {
   kind: FileKind
   theme: ThemePreference
+}
+
+function PreviewFallback({ kind }: { kind: FileKind }) {
+  const label =
+    kind === 'pdf'
+      ? 'Pripravujem PDF…'
+      : kind === 'image'
+        ? 'Pripravujem editor…'
+        : kind === 'spreadsheet'
+          ? 'Pripravujem tabuľku…'
+          : 'Načítavam náhľad…'
+
+  return <PreviewLoading label={label} />
 }
 
 export function FilePreviewBody({ kind, theme, ...shell }: Props) {
@@ -48,6 +77,13 @@ export function FilePreviewBody({ kind, theme, ...shell }: Props) {
       body = <FallbackPreview {...shell} />
   }
 
+  const needsSuspense =
+    kind === 'image' ||
+    kind === 'pdf' ||
+    kind === 'text' ||
+    kind === 'code' ||
+    kind === 'spreadsheet'
+
   return (
     <AppErrorBoundary
       variant="section"
@@ -56,7 +92,11 @@ export function FilePreviewBody({ kind, theme, ...shell }: Props) {
       sectionTitle="Náhľad tohto typu zlyhal"
       compact
     >
-      {body}
+      {needsSuspense ? (
+        <Suspense fallback={<PreviewFallback kind={kind} />}>{body}</Suspense>
+      ) : (
+        body
+      )}
     </AppErrorBoundary>
   )
 }

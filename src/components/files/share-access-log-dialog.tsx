@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Loader2 } from 'lucide-react'
 
 import {
   Dialog,
@@ -8,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '#/components/ui/dialog'
+import { PreloadSpinner } from '#/components/ui/preload-spinner'
 import { getErrorMessage } from '#/lib/errors'
 import { formatIpFingerprint } from '#/lib/share-audit'
 import { listShareAccessLogs } from '#/server/functions/shares'
@@ -76,10 +76,7 @@ export function ShareAccessLogDialog({
         </DialogHeader>
 
         {loading ? (
-          <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" />
-            Načítavam…
-          </div>
+          <PreloadSpinner className="py-10" size="sm" label="Načítavam…" />
         ) : error ? (
           <p className="py-6 text-sm text-destructive">{error}</p>
         ) : logs.length === 0 ? (

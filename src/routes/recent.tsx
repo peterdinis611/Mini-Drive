@@ -8,6 +8,7 @@ import { useImagePreviews } from '#/components/files/use-image-previews'
 import type { DriveFile } from '#/components/files/types'
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
+import { AppShellPending } from '#/components/ui/preload-spinner'
 import { Button } from '#/components/ui/button'
 import {
   createDataTableColumnHelper,
@@ -30,6 +31,9 @@ export const Route = createFileRoute('/recent')({
     return { chrome, recent }
   },
   head: () => privateAppHead('Nedávne', '/recent'),
+  pendingComponent: function RecentPending() {
+    return <AppShellPending label="Načítavam nedávne…" />
+  },
   component: RecentPage,
 })
 

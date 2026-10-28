@@ -28,7 +28,7 @@ import { NameDialog } from '#/components/files/name-dialog'
 import { MoveDialog } from '#/components/files/move-dialog'
 import { DeleteFolderDialog } from '#/components/files/delete-folder-dialog'
 import { ShareDialog } from '#/components/files/share-dialog'
-import { DriveSearchDialog } from '#/components/files/drive-search-dialog'
+import { DriveSearchTrigger } from '#/components/files/drive-search-dialog'
 import { FileThumbnail } from '#/components/files/file-thumbnail'
 import { FilePreviewDialog } from '#/components/files/file-preview-dialog'
 import { FolderDropTarget } from '#/components/files/folder-drop-target'
@@ -37,6 +37,10 @@ import { useImagePreviews } from '#/components/files/use-image-previews'
 import { canInlinePreview } from '#/lib/mime'
 import { filterDriveFiles, filterDriveFolders } from '#/lib/drive-filters'
 import { driveSearchParams, viewParser } from '#/lib/drive-url-state'
+import {
+  consumeQueuedQuickAction,
+  onQuickAction,
+} from '#/lib/quick-actions'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
 import { riseTransition } from '#/lib/motion'
@@ -65,7 +69,7 @@ import {
   DataTable,
 } from '#/components/ui/data-table'
 import { Input } from '#/components/ui/input'
-import { Skeleton } from '#/components/ui/skeleton'
+import { SectionLoading } from '#/components/ui/preload-spinner'
 import { getErrorMessage } from '#/lib/errors'
 import { formatFileSize } from '#/lib/format'
 import { cn } from '#/lib/utils'
@@ -165,6 +169,23 @@ export function FileExplorer({
     if (debouncedFilter === q) return
     void setUrlState({ q: debouncedFilter })
   }, [debouncedFilter, q, setUrlState])
+
+  useEffect(() => {
+    function applyQuickAction(action: 'upload' | 'create-folder' | 'search') {
+      if (action === 'upload') {
+        void setUrlState({ upload: true })
+        return
+      }
+      if (action === 'create-folder') {
+        setDialog({ type: 'create-folder' })
+      }
+    }
+
+    const pending = consumeQueuedQuickAction()
+    if (pending) applyQuickAction(pending)
+
+    return onQuickAction(applyQuickAction)
+  }, [setUrlState])
 
   const filteredFolders = useMemo(
     () => filterDriveFolders(folders, kind, debouncedFilter),
@@ -527,7 +548,7 @@ export function FileExplorer({
       subtitle={`${filteredFolders.length} priečinkov · ${filteredFiles.length} súborov`}
       actions={
         <>
-          <DriveSearchDialog />
+          <DriveSearchTrigger />
           <div className="flex overflow-hidden rounded-full border-2 border-foreground/80 dark:border-primary/45">
             <Button
               type="button"
@@ -579,7 +600,7 @@ export function FileExplorer({
     >
       <div className="space-y-5">
         <div className="sm:hidden">
-          <DriveSearchDialog compact />
+          <DriveSearchTrigger compact />
         </div>
 
         <FadeIn>
@@ -668,11 +689,7 @@ export function FileExplorer({
 
         <FadeIn delay={0.06}>
           {pending ? (
-            <div className="space-y-3 py-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-2/3" />
-            </div>
+            <SectionLoading label="Obnovujem priečinok…" />
           ) : empty ? (
             <EmptyState
               icon={Folder}

@@ -6,6 +6,7 @@ import { toast } from '#/lib/toast'
 import { ShareAccessLogDialog } from '#/components/files/share-access-log-dialog'
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
+import { AppShellPending } from '#/components/ui/preload-spinner'
 import { Button } from '#/components/ui/button'
 import {
   createDataTableColumnHelper,
@@ -30,6 +31,9 @@ export const Route = createFileRoute('/shares')({
     return { chrome, shares }
   },
   head: () => privateAppHead('Zdieľania', '/shares'),
+  pendingComponent: function SharesPending() {
+    return <AppShellPending label="Načítavam zdieľania…" />
+  },
   component: SharesPage,
 })
 

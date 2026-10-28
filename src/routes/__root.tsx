@@ -1,6 +1,7 @@
 import { silenceClerkDevKeySpam } from '#/lib/clerk-dev-silence'
 
 silenceClerkDevKeySpam()
+import { Suspense } from 'react'
 import {
   HeadContent,
   Outlet,
@@ -126,7 +127,9 @@ function RootComponent() {
   return (
     <NuqsAdapter serverSearch={serverSearch}>
       <AppErrorBoundary variant="page" name="root-outlet" resetKeys={[pathname]}>
-        <Outlet />
+        <Suspense fallback={<RoutePending />}>
+          <Outlet />
+        </Suspense>
       </AppErrorBoundary>
     </NuqsAdapter>
   )

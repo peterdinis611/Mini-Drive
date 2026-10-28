@@ -77,63 +77,86 @@ export function AppSidebar({
   return (
     <aside
       className={cn(
-        'flex h-full w-[248px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground',
+        'flex h-full w-full min-w-0 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground',
         className,
       )}
+      aria-label="Bočný panel Drive"
     >
-      <div className="flex items-center justify-between gap-2 px-3 py-3">
+      <header className="flex items-center justify-between gap-2 px-3 py-3">
         <BrandMark
           to="/files"
           compact
           onClick={onNavigate}
           className="min-w-0 rounded-xl px-1.5 py-1 hover:bg-sidebar-accent"
         />
-        <div className="flex items-center">
-          <ThemeToggle />
+        <menu className="m-0 flex list-none items-center p-0">
+          <li>
+            <ThemeToggle />
+          </li>
           {onCollapse ? (
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              className="hidden size-8 lg:inline-flex"
-              aria-label="Skryť sidebar"
-              onClick={onCollapse}
-            >
-              <PanelLeftClose className="size-4" />
-            </Button>
+            <li>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="hidden size-8 lg:inline-flex"
+                aria-label="Skryť sidebar"
+                onClick={onCollapse}
+              >
+                <PanelLeftClose className="size-4" />
+              </Button>
+            </li>
           ) : null}
-        </div>
-      </div>
+        </menu>
+      </header>
 
-      <nav className="space-y-0.5 px-2" aria-label="Navigácia">
-        {NAV.map((item) => {
-          const active =
-            item.match === 'files'
-              ? pathname === '/files' || pathname.startsWith('/files/')
-              : pathname.startsWith(item.to)
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={onNavigate}
-              className={cn(
-                'flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition',
-                active
-                  ? 'bg-primary font-medium text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground',
-              )}
-            >
-              <item.icon className="size-4 opacity-70" />
-              {item.label}
-            </Link>
-          )
-        })}
+      <nav className="px-2" aria-label="Hlavná navigácia">
+        <ul className="m-0 list-none space-y-0.5 p-0">
+          {NAV.map((item) => {
+            const active =
+              item.match === 'files'
+                ? pathname === '/files' || pathname.startsWith('/files/')
+                : pathname.startsWith(item.to)
+            return (
+              <li key={item.to}>
+                <Link
+                  to={item.to}
+                  onClick={onNavigate}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition',
+                    active
+                      ? 'bg-primary font-medium text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground',
+                  )}
+                >
+                  <item.icon className="size-4 opacity-70" aria-hidden />
+                  {item.label}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
       </nav>
 
-      <div className="mt-4 px-4 pb-1">
-        <p className="text-xs font-medium text-muted-foreground">Priečinky</p>
-      </div>
-      <div className="min-h-0 flex-1 px-2 pb-2">
+      <section
+        className="mt-4 flex min-h-0 flex-1 flex-col gap-2 px-2 pb-2"
+        aria-labelledby="sidebar-folders-heading"
+      >
+        <header className="flex items-center justify-between gap-2 px-1.5">
+          <h2
+            id="sidebar-folders-heading"
+            className="font-meta text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase"
+          >
+            Priečinky
+          </h2>
+          <data
+            value={folders.length}
+            className="rounded-md bg-sidebar-accent px-1.5 py-0.5 font-meta text-[10px] text-muted-foreground tabular-nums ring-1 ring-sidebar-border/60"
+          >
+            {folders.length}
+          </data>
+        </header>
         <FolderTree
           folders={folders}
           activeFolderId={
@@ -141,22 +164,45 @@ export function AppSidebar({
           }
           onNavigate={onNavigate}
         />
-      </div>
+      </section>
 
-      <div className="space-y-3 border-t border-sidebar-border p-3">
-        <div className="space-y-1.5 px-1">
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Úložisko</span>
-            <span>{usedPct}%</span>
-          </div>
-          <Progress value={usedPct} className="h-1" />
+      <footer className="space-y-3 border-t border-sidebar-border p-3">
+        <section
+          className="space-y-1.5 px-1"
+          aria-labelledby="sidebar-storage-heading"
+        >
+          <header className="flex justify-between text-xs text-muted-foreground">
+            <h2 id="sidebar-storage-heading" className="font-normal">
+              Úložisko
+            </h2>
+            <output
+              htmlFor="sidebar-storage-meter"
+              className="font-meta tabular-nums"
+              aria-live="polite"
+            >
+              {usedPct}%
+            </output>
+          </header>
+          <Progress
+            id="sidebar-storage-meter"
+            value={usedPct}
+            className="h-1"
+            aria-label={`Využitie úložiska ${usedPct} percent`}
+          />
           <p className="font-meta text-[11px] text-sidebar-foreground/60">
-            {formatFileSize(stats.totalBytes)} /{' '}
-            {formatFileSize(stats.quotaBytes)} · {stats.fileCount} súborov
+            <data value={stats.totalBytes}>
+              {formatFileSize(stats.totalBytes)}
+            </data>
+            {' / '}
+            <data value={stats.quotaBytes}>
+              {formatFileSize(stats.quotaBytes)}
+            </data>
+            {' · '}
+            <data value={stats.fileCount}>{stats.fileCount}</data> súborov
           </p>
-        </div>
+        </section>
 
-        <div className="flex items-center gap-2 rounded-md px-1 py-1">
+        <address className="flex items-center gap-2 rounded-md px-1 py-1 not-italic">
           <Avatar className="size-7 rounded-full">
             <AvatarFallback className="rounded-full bg-secondary text-xs font-medium">
               {initials || 'U'}
@@ -165,9 +211,12 @@ export function AppSidebar({
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{userName}</p>
             {userEmail ? (
-              <p className="truncate text-[11px] text-muted-foreground">
+              <a
+                href={`mailto:${userEmail}`}
+                className="block truncate text-[11px] text-muted-foreground hover:text-foreground hover:underline"
+              >
                 {userEmail}
-              </p>
+              </a>
             ) : null}
           </div>
           <Button
@@ -182,8 +231,8 @@ export function AppSidebar({
           >
             <LogOut className="size-4" />
           </Button>
-        </div>
-      </div>
+        </address>
+      </footer>
     </aside>
   )
 }
