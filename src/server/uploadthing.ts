@@ -1,13 +1,16 @@
 import { createUploadthing, UploadThingError } from 'uploadthing/server'
 import type { FileRouter } from 'uploadthing/server'
-import { z } from 'zod'
 import { and, eq, isNull } from 'drizzle-orm'
 
 import { db } from '#/db'
 import { files, folders } from '#/db/schema'
 import { UPLOAD_LIMITS } from '#/lib/constants'
 import { resolveStoredMimeType } from '#/lib/mime'
-import { fileNameSchema } from '#/lib/validation'
+import {
+  fileNameSchema,
+  parseServerInput,
+  uploadInputSchema,
+} from '#/lib/validation'
 import { firstOrThrow } from '#/server/db-helpers.server'
 import {
   archiveAndReplaceFile,
@@ -15,17 +18,6 @@ import {
 } from '#/server/storage.server'
 
 const f = createUploadthing()
-
-const uploadInputSchema = z.object({
-  folderId: z
-    .union([z.uuid(), z.null()])
-    .optional()
-    .transform((value) => value ?? null),
-  /** When set, archive current blob and replace with the uploaded file. */
-  replaceFileId: z.uuid().optional().nullable(),
-  /** When set with a new upload (not replace), force this display name. */
-  saveAsName: z.string().trim().min(1).max(255).optional().nullable(),
-})
 
 export const uploadRouter = {
   driveUploader: f(
@@ -58,11 +50,45 @@ export const uploadRouter = {
     { awaitServerData: true },
   )
     .input(uploadInputSchema)
-    .middleware(async ({ input, files: incoming }) => {
+    .middleware(async ({ input: rawInput, files: incoming }) => {
       const { getSessionFromRequest } = await import('#/server/auth.server')
       const session = await getSessionFromRequest()
       if (!session) {
         throw new UploadThingError('Musíš byť prihlásený')
+      }
+
+      let input
+      try {
+        input = parseServerInput(uploadInputSchema, rawInput)
+      } catch (error) {
+        throw new UploadThingError(
+          error instanceof Error ? error.message : 'Neplatný upload vstup',
+        )
+      }
+
+      if (incoming.length === 0) {
+        throw new UploadThingError('Nevybral si žiadny súbor')
+      }
+      if (incoming.length > UPLOAD_LIMITS.maxFileCount) {
+        throw new UploadThingError(
+          `Naraz môžeš nahrať najviac ${UPLOAD_LIMITS.maxFileCount} súborov`,
+        )
+      }
+      for (const file of incoming) {
+        if (file.size <= 0) {
+          throw new UploadThingError(`Súbor „${file.name}“ je prázdny`)
+        }
+        if (file.size > UPLOAD_LIMITS.maxFileSizeBytes) {
+          throw new UploadThingError(
+            `Súbor „${file.name}“ prekračuje limit ${UPLOAD_LIMITS.maxFileSize}`,
+          )
+        }
+        const nameCheck = fileNameSchema.safeParse(file.name)
+        if (!nameCheck.success) {
+          throw new UploadThingError(
+            `„${file.name}“: ${nameCheck.error.issues[0]?.message ?? 'Neplatný názov'}`,
+          )
+        }
       }
 
       const userId = session.user.id

@@ -3,6 +3,8 @@ import { and, desc, eq, isNotNull, isNull, lte } from 'drizzle-orm'
 
 import { TRASH_RETENTION_DAYS } from '#/lib/constants'
 import {
+  deleteAllDriveSchema,
+  emptyTrashSchema,
   purgeFileSchema,
   purgeFolderSchema,
   restoreFileSchema,
@@ -206,8 +208,9 @@ export const purgeFolder = createServerFn({ method: 'POST' })
   })
 
 /** Soft-delete every active file + folder for the current user into Trash. */
-export const deleteAllDriveContent = createServerFn({ method: 'POST' }).handler(
-  async () => {
+export const deleteAllDriveContent = createServerFn({ method: 'POST' })
+  .validator(deleteAllDriveSchema)
+  .handler(async () => {
     const { requireSession } = await import('#/server/auth.server')
     const { db } = await import('#/db')
     const { files, folders } = await import('#/db/schema')
@@ -234,11 +237,11 @@ export const deleteAllDriveContent = createServerFn({ method: 'POST' }).handler(
       deletedFiles: fileResult.length,
       deletedFolders: folderResult.length,
     }
-  },
-)
+  })
 
-export const emptyTrash = createServerFn({ method: 'POST' }).handler(
-  async () => {
+export const emptyTrash = createServerFn({ method: 'POST' })
+  .validator(emptyTrashSchema)
+  .handler(async () => {
     const { requireSession } = await import('#/server/auth.server')
     const { db } = await import('#/db')
     const { files, folders } = await import('#/db/schema')
@@ -260,8 +263,7 @@ export const emptyTrash = createServerFn({ method: 'POST' }).handler(
       .where(and(eq(folders.userId, userId), isNotNull(folders.deletedAt)))
 
     return { ok: true as const, purgedFiles: trashedFiles.length }
-  },
-)
+  })
 
 export const purgeExpiredTrash = createServerFn({ method: 'POST' }).handler(
   async () => {

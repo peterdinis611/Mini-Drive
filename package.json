@@ -93,16 +93,5 @@
     "typescript": "^6.0.2",
     "vite": "^8.0.0",
     "vitest": "^5.0.5"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "lightningcss",
-      "better-sqlite3",
-      "unrs-resolver"
-    ],
-    "patchedDependencies": {
-      "@uploadthing/shared@7.1.10": "patches/@uploadthing__shared@7.1.10.patch"
-    }
   }
 }

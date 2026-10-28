@@ -16,9 +16,9 @@ import {
   Trash2,
 } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
-import { useTheme } from 'next-themes'
 
 import { AppShell } from '#/components/layout/app-shell'
+import { usePersistTheme } from '#/hooks/use-persist-theme'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
 import { DeleteAllDialog } from '#/components/settings/delete-all-dialog'
@@ -41,6 +41,7 @@ import { privateAppHead } from '#/lib/seo'
 import { toast } from '#/lib/toast'
 import { cn } from '#/lib/utils'
 import {
+  DELETE_ALL_CONFIRM_WORD,
   themePreferenceSchema,
   updateSettingsSchema,
   viewPreferenceSchema,
@@ -64,7 +65,7 @@ function SettingsPage() {
   const chrome = Route.useLoaderData()
   const router = useRouter()
   const reduce = useReducedMotion()
-  const { setTheme } = useTheme()
+  const applyTheme = usePersistTheme()
   const { openUserProfile } = useClerk()
 
   const [name, setName] = useState(chrome.user.name)
@@ -95,7 +96,9 @@ function SettingsPage() {
   function wipeEverything() {
     startWipeTransition(async () => {
       try {
-        const result = await deleteAllDriveContent()
+        const result = await deleteAllDriveContent({
+          data: { confirm: DELETE_ALL_CONFIRM_WORD },
+        })
         setWipeOpen(false)
         toast.success('Drive je v koši', {
           description: `${result.deletedFolders} priečinkov · ${result.deletedFiles} súborov.`,
@@ -125,7 +128,7 @@ function SettingsPage() {
     startTransition(async () => {
       try {
         await updateSettings({ data: parsed.data })
-        setTheme(themePreference)
+        applyTheme(themePreference)
         toast.success('Nastavenia uložené', {
           description: 'Profil a preferencie sú aktualizované.',
         })
@@ -233,7 +236,7 @@ function SettingsPage() {
                         )}
                         onClick={() => {
                           setThemePreference(option.value)
-                          setTheme(option.value)
+                          applyTheme(option.value)
                         }}
                         whileHover={reduce ? undefined : { y: -2 }}
                         whileTap={reduce ? undefined : { scale: 0.985 }}

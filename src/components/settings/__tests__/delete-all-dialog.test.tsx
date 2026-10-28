@@ -2,11 +2,9 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import {
-  DELETE_ALL_CONFIRM_WORD,
-  DeleteAllDialog,
-} from '#/components/settings/delete-all-dialog'
+import { DeleteAllDialog } from '#/components/settings/delete-all-dialog'
 import { TRASH_RETENTION_DAYS } from '#/lib/constants'
+import { DELETE_ALL_CONFIRM_WORD } from '#/lib/validation'
 
 afterEach(() => {
   cleanup()

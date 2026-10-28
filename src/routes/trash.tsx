@@ -1,10 +1,11 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { ArchiveRestore, Loader2, Trash2 } from 'lucide-react'
 import { toast } from '#/lib/toast'
 
 import { AppShell } from '#/components/layout/app-shell'
 import { Button } from '#/components/ui/button'
+import { ConfirmWordDialog } from '#/components/ui/confirm-word-dialog'
 import { EmptyState } from '#/components/ui/empty-state'
 import {
   createDataTableColumnHelper,
@@ -14,6 +15,7 @@ import { getErrorMessage } from '#/lib/errors'
 import { formatFileSize } from '#/lib/format'
 import { privateAppHead } from '#/lib/seo'
 import { requireOnboardedSession } from '#/lib/route-guards'
+import { EMPTY_TRASH_CONFIRM_WORD } from '#/lib/validation'
 import { getAppChrome } from '#/server/functions/drive'
 import {
   emptyTrash,
@@ -56,6 +58,7 @@ function TrashPage() {
   const { chrome, trash } = Route.useLoaderData()
   const router = useRouter()
   const [pending, startTransition] = useTransition()
+  const [emptyOpen, setEmptyOpen] = useState(false)
 
   const rows: TrashRow[] = [
     ...trash.folders.map((folder) => ({
@@ -193,9 +196,7 @@ function TrashPage() {
             type="button"
             variant="destructive"
             disabled={pending}
-            onClick={() =>
-              run(() => emptyTrash(), 'Kôš vyprázdnený')
-            }
+            onClick={() => setEmptyOpen(true)}
           >
             {pending ? <Loader2 className="animate-spin" /> : <Trash2 />}
             Vyprázdniť kôš
@@ -212,6 +213,29 @@ function TrashPage() {
       ) : (
         <DataTable columns={columns} data={rows} />
       )}
+
+      <ConfirmWordDialog
+        open={emptyOpen}
+        onOpenChange={setEmptyOpen}
+        title="Vyprázdniť kôš"
+        description={
+          <>
+            Natrvalo zmaže všetky položky v koši ({rows.length}). Túto akciu
+            nejde vrátiť späť.
+          </>
+        }
+        confirmWord={EMPTY_TRASH_CONFIRM_WORD}
+        confirmLabel="Vyprázdniť natrvalo"
+        pendingLabel="Mažem…"
+        onConfirm={async () => {
+          await emptyTrash({
+            data: { confirm: EMPTY_TRASH_CONFIRM_WORD },
+          })
+          setEmptyOpen(false)
+          toast.success('Kôš vyprázdnený')
+          void router.invalidate()
+        }}
+      />
     </AppShell>
   )
 }

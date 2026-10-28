@@ -17,6 +17,10 @@ import { ThemeProvider } from '#/components/theme-provider'
 import { ThemeSync } from '#/components/theme-sync'
 import { AppErrorBoundary } from '#/components/error-boundary/app-error-boundary'
 import { RouteError } from '#/components/error-boundary/route-error'
+import {
+  ScrollToTopButton,
+  ScrollToTopOnNavigate,
+} from '#/components/layout/scroll-to-top'
 import { NotFoundPage, RoutePending } from '#/components/status/status-page'
 import { Toaster } from '#/components/toast/toaster'
 import { APP_NAME } from '#/lib/constants'
@@ -144,6 +148,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             <AppErrorBoundary variant="page" name="shell">
               {children}
             </AppErrorBoundary>
+            <ScrollToTopOnNavigate />
+            <ScrollToTopButton />
             <Toaster />
             {import.meta.env.DEV ? (
               <TanStackDevtools

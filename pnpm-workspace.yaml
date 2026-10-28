@@ -2,8 +2,9 @@ allowBuilds:
   esbuild: true
   lightningcss: true
   better-sqlite3: true
-  unrs-resolver: set this to true or false
-  msgpackr-extract: set this to true or false
-  pompelmi: set this to true or false
+  unrs-resolver: true
+  # marketing-only postinstall (star on GitHub) — not needed
+  pompelmi: false
+  msgpackr-extract: false
 patchedDependencies:
   '@uploadthing/shared@7.1.10': patches/@uploadthing__shared@7.1.10.patch

@@ -8,7 +8,13 @@ import {
   SHARE_EXPIRY_PRESETS,
   UPLOAD_LIMITS,
 } from './constants'
-import { formatZodError } from './errors'
+import { AppError, formatZodError } from './errors'
+
+/** Typed confirm word for wipe-all (UI + server must match). */
+export const DELETE_ALL_CONFIRM_WORD = 'ZMAZAŤ'
+
+/** Typed confirm word for emptying trash. */
+export const EMPTY_TRASH_CONFIRM_WORD = 'VYPRÁZDNIŤ'
 
 const RESERVED_NAMES = new Set([
   'con',
@@ -175,6 +181,26 @@ export const resolveShareTokenSchema = z.object({
 
 export const idSchema = z.string().uuid('Neplatné ID')
 
+/** Non-empty UUID list without duplicates. */
+export function uniqueIdArraySchema(
+  min: number,
+  max: number,
+  messages?: { min?: string; max?: string },
+) {
+  return z
+    .array(idSchema)
+    .min(min, messages?.min ?? 'Vyber aspoň jednu položku')
+    .max(max, messages?.max ?? 'Príliš veľa položiek naraz')
+    .superRefine((ids, ctx) => {
+      if (new Set(ids).size !== ids.length) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Zoznam obsahuje duplicitné ID',
+        })
+      }
+    })
+}
+
 export const createFolderSchema = z.object({
   name: folderNameSchema,
   parentId: idSchema.nullable(),
@@ -209,19 +235,25 @@ export const deleteFileSchema = z.object({
 })
 
 export const fileIdsSchema = z.object({
-  fileIds: z
-    .array(idSchema)
-    .min(1, 'Vyber aspoň jeden súbor')
-    .max(50, 'Príliš veľa súborov naraz'),
+  fileIds: uniqueIdArraySchema(1, 50, {
+    min: 'Vyber aspoň jeden súbor',
+    max: 'Príliš veľa súborov naraz',
+  }),
 })
 
 export const bulkMoveFilesSchema = z.object({
-  fileIds: z.array(idSchema).min(1).max(50),
+  fileIds: uniqueIdArraySchema(1, 50, {
+    min: 'Vyber aspoň jeden súbor',
+    max: 'Príliš veľa súborov naraz',
+  }),
   folderId: idSchema.nullable(),
 })
 
 export const bulkShareFilesSchema = z.object({
-  fileIds: z.array(idSchema).min(1).max(20),
+  fileIds: uniqueIdArraySchema(1, 20, {
+    min: 'Vyber aspoň jeden súbor',
+    max: 'Naraz môžeš zdieľať najviac 20 súborov',
+  }),
   expiresIn: expiresInSchema,
 })
 
@@ -251,12 +283,66 @@ export const restoreFileVersionSchema = z.object({
 })
 
 export const imagePreviewUrlsSchema = z.object({
-  fileIds: z.array(idSchema).max(24, 'Príliš veľa súborov naraz'),
+  fileIds: uniqueIdArraySchema(0, 24, {
+    max: 'Príliš veľa súborov naraz',
+  }),
 })
 
 export const listFolderContentsSchema = z.object({
   folderId: idSchema.nullable(),
 })
+
+/** Soft-delete entire drive — must type the confirm word. */
+export const deleteAllDriveSchema = z.object({
+  confirm: z
+    .string()
+    .trim()
+    .min(1, 'Potvrdenie je povinné')
+    .transform((value) => value.toLocaleUpperCase('sk-SK'))
+    .refine((value) => value === DELETE_ALL_CONFIRM_WORD, {
+      message: `Na potvrdenie napíš ${DELETE_ALL_CONFIRM_WORD}`,
+    }),
+})
+
+/** Permanently empty trash — must type the confirm word. */
+export const emptyTrashSchema = z.object({
+  confirm: z
+    .string()
+    .trim()
+    .min(1, 'Potvrdenie je povinné')
+    .transform((value) => value.toLocaleUpperCase('sk-SK'))
+    .refine((value) => value === EMPTY_TRASH_CONFIRM_WORD, {
+      message: `Na potvrdenie napíš ${EMPTY_TRASH_CONFIRM_WORD}`,
+    }),
+})
+
+/** UploadThing middleware input — shared with server router. */
+export const uploadInputSchema = z.object({
+  folderId: idSchema
+    .nullable()
+    .optional()
+    .transform((value) => value ?? null),
+  replaceFileId: idSchema.optional().nullable(),
+  saveAsName: z
+    .union([fileNameSchema, z.null()])
+    .optional()
+    .transform((value) => value ?? null),
+})
+
+/**
+ * Parse unknown input with Zod; throw AppError with the first Slovak message.
+ * Use inside server handlers / middleware when `.validator()` is not enough.
+ */
+export function parseServerInput<TSchema extends z.ZodType>(
+  schema: TSchema,
+  raw: unknown,
+): z.infer<TSchema> {
+  const result = schema.safeParse(raw)
+  if (!result.success) {
+    throw new AppError(formatZodError(result.error), 'VALIDATION')
+  }
+  return result.data
+}
 
 export type UploadValidationResult =
   | { ok: true; files: File[] }

@@ -1,11 +1,14 @@
+'use client'
+
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="light"
+      defaultTheme="system"
       enableSystem
+      storageKey="mini-drive-theme"
       disableTransitionOnChange
     >
       {children}

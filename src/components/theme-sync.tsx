@@ -1,35 +1,49 @@
+'use client'
+
 import { useAuth } from '@clerk/tanstack-react-start'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useTheme } from 'next-themes'
 
+import {
+  hasThemeSynced,
+  markThemeSynced,
+} from '#/lib/theme-preference'
 import { getSession } from '#/server/session'
 
 /**
- * Once per signed-in session, apply saved themePreference.
- * Skips the server round-trip on guest/auth pages.
+ * Apply saved `themePreference` once per signed-in user / tab.
+ * Never overwrites after the user (or a prior sync) has settled the theme.
  */
 export function ThemeSync() {
-  const { setTheme } = useTheme()
-  const { isLoaded, isSignedIn } = useAuth()
-  const applied = useRef(false)
+  const { setTheme, theme } = useTheme()
+  const { isLoaded, isSignedIn, userId } = useAuth()
 
   useEffect(() => {
-    if (applied.current || !isLoaded || !isSignedIn) return
+    if (!isLoaded || !isSignedIn || !userId) return
+    // Wait for next-themes hydration so we don't fight the first paint.
+    if (theme === undefined) return
+    if (hasThemeSynced(userId)) return
+
     let cancelled = false
 
-    void getSession().then((session) => {
-      if (cancelled || applied.current) return
-      const pref = session?.user.themePreference
-      if (pref === 'light' || pref === 'dark' || pref === 'system') {
-        setTheme(pref)
-        applied.current = true
-      }
-    })
+    void getSession()
+      .then((session) => {
+        if (cancelled || hasThemeSynced(userId)) return
+        const pref = session?.user.themePreference
+        if (pref === 'light' || pref === 'dark' || pref === 'system') {
+          setTheme(pref)
+        }
+        markThemeSynced(userId)
+      })
+      .catch(() => {
+        // Network/session failure — don't keep retrying every render.
+        if (!cancelled) markThemeSynced(userId)
+      })
 
     return () => {
       cancelled = true
     }
-  }, [isLoaded, isSignedIn, setTheme])
+  }, [isLoaded, isSignedIn, userId, theme, setTheme])
 
   return null
 }
