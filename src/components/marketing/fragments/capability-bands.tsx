@@ -18,7 +18,7 @@ const BANDS = [
   {
     id: 'organise',
     sentence: 'Priečinky, verzie obrázkov, tvrdá kvóta.',
-    on: '6,2 GB z 10 GB — spotreba je vždy viditeľná.',
+    on: '6,2 GB z 100 GB — spotreba je vždy viditeľná.',
     field: 'var(--lp-band-3)',
   },
   {

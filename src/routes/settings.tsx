@@ -2,6 +2,7 @@ import { useClerk } from '@clerk/tanstack-react-start'
 import { useState, useTransition } from 'react'
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import {
+  AlertTriangle,
   HardDrive,
   KeyRound,
   LayoutGrid,
@@ -20,6 +21,7 @@ import { useTheme } from 'next-themes'
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
+import { DeleteAllDialog } from '#/components/settings/delete-all-dialog'
 import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
@@ -45,6 +47,7 @@ import {
 } from '#/lib/validation'
 import { getAppChrome } from '#/server/functions/drive'
 import { updateSettings } from '#/server/functions/settings'
+import { deleteAllDriveContent } from '#/server/functions/trash'
 import type { z } from 'zod'
 
 export const Route = createFileRoute('/settings')({
@@ -78,12 +81,31 @@ function SettingsPage() {
     chrome.user.confirmDelete ?? true,
   )
   const [pending, startTransition] = useTransition()
+  const [wipePending, startWipeTransition] = useTransition()
   const [nameError, setNameError] = useState<string | null>(null)
+  const [wipeOpen, setWipeOpen] = useState(false)
 
   const fill = Math.min(
     1,
     chrome.stats.totalBytes / Math.max(chrome.stats.quotaBytes, 1),
   )
+  const hasDriveContent =
+    chrome.stats.fileCount > 0 || chrome.stats.folderCount > 0
+
+  function wipeEverything() {
+    startWipeTransition(async () => {
+      try {
+        const result = await deleteAllDriveContent()
+        setWipeOpen(false)
+        toast.success('Drive je v koši', {
+          description: `${result.deletedFolders} priečinkov · ${result.deletedFiles} súborov.`,
+        })
+        await router.invalidate()
+      } catch (error) {
+        toast.error(getErrorMessage(error, 'Mazanie zlyhalo'))
+      }
+    })
+  }
 
   function saveAll() {
     const parsed = updateSettingsSchema.safeParse({
@@ -418,6 +440,32 @@ function SettingsPage() {
                   </ul>
                 </div>
               </div>
+
+              <div className="mt-6 space-y-3 rounded-2xl border-2 border-destructive/25 bg-destructive/5 p-4">
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border-2 border-destructive/30 bg-destructive/10 text-destructive">
+                    <AlertTriangle className="size-4" aria-hidden />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-display text-base">Zmazať všetko</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Presunie všetky súbory a priečinky do koša naraz. Dá sa
+                      obnoviť; trvalé zmazanie je až cez vyprázdnenie koša.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={!hasDriveContent || wipePending}
+                  onClick={() => setWipeOpen(true)}
+                >
+                  <Trash2 />
+                  {hasDriveContent
+                    ? 'Zmazať všetky súbory a priečinky'
+                    : 'Úložisko je prázdne'}
+                </Button>
+              </div>
             </section>
           </StaggerItem>
 
@@ -454,6 +502,14 @@ function SettingsPage() {
           </StaggerItem>
         </Stagger>
       </FadeIn>
+
+      <DeleteAllDialog
+        open={wipeOpen}
+        fileCount={chrome.stats.fileCount}
+        folderCount={chrome.stats.folderCount}
+        onOpenChange={setWipeOpen}
+        onConfirm={wipeEverything}
+      />
     </AppShell>
   )
 }

@@ -219,7 +219,7 @@ function ArtFolders() {
       />
       <path
         d="M28 38V30c0-4 3-7 7-7h18l6 8h26c4 0 7 3 7 7v0"
-        fill="#d6c7f5"
+        fill="#9ad7ff"
         stroke="#0b1f2a"
         strokeWidth="3"
         strokeLinejoin="round"
@@ -233,7 +233,7 @@ function ArtFolders() {
         fill="#0b1f2a"
         opacity="0.15"
       />
-      <circle cx="88" cy="78" r="16" fill="#d6c7f5" stroke="#0b1f2a" strokeWidth="3" />
+      <circle cx="88" cy="78" r="16" fill="#9ad7ff" stroke="#0b1f2a" strokeWidth="3" />
       <path
         d="M82 78h12M88 72v12"
         stroke="#0b1f2a"
@@ -259,7 +259,7 @@ function ArtSafeUrl() {
       />
       <rect x="34" y="44" width="52" height="12" rx="6" fill="#0b1f2a" />
       <rect x="34" y="64" width="34" height="10" rx="5" fill="#c8f135" />
-      <circle cx="86" cy="84" r="18" fill="#d6c7f5" stroke="#0b1f2a" strokeWidth="3" />
+      <circle cx="86" cy="84" r="18" fill="#9ad7ff" stroke="#0b1f2a" strokeWidth="3" />
       <path
         d="M78 84c0-4 3-8 8-8s8 4 8 8"
         stroke="#0b1f2a"
@@ -280,7 +280,7 @@ function ArtStack() {
         width="64"
         height="18"
         rx="6"
-        fill="#d6c7f5"
+        fill="#9ad7ff"
         stroke="#c8f135"
         strokeWidth="2.5"
       />
@@ -290,7 +290,7 @@ function ArtStack() {
         width="72"
         height="20"
         rx="6"
-        fill="#f4fbf7"
+        fill="#e8fff0"
         stroke="#c8f135"
         strokeWidth="2.5"
       />
@@ -298,7 +298,7 @@ function ArtStack() {
         x="20"
         y="70"
         width="80"
-        height="22"
+        height="26"
         rx="6"
         fill="#c8f135"
         stroke="#c8f135"
@@ -306,14 +306,14 @@ function ArtStack() {
       />
       <text
         x="60"
-        y="86"
+        y="87"
         textAnchor="middle"
-        fill="#0b1f2a"
-        fontSize="11"
+        fill="#071820"
+        fontSize="10"
         fontFamily="Sora, sans-serif"
         fontWeight="700"
       >
-        6,2 GB
+        6,2 / 100 GB
       </text>
     </svg>
   )
@@ -345,7 +345,7 @@ function ArtLock() {
         strokeWidth="4"
         strokeLinecap="round"
       />
-      <circle cx="90" cy="34" r="14" fill="#d6c7f5" opacity="0.9" />
+      <circle cx="90" cy="34" r="14" fill="#9ad7ff" opacity="0.95" />
     </svg>
   )
 }

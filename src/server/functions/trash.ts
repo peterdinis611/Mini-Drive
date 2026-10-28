@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
-import { and, desc, eq, isNotNull, lte } from 'drizzle-orm'
+import { and, desc, eq, isNotNull, isNull, lte } from 'drizzle-orm'
 
 import { TRASH_RETENTION_DAYS } from '#/lib/constants'
 import {
@@ -204,6 +204,38 @@ export const purgeFolder = createServerFn({ method: 'POST' })
 
     return { ok: true as const }
   })
+
+/** Soft-delete every active file + folder for the current user into Trash. */
+export const deleteAllDriveContent = createServerFn({ method: 'POST' }).handler(
+  async () => {
+    const { requireSession } = await import('#/server/auth.server')
+    const { db } = await import('#/db')
+    const { files, folders } = await import('#/db/schema')
+
+    const session = await requireSession()
+    const userId = session.user.id
+    const now = new Date()
+
+    const [fileResult, folderResult] = await Promise.all([
+      db
+        .update(files)
+        .set({ deletedAt: now })
+        .where(and(eq(files.userId, userId), isNull(files.deletedAt)))
+        .returning({ id: files.id }),
+      db
+        .update(folders)
+        .set({ deletedAt: now })
+        .where(and(eq(folders.userId, userId), isNull(folders.deletedAt)))
+        .returning({ id: folders.id }),
+    ])
+
+    return {
+      ok: true as const,
+      deletedFiles: fileResult.length,
+      deletedFolders: folderResult.length,
+    }
+  },
+)
 
 export const emptyTrash = createServerFn({ method: 'POST' }).handler(
   async () => {

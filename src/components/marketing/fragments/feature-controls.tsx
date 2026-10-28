@@ -66,7 +66,7 @@ export function FolderQuotaPanel() {
         <div className="landing-meta-row">
           <span>Kvóta</span>
           <strong style={{ color: 'var(--lp-ink)', fontWeight: 500 }}>
-            6,2 / 10 GB
+            6,2 / 100 GB
           </strong>
         </div>
         <div className="landing-quota-bar" aria-hidden>

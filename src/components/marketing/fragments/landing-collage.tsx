@@ -77,7 +77,7 @@ export function LandingCollage() {
           <span>Úložisko</span>
           <em>+0,4 GB</em>
         </header>
-        <p className="landing-chart-total">6,2 / 10 GB</p>
+        <p className="landing-chart-total">6,2 / 100 GB</p>
         <div className="landing-bars" aria-hidden>
           <i style={{ height: '42%' }} />
           <i style={{ height: '68%' }} />
@@ -94,7 +94,7 @@ export function LandingCollage() {
         aria-hidden
       >
         <FileToken className="landing-token landing-token--a" label="PDF" fill="#c8f135" />
-        <FileToken className="landing-token landing-token--b" label="ZIP" fill="#d6c7f5" />
+        <FileToken className="landing-token landing-token--b" label="ZIP" fill="#9ad7ff" />
         <FileToken className="landing-token landing-token--c" label="PNG" fill="#9ad7ff" />
         <FileToken className="landing-token landing-token--d" label="DOC" fill="#ffd27a" />
       </div>

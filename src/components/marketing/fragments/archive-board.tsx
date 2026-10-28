@@ -9,7 +9,7 @@ const ROWS = [
     updated: 'dnes 08:12',
     status: 'private',
     detail:
-      'Private ACL. Posledný safe-url expiroval včera. Verzie: 3. Kvóta: 248 KB z 10 GB.',
+      'Private ACL. Posledný safe-url expiroval včera. Verzie: 3. Kvóta: 248 KB z 100 GB.',
   },
   {
     name: 'moodboard-v4.zip',
