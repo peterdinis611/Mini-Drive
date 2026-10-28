@@ -7,6 +7,7 @@ import { ShareAccessLogDialog } from '#/components/files/share-access-log-dialog
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
 import { AppShellPending } from '#/components/ui/preload-spinner'
+import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import {
   createDataTableColumnHelper,
@@ -17,7 +18,6 @@ import { getErrorMessage } from '#/lib/errors'
 import { formatFileSize } from '#/lib/format'
 import { requireOnboardedSession } from '#/lib/route-guards'
 import { privateAppHead } from '#/lib/seo'
-import { cn } from '#/lib/utils'
 import { getAppChrome } from '#/server/functions/drive'
 import { listShareLinks, revokeShareLink } from '#/server/functions/shares'
 
@@ -74,7 +74,6 @@ function SharesPage() {
               </p>
               <p className="text-xs text-muted-foreground">
                 {formatFileSize(row.original.fileSize)}
-                {row.original.passwordProtected ? ' · heslo' : ''}
               </p>
             </div>
           ),
@@ -86,10 +85,13 @@ function SharesPage() {
             <div className="flex flex-wrap items-center gap-1.5">
               <StatusBadge status={row.original.status} />
               {row.original.passwordProtected ? (
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">
+                <Badge
+                  variant="outline"
+                  className="gap-1 border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200"
+                >
                   <Lock className="size-3" aria-hidden />
                   Heslo
-                </span>
+                </Badge>
               ) : null}
             </div>
           ),
@@ -248,20 +250,21 @@ function StatusBadge({
   status: 'active' | 'expired' | 'revoked'
 }) {
   return (
-    <span
-      className={cn(
-        'inline-flex rounded-md px-2 py-0.5 text-xs font-medium',
-        status === 'active' && 'bg-accent text-accent-foreground',
-        status === 'expired' && 'bg-muted text-muted-foreground',
-        status === 'revoked' && 'bg-destructive/10 text-destructive',
-      )}
+    <Badge
+      variant={
+        status === 'active'
+          ? 'default'
+          : status === 'revoked'
+            ? 'destructive'
+            : 'secondary'
+      }
     >
       {status === 'active'
         ? 'Aktívny'
         : status === 'expired'
           ? 'Vypršaný'
           : 'Zrušený'}
-    </span>
+    </Badge>
   )
 }
 

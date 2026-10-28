@@ -16,6 +16,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '#/components/ui/dialog'
+import { Kbd } from '#/components/ui/kbd'
+import { ScrollArea } from '#/components/ui/scroll-area'
+import { Separator } from '#/components/ui/separator'
 
 /** Registers Shift+/ (`?`) to open the shortcuts cheat sheet. */
 export function HotkeysCheatSheetHost() {
@@ -47,37 +50,38 @@ export function HotkeysCheatSheetHost() {
             Klávesové skratky
           </DialogTitle>
           <DialogDescription>
-            Stlač{' '}
-            <kbd className="rounded border px-1 font-mono text-[11px]">?</kbd>{' '}
-            pre zobrazenie. Upraviť môžeš v Nastaveniach.
+            Stlač <Kbd>?</Kbd> pre zobrazenie. Upraviť môžeš v Nastaveniach.
           </DialogDescription>
         </DialogHeader>
-        <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
-          {groups.map(([group, groupItems]) => (
-            <section key={group}>
-              <h3 className="mb-2 font-meta text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                {group}
-              </h3>
-              <ul className="m-0 list-none space-y-1.5 p-0">
-                {groupItems.map((item) => (
-                  <li
-                    key={item.appHotkey.id}
-                    className="flex items-center justify-between gap-3 text-sm"
-                  >
-                    <span className="min-w-0 truncate text-muted-foreground">
-                      {item.appHotkey.meta?.name ?? item.appHotkey.id}
-                    </span>
-                    <kbd className="shrink-0 rounded-md border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-[11px] tabular-nums">
-                      {item.appHotkey.hotkey
-                        ? formatForDisplay(item.appHotkey.hotkey)
-                        : '—'}
-                    </kbd>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
+        <ScrollArea className="max-h-[60vh] pr-3">
+          <div className="space-y-4">
+            {groups.map(([group, groupItems], index) => (
+              <section key={group}>
+                {index > 0 ? <Separator className="mb-4" /> : null}
+                <h3 className="mb-2 font-meta text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+                  {group}
+                </h3>
+                <ul className="m-0 list-none space-y-1.5 p-0">
+                  {groupItems.map((item) => (
+                    <li
+                      key={item.appHotkey.id}
+                      className="flex items-center justify-between gap-3 text-sm"
+                    >
+                      <span className="min-w-0 truncate text-muted-foreground">
+                        {item.appHotkey.meta?.name ?? item.appHotkey.id}
+                      </span>
+                      <Kbd className="h-auto min-w-0 px-1.5 py-0.5 font-mono text-[11px] tabular-nums">
+                        {item.appHotkey.hotkey
+                          ? formatForDisplay(item.appHotkey.hotkey)
+                          : '—'}
+                      </Kbd>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   )
