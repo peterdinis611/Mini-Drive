@@ -29,7 +29,7 @@ export const SITE = {
     'TanStack Start',
   ] as const,
   themeColorLight: '#f6faf7',
-  themeColorDark: '#14161f',
+  themeColorDark: '#12161f',
   author: APP_NAME,
   category: 'BusinessApplication',
 } as const

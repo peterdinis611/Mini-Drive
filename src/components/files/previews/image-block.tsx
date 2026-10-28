@@ -68,7 +68,7 @@ const ASPECTS: Array<{ id: AspectId; label: string; value: number | undefined }>
     { id: '16:9', label: '16:9', value: 16 / 9 },
   ]
 
-const STROKE_COLORS = ['#ffffff', '#b6ec2e', '#b9a6ff', '#f43f5e', '#fbbf24'] as const
+const STROKE_COLORS = ['#ffffff', '#b6ec2e', '#7eb8ff', '#f43f5e', '#fbbf24'] as const
 
 function ToolButton({
   label,

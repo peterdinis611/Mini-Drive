@@ -16,10 +16,10 @@ describe('clerkAppearance', () => {
     expect(clerkAppearanceLight.variables.colorPrimary).toBe('#b6ec2e')
   })
 
-  it('uses an explicit dark slate/violet palette', () => {
-    expect(clerkAppearanceDark.variables.colorBackground).toBe('#1c1f2c')
-    expect(clerkAppearanceDark.variables.colorText).toBe('#f2efe8')
-    expect(clerkAppearanceDark.variables.colorPrimary).toBe('#b9a6ff')
+  it('uses an explicit dark slate/blue palette', () => {
+    expect(clerkAppearanceDark.variables.colorBackground).toBe('#1a2030')
+    expect(clerkAppearanceDark.variables.colorText).toBe('#eef3f8')
+    expect(clerkAppearanceDark.variables.colorPrimary).toBe('#7eb8ff')
   })
 
   it('uses an explicit light palette with dark text on light surfaces', () => {

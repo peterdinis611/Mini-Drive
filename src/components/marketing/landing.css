@@ -7,8 +7,8 @@
   --lp-muted: #2f4552;
   --lp-accent: #b6ec2e;
   --lp-accent-ink: #071820;
-  --lp-lilac: #dccff8;
-  --lp-lilac-deep: #b9a6e8;
+  --lp-lilac: #cfe8ff;
+  --lp-lilac-deep: #7eb8ff;
   --lp-frame: #071820;
   --lp-card: #ffffff;
   --lp-chip: #ffffff;
@@ -35,28 +35,28 @@
   box-sizing: border-box;
 }
 
-/* Dark: cool slate night + soft violet (not a lime twin of light) */
+/* Dark: cool slate night + soft blue (not a lime twin of light) */
 .dark .landing {
-  --lp-bg: #14161f;
-  --lp-bg-deep: #1e2233;
-  --lp-ink: #f2efe8;
-  --lp-muted: #9b97a8;
-  --lp-accent: #b9a6ff;
-  --lp-accent-ink: #0c0a14;
-  --lp-lilac: #2a2440;
-  --lp-lilac-deep: #3d3460;
-  --lp-frame: #c4b5fd;
-  --lp-card: #1c1f2c;
-  --lp-chip: #252836;
-  --lp-outer: #090a0f;
-  --lp-panel: #c4b5fd;
-  --lp-panel-ink: #1a1428;
-  --lp-panel-muted: rgba(26, 20, 40, 0.7);
+  --lp-bg: #12161f;
+  --lp-bg-deep: #1c2333;
+  --lp-ink: #eef3f8;
+  --lp-muted: #8b97a8;
+  --lp-accent: #7eb8ff;
+  --lp-accent-ink: #071018;
+  --lp-lilac: #1a2740;
+  --lp-lilac-deep: #243552;
+  --lp-frame: #93c5fd;
+  --lp-card: #1a2030;
+  --lp-chip: #232a3a;
+  --lp-outer: #070a10;
+  --lp-panel: #93c5fd;
+  --lp-panel-ink: #0c1624;
+  --lp-panel-muted: rgba(12, 22, 36, 0.7);
   --lp-positive: #86efac;
-  --lp-bar: #a78bfa;
+  --lp-bar: #60a5fa;
   --lp-shadow: rgba(0, 0, 0, 0.45);
-  --lp-border-soft: rgba(196, 181, 253, 0.22);
-  --lp-plate: rgba(20, 22, 31, 0.88);
+  --lp-border-soft: rgba(126, 184, 255, 0.22);
+  --lp-plate: rgba(18, 22, 31, 0.88);
   color-scheme: dark;
 }
 

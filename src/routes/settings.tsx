@@ -204,9 +204,9 @@ function SettingsPage() {
                         type="button"
                         aria-pressed={selected}
                         className={cn(
-                          'rounded-xl border p-3 text-left transition',
+                          'rounded-2xl border-2 p-3 text-left transition',
                           selected
-                            ? 'border-primary bg-accent'
+                            ? 'border-foreground bg-primary/25 dark:border-primary dark:bg-primary/20'
                             : 'border-border hover:bg-muted/60',
                         )}
                         onClick={() => {
@@ -220,7 +220,9 @@ function SettingsPage() {
                         <Icon
                           className={cn(
                             'mb-2 size-5',
-                            selected ? 'text-primary' : 'text-muted-foreground',
+                            selected
+                              ? 'text-foreground dark:text-primary'
+                              : 'text-muted-foreground',
                           )}
                           aria-hidden
                         />
@@ -260,9 +262,9 @@ function SettingsPage() {
                         type="button"
                         aria-pressed={selected}
                         className={cn(
-                          'rounded-xl border p-4 text-left transition',
+                          'rounded-2xl border-2 p-4 text-left transition',
                           selected
-                            ? 'border-primary bg-accent'
+                            ? 'border-foreground bg-primary/25 dark:border-primary dark:bg-primary/20'
                             : 'border-border hover:bg-muted/60',
                         )}
                         onClick={() => setViewPreference(option.value)}
@@ -273,7 +275,9 @@ function SettingsPage() {
                         <Icon
                           className={cn(
                             'mb-3 size-5',
-                            selected ? 'text-primary' : 'text-muted-foreground',
+                            selected
+                              ? 'text-foreground dark:text-primary'
+                              : 'text-muted-foreground',
                           )}
                           aria-hidden
                         />
@@ -292,7 +296,7 @@ function SettingsPage() {
           <StaggerItem>
             <section className="space-y-4 rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 sm:p-6 dark:border-primary/30">
               <div className="flex items-start gap-3">
-                <span className="mt-0.5 flex size-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-primary">
+                <span className="mt-0.5 flex size-9 items-center justify-center rounded-full border-2 border-foreground/15 bg-primary/25 text-foreground dark:border-primary/40 dark:bg-primary/20 dark:text-primary">
                   <Link2 className="size-4" aria-hidden />
                 </span>
                 <div>
@@ -314,9 +318,9 @@ function SettingsPage() {
                         type="button"
                         aria-pressed={selected}
                         className={cn(
-                          'rounded-md border p-3 text-left text-sm transition',
+                          'rounded-xl border-2 p-3 text-left text-sm transition',
                           selected
-                            ? 'border-primary bg-accent'
+                            ? 'border-foreground bg-primary/25 dark:border-primary dark:bg-primary/20'
                             : 'border-border hover:bg-muted/60',
                         )}
                         onClick={() => setDefaultShareExpiresIn(preset.value)}
@@ -347,7 +351,7 @@ function SettingsPage() {
           <StaggerItem>
             <section className="space-y-4 rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 sm:p-6 dark:border-primary/30">
               <div className="flex items-start gap-3">
-                <span className="mt-0.5 flex size-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-primary">
+                <span className="mt-0.5 flex size-9 items-center justify-center rounded-full border-2 border-foreground/15 bg-primary/25 text-foreground dark:border-primary/40 dark:bg-primary/20 dark:text-primary">
                   <KeyRound className="size-4" aria-hidden />
                 </span>
                 <div>
@@ -371,7 +375,7 @@ function SettingsPage() {
           <StaggerItem>
             <section className="rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 sm:p-6 dark:border-primary/30">
               <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
-                <span className="flex size-20 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/50 text-primary sm:size-24">
+                <span className="flex size-20 shrink-0 items-center justify-center rounded-2xl border-2 border-foreground/15 bg-primary/20 text-foreground sm:size-24 dark:border-primary/40 dark:bg-primary/15 dark:text-primary">
                   <HardDrive className="size-7" aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1 text-center sm:text-left">
@@ -402,7 +406,7 @@ function SettingsPage() {
                       Kôš drží súbory {TRASH_RETENTION_DAYS} dní —{' '}
                       <Link
                         to="/trash"
-                        className="text-primary underline-offset-2 hover:underline"
+                        className="text-foreground underline-offset-2 hover:underline dark:text-primary"
                       >
                         otvoriť kôš
                       </Link>
@@ -420,7 +424,7 @@ function SettingsPage() {
           <StaggerItem>
             <section className="space-y-3 rounded-2xl border-2 border-foreground/12 bg-card/70 p-5 sm:p-6 dark:border-primary/30">
               <div className="flex items-start gap-3">
-                <span className="mt-0.5 flex size-9 items-center justify-center rounded-lg border border-border bg-muted/40 text-primary">
+                <span className="mt-0.5 flex size-9 items-center justify-center rounded-full border-2 border-foreground/15 bg-primary/25 text-foreground dark:border-primary/40 dark:bg-primary/20 dark:text-primary">
                   <Shield className="size-4" aria-hidden />
                 </span>
                 <div>

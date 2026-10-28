@@ -147,7 +147,7 @@ export function ShareDialog({
                     className={cn(
                       'rounded-md border p-3 text-left text-sm transition',
                       selected
-                        ? 'border-primary bg-accent'
+                        ? 'border-foreground bg-primary/25 dark:border-primary dark:bg-primary/20'
                         : 'border-border hover:bg-muted/60',
                     )}
                     onClick={() => setExpiresIn(preset.value)}
