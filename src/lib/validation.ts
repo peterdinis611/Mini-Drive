@@ -354,6 +354,81 @@ export const saveCustomHotkeysSchema = z.object({
   customHotkeys: z.string().max(20_000),
 })
 
+export const bulkRenamePatternSchema = z.object({
+  fileIds: uniqueIdArraySchema(1, 50, {
+    min: 'Vyber aspoň jeden súbor',
+    max: 'Naraz najviac 50 súborov',
+  }),
+  /** Pattern with `{n}` (1-based index) and optional `{name}` / `{ext}`. */
+  pattern: z
+    .string()
+    .trim()
+    .min(1, 'Vzor je povinný')
+    .max(180, 'Vzor je príliš dlhý')
+    .refine((value) => value.includes('{n}') || value.includes('{name}'), {
+      message: 'Vzor musí obsahovať {n} alebo {name}',
+    }),
+  startAt: z.number().int().min(0).max(9999).optional().default(1),
+})
+
+export const checkUploadConflictsSchema = z.object({
+  folderId: idSchema.nullable(),
+  names: z
+    .array(fileNameSchema)
+    .min(1, 'Aspoň jeden názov')
+    .max(UPLOAD_LIMITS.maxFileCount),
+})
+
+export const setLastFolderSchema = z.object({
+  folderId: idSchema.nullable(),
+})
+
+export const updateFolderStyleSchema = z.object({
+  folderId: idSchema,
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, 'Neplatná farba')
+    .nullable()
+    .optional(),
+  priority: z.number().int().min(0).max(3).optional(),
+})
+
+export const updateFileNoteSchema = z.object({
+  fileId: idSchema,
+  note: z.string().trim().max(4_000).nullable(),
+})
+
+export const addFileCommentSchema = z.object({
+  fileId: idSchema,
+  body: z.string().trim().min(1, 'Komentár je prázdny').max(2_000),
+})
+
+export const deleteFileCommentSchema = z.object({
+  commentId: idSchema,
+})
+
+export const listFileCommentsSchema = z.object({
+  fileId: idSchema,
+})
+
+export const createSavedSearchSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  query: z.string().trim().min(1).max(200),
+  kind: z
+    .enum(['all', 'image', 'pdf', 'video', 'audio', 'text'])
+    .optional()
+    .nullable(),
+})
+
+export const deleteSavedSearchSchema = z.object({
+  searchId: idSchema,
+})
+
+export const createEmbedShareSchema = z.object({
+  fileId: idSchema,
+  expiresIn: expiresInSchema,
+})
+
 export const imagePreviewUrlsSchema = z.object({
   fileIds: uniqueIdArraySchema(0, 24, {
     max: 'Príliš veľa súborov naraz',

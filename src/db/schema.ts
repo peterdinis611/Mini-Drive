@@ -41,6 +41,8 @@ export const user = sqliteTable('user', {
   onboardingStep: integer('onboarding_step').notNull().default(1),
   /** JSON map of TanStack Hotkeys custom bindings. */
   customHotkeys: text('custom_hotkeys'),
+  /** Last opened folder — resume browsing. */
+  lastFolderId: text('last_folder_id'),
 })
 
 export const session = sqliteTable(
@@ -125,6 +127,10 @@ export const folders = sqliteTable(
       .references(() => user.id, { onDelete: 'cascade' }),
     parentId: text('parent_id'),
     name: text('name').notNull(),
+    /** Accent color for sidebar / tree (hex). */
+    color: text('color'),
+    /** 0 = normal, 1–3 = higher priority pin order. */
+    priority: integer('priority').notNull().default(0),
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .notNull()
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
@@ -164,6 +170,8 @@ export const files = sqliteTable(
     contentHash: text('content_hash'),
     /** Extracted plain text for full-text / Fuse search (truncated). */
     contentText: text('content_text'),
+    /** Free-form note attached to the file. */
+    note: text('note'),
   },
   (table) => [
     index('files_userId_idx').on(table.userId),
@@ -171,6 +179,77 @@ export const files = sqliteTable(
     index('files_deletedAt_idx').on(table.deletedAt),
     index('files_contentHash_idx').on(table.userId, table.contentHash),
   ],
+)
+
+/** Comments / discussion on a file. */
+export const fileComments = sqliteTable(
+  'file_comments',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    fileId: text('file_id')
+      .notNull()
+      .references(() => files.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    body: text('body').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+  },
+  (table) => [
+    index('file_comments_fileId_idx').on(table.fileId),
+    index('file_comments_userId_idx').on(table.userId),
+  ],
+)
+
+/** Single-user (and future multi-user) audit trail. */
+export const activityEvents = sqliteTable(
+  'activity_events',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    action: text('action').notNull(),
+    targetType: text('target_type', {
+      enum: ['file', 'folder', 'share', 'system'],
+    }).notNull(),
+    targetId: text('target_id'),
+    summary: text('summary').notNull(),
+    metaJson: text('meta_json'),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+  },
+  (table) => [
+    index('activity_events_userId_idx').on(table.userId),
+    index('activity_events_createdAt_idx').on(table.createdAt),
+  ],
+)
+
+/** Named saved searches (separate from smart folders). */
+export const savedSearches = sqliteTable(
+  'saved_searches',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    query: text('query').notNull(),
+    kind: text('kind'),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+  },
+  (table) => [index('saved_searches_userId_idx').on(table.userId)],
 )
 
 /** Pinned files / folders for quick access. */
@@ -356,6 +435,9 @@ export const userRelations = relations(user, ({ many }) => ({
   favorites: many(favorites),
   tags: many(tags),
   smartFolders: many(smartFolders),
+  activityEvents: many(activityEvents),
+  savedSearches: many(savedSearches),
+  fileComments: many(fileComments),
 }))
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -398,6 +480,7 @@ export const filesRelations = relations(files, ({ one, many }) => ({
   shareLinks: many(shareLinks),
   versions: many(fileVersions),
   fileTags: many(fileTags),
+  comments: many(fileComments),
 }))
 
 export const favoritesRelations = relations(favorites, ({ one }) => ({
@@ -483,3 +566,6 @@ export type ShareAccessLog = typeof shareAccessLogs.$inferSelect
 export type Favorite = typeof favorites.$inferSelect
 export type Tag = typeof tags.$inferSelect
 export type SmartFolder = typeof smartFolders.$inferSelect
+export type FileComment = typeof fileComments.$inferSelect
+export type ActivityEvent = typeof activityEvents.$inferSelect
+export type SavedSearch = typeof savedSearches.$inferSelect

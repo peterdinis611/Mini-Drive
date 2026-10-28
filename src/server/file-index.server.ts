@@ -6,7 +6,7 @@ import { db } from '#/db'
 import { files } from '#/db/schema'
 
 const MAX_INDEX_CHARS = 80_000
-const MAX_FETCH_BYTES = 2 * 1024 * 1024
+const MAX_FETCH_BYTES = 4 * 1024 * 1024
 
 function isIndexableText(mimeType: string, name: string) {
   if (mimeType.startsWith('text/')) return true
@@ -20,6 +20,23 @@ function isIndexableText(mimeType: string, name: string) {
   return /\.(md|txt|csv|tsv|json|xml|html?|css|js|ts|tsx|jsx|py|go|rs|sql|yml|yaml|toml|log)$/i.test(
     name,
   )
+}
+
+function isPdf(mimeType: string, name: string) {
+  return mimeType === 'application/pdf' || /\.pdf$/i.test(name)
+}
+
+async function extractPdfText(buffer: Buffer): Promise<string | null> {
+  try {
+    const { extractText, getDocumentProxy } = await import('unpdf')
+    const pdf = await getDocumentProxy(new Uint8Array(buffer))
+    const { text } = await extractText(pdf, { mergePages: true })
+    const joined = Array.isArray(text) ? text.join('\n') : String(text ?? '')
+    const cleaned = joined.replace(/\u0000/g, '').trim()
+    return cleaned.length > 0 ? cleaned.slice(0, MAX_INDEX_CHARS) : null
+  } catch {
+    return null
+  }
 }
 
 export async function indexUploadedFile(args: {
@@ -53,6 +70,8 @@ export async function indexUploadedFile(args: {
         .toString('utf8')
         .replace(/\u0000/g, '')
         .slice(0, MAX_INDEX_CHARS)
+    } else if (isPdf(args.mimeType, args.name)) {
+      contentText = await extractPdfText(buffer)
     }
 
     await db
