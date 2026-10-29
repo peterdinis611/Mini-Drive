@@ -1,6 +1,6 @@
-@import 'tailwindcss';
-@plugin '@tailwindcss/typography';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -45,8 +45,8 @@
   --chart-4: #94a3b8;
   --chart-5: #e11d48;
   --app-outer: #101828;
-  --font-mono-meta: 'IBM Plex Mono', ui-monospace, monospace;
-  --font-script: 'Great Vibes', cursive;
+  --font-mono-meta: "IBM Plex Mono", ui-monospace, monospace;
+  --font-script: "Great Vibes", cursive;
 }
 
 .dark {
@@ -87,9 +87,9 @@
 }
 
 @theme inline {
-  --font-sans: 'Sora', 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Sora', 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-sans: "Sora", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -144,13 +144,12 @@ body {
 }
 
 html:not(.dark) body {
-  background:
-    linear-gradient(
-      165deg,
-      color-mix(in oklab, var(--primary) 5%, var(--background)) 0%,
-      var(--background) 48%,
-      color-mix(in oklab, #7eb8ff 4%, var(--background)) 100%
-    );
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--primary) 5%, var(--background)) 0%,
+    var(--background) 48%,
+    color-mix(in oklab, #7eb8ff 4%, var(--background)) 100%
+  );
 }
 
 .font-display {
@@ -341,19 +340,29 @@ html:not(.dark) .panel {
 .upload-dock-grid {
   opacity: 0.5;
   background-image:
-    linear-gradient(color-mix(in oklab, var(--border) 80%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--border) 80%, transparent) 1px, transparent 1px);
+    linear-gradient(
+      color-mix(in oklab, var(--border) 80%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--border) 80%, transparent) 1px,
+      transparent 1px
+    );
   background-size: 20px 20px;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black, transparent 75%);
+  mask-image: radial-gradient(
+    ellipse 80% 70% at 50% 40%,
+    black,
+    transparent 75%
+  );
 }
 
 .upload-dock-glow {
-  background:
-    linear-gradient(
-      120deg,
-      color-mix(in oklab, var(--primary) 18%, transparent),
-      transparent 55%
-    );
+  background: linear-gradient(
+    120deg,
+    color-mix(in oklab, var(--primary) 18%, transparent),
+    transparent 55%
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {

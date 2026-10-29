@@ -44,17 +44,19 @@ Security headers + CSRF middleware sú v `src/start.ts`.
 
 ## Skripty
 
-| Skript               | Popis                    |
-| -------------------- | ------------------------ |
-| `pnpm dev`           | Vývojový server          |
-| `pnpm build`         | Produkčný build          |
-| `pnpm typecheck`     | TypeScript               |
-| `pnpm lint`          | ESLint                   |
-| `pnpm test`          | Vitest raz               |
-| `pnpm test:watch`    | Vitest watch             |
-| `pnpm test:coverage` | Coverage report          |
-| `pnpm db:push`       | Aplikuj schému do SQLite |
-| `pnpm db:studio`     | Drizzle Studio           |
+| Skript               | Popis                     |
+| -------------------- | ------------------------- |
+| `pnpm dev`           | Vývojový server           |
+| `pnpm build`         | Produkčný build           |
+| `pnpm typecheck`     | TypeScript                |
+| `pnpm lint`          | Biome lint                |
+| `pnpm format`        | Biome format              |
+| `pnpm check`         | Biome check (lint+format) |
+| `pnpm test`          | Vitest raz                |
+| `pnpm test:watch`    | Vitest watch              |
+| `pnpm test:coverage` | Coverage report           |
+| `pnpm db:push`       | Aplikuj schému do SQLite  |
+| `pnpm db:studio`     | Drizzle Studio            |
 
 ## Architektúra
 

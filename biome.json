@@ -14,10 +14,17 @@
       "!!**/.output",
       "!!**/.nitro",
       "!!**/routeTree.gen.ts",
+      "!!**/.superdesign",
       "!!**/pnpm-lock.yaml",
       "!!**/package-lock.json",
       "!!**/yarn.lock"
     ]
+  },
+  "tailwind": {
+    "stylesheet": "./src/styles.css",
+    "attributes": ["class", "className"],
+    "mergeFunctions": ["cn", "clsx", "twMerge"],
+    "variantFunctions": ["cva"]
   },
   "formatter": {
     "enabled": true,
@@ -37,23 +44,39 @@
       "correctness": {
         "noUnusedImports": "warn",
         "noUnusedVariables": "warn",
-        "useExhaustiveDependencies": "warn"
+        "useExhaustiveDependencies": "warn",
+        "noInvalidPositionAtImportRule": "off",
+        "noComponentHookFactories": "off"
       },
       "style": {
         "noNonNullAssertion": "off",
         "useImportType": "error",
-        "useNodejsImportProtocol": "error"
+        "useNodejsImportProtocol": "error",
+        "noDescendingSpecificity": "off"
       },
       "suspicious": {
         "noExplicitAny": "off",
         "noArrayIndexKey": "off",
-        "noDocumentCookie": "off"
+        "noDocumentCookie": "off",
+        "noControlCharactersInRegex": "off",
+        "noAssignInExpressions": "off",
+        "noImplicitAnyLet": "warn",
+        "noDoubleEquals": "warn"
+      },
+      "complexity": {
+        "noImportantStyles": "off"
       },
       "a11y": {
         "useButtonType": "off",
         "noSvgWithoutTitle": "off",
         "useKeyWithClickEvents": "off",
-        "noLabelWithoutControl": "off"
+        "noLabelWithoutControl": "off",
+        "useAriaPropsSupportedByRole": "off",
+        "noStaticElementInteractions": "off",
+        "useFocusableInteractive": "off",
+        "useSemanticElements": "off",
+        "noRedundantRoles": "off",
+        "useMediaCaption": "off"
       },
       "nursery": {
         "useTailwindSortedClasses": "off"
@@ -79,6 +102,9 @@
     }
   },
   "css": {
+    "parser": {
+      "tailwindDirectives": true
+    },
     "formatter": {
       "enabled": true,
       "quoteStyle": "double"

@@ -53,6 +53,7 @@ export const SHARE_ACCESS_LOG_LIMIT = 50
 
 export const NAME_MAX_LENGTH = 255
 // Control chars (U+0000–U+001F) are rejected in folder/file names
-export const FORBIDDEN_NAME_CHARS = /[<>:"/\\|?*\x00-\x1f]/ // eslint-disable-line no-control-regex
+/** Reject path separators, wildcards, and C0 control characters in names. */
+export const FORBIDDEN_NAME_CHARS = /[<>:"/\\|?*\x00-\x1f]/
 
 export const ONBOARDING_STEPS = 4
