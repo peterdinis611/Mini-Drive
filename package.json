@@ -33,7 +33,8 @@
     "test:k6": "k6 run k6/load.js",
     "test:k6:smoke": "k6 run k6/smoke.js",
     "test:k6:spike": "k6 run k6/spike.js",
-    "test:k6:share-rate": "k6 run k6/share-rate.js"
+    "test:k6:share-rate": "k6 run k6/share-rate.js",
+    "screenshots": "node scripts/capture-screenshots.mjs"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.14",

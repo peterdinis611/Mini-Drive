@@ -6,9 +6,9 @@ Osobné úložisko súborov inšpirované S3 / Google Drive. TanStack Start + Cl
   <img src="docs/screenshots/landing.jpg" alt="Mini Drive — landing" width="900" />
 </p>
 
-| Súbory                                                                   | Safe-url zdieľanie                                                      |
-| ------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| <img src="docs/screenshots/files.jpg" alt="File explorer" width="420" /> | <img src="docs/screenshots/share.jpg" alt="Share dialog" width="420" /> |
+| Archív (landing ukážka)                                                                            | Safe-url flow                                                                                |
+| -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| <img src="docs/screenshots/files.jpg" alt="Mini Drive — ukážka archívu na landingu" width="420" /> | <img src="docs/screenshots/share.jpg" alt="Mini Drive — tri ťahy do safe-url" width="420" /> |
 
 ## Rozhodnutia stacku
 
@@ -102,6 +102,7 @@ Security headers + CSRF sú v `src/start.ts`.
 | `pnpm test:e2e`      | Playwright e2e             |
 | `pnpm test:k6`       | k6 load (bežiaci server)   |
 | `pnpm test:k6:smoke` | k6 smoke                   |
+| `pnpm screenshots`   | README JPEG z bežiacej app |
 | `pnpm db:push`       | Aplikuj schému do Postgres |
 | `pnpm db:backup`     | Šifrovaný `pg_dump` backup |
 | `pnpm db:restore`    | Obnova cez `pg_restore`    |
