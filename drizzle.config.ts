@@ -1,5 +1,5 @@
 import { config } from 'dotenv'
-import { defineConfig } from 'drizzle-kit'
+import { defineConfig, type Config } from 'drizzle-kit'
 
 config({ path: ['.env.local', '.env'] })
 
@@ -9,7 +9,6 @@ export default defineConfig({
   dialect: 'postgresql',
   dbCredentials: {
     url:
-      process.env.DATABASE_URL ??
-      'postgresql://postgres:postgres@127.0.0.1:5432/mini_drive',
+      process.env.DATABASE_URL ?? ""
   },
-})
+}) satisfies Config
