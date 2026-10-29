@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "version": "0.0.1",
+  "packageManager": "pnpm@11.1.2",
   "imports": {
     "#/*": "./src/*"
   },

@@ -22,7 +22,7 @@ Osobné úložisko súborov inšpirované S3 / Google Drive. TanStack Start + Cl
 ## Požiadavky
 
 - Node 22+
-- pnpm 9+
+- pnpm 11+
 - PostgreSQL 16+ (lokálne alebo Docker)
 
 ## Inštalácia
