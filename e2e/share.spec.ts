@@ -17,7 +17,9 @@ test.describe('public share surfaces', () => {
   test('missing /e/$token shows embed gone state', async ({ page }) => {
     await page.goto('/e/e2e-missing-embed-xyz')
     await expect(
-      page.getByText(/Odkaz neexistuje|Odkaz vypršal|Odkaz bol zrušený|Príliš veľa požiadaviek/),
+      page.getByText(
+        /Súbor sa nenašiel|Odkaz vypršal|Odkaz bol zrušený|Príliš veľa požiadaviek/,
+      ),
     ).toBeVisible({ timeout: 15_000 })
   })
 })

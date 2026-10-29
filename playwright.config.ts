@@ -4,7 +4,14 @@ import dotenv from 'dotenv'
 dotenv.config({ path: '.env.local' })
 dotenv.config()
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3000'
+const port = (() => {
+  try {
+    return new URL(baseURL).port || '3000'
+  } catch {
+    return '3000'
+  }
+})()
 
 export default defineConfig({
   testDir: './e2e',
@@ -31,9 +38,10 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
-        command: 'pnpm dev',
-        url: baseURL,
+        command: `pnpm exec vite dev --port ${port} --strictPort`,
+        // Prefer health over `/` — landing SSR can be slow / flaky while Vite warms up.
+        url: `${baseURL}/api/health`,
         reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
+        timeout: 180_000,
       },
 })
