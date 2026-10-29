@@ -4,8 +4,9 @@
  *
  *   pnpm test:k6:share-rate
  */
-import http from 'k6/http'
+
 import { check, sleep } from 'k6'
+import http from 'k6/http'
 import { Counter } from 'k6/metrics'
 
 import { url } from './lib/env.js'

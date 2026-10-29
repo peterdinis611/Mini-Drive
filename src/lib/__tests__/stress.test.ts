@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { applyRenamePattern } from '#/lib/batch-rename'
-import {
-  SHARE_PASSWORD_RATE_LIMIT,
-  SHARE_RATE_LIMIT,
-} from '#/lib/constants'
+import { SHARE_PASSWORD_RATE_LIMIT, SHARE_RATE_LIMIT } from '#/lib/constants'
 import { parseDelimitedText } from '#/lib/csv-parse'
 import { filterDriveFiles } from '#/lib/drive-filters'
 import {

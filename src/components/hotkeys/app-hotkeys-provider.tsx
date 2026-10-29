@@ -28,14 +28,16 @@ export function AppHotkeysProvider({ children }: Props) {
   const accountLoaded = useRef(false)
 
   useEffect(() => {
-    setCustomHotkeys(loadCustomHotkeys())
+    setCustomHotkeys(loadCustomHotkeys() as CustomHotkeys)
     setBootKey(1)
 
     let cancelled = false
     void getCustomHotkeys()
       .then((result) => {
         if (cancelled) return
-        const fromAccount = parseCustomHotkeys(result.customHotkeys)
+        const fromAccount = parseCustomHotkeys(
+          result.customHotkeys,
+        ) as CustomHotkeys
         if (Object.keys(fromAccount).length === 0) return
         accountLoaded.current = true
         setCustomHotkeys(fromAccount)
@@ -58,11 +60,15 @@ export function AppHotkeysProvider({ children }: Props) {
       customHotkeys={customHotkeys}
       onCustomHotkeysChange={(next) => {
         setCustomHotkeys(next)
-        saveCustomHotkeys(next)
+        saveCustomHotkeys(next as Record<string, unknown>)
         if (persistTimer.current) clearTimeout(persistTimer.current)
         persistTimer.current = setTimeout(() => {
           void updateSettings({
-            data: { customHotkeys: serializeCustomHotkeys(next) },
+            data: {
+              customHotkeys: serializeCustomHotkeys(
+                next as Record<string, unknown>,
+              ),
+            },
           }).catch(() => {
             // Account sync is best-effort
           })

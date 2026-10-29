@@ -6,18 +6,18 @@ Osobné úložisko súborov inšpirované S3 / Google Drive. TanStack Start + Cl
   <img src="docs/screenshots/landing.jpg" alt="Mini Drive — landing" width="900" />
 </p>
 
-| Súbory | Safe-url zdieľanie |
-| ------ | ------------------ |
+| Súbory                                                                   | Safe-url zdieľanie                                                      |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
 | <img src="docs/screenshots/files.jpg" alt="File explorer" width="420" /> | <img src="docs/screenshots/share.jpg" alt="Share dialog" width="420" /> |
 
 ## Rozhodnutia stacku
 
-| Oblasť            | Voľba                                         | Zdôvodnenie                                                                                           |
-| ----------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Auth              | **Clerk**                                     | Session + middleware pre TanStack Start; lokálny user sync v Postgres.                                |
-| DB                | **PostgreSQL + Drizzle**                      | Produkčný driver (`pg`); schéma cez `drizzle-kit push` / migrate.                                     |
-| Mazanie priečinka | Rekurzívne so súhrnom                         | Drive-like UX; UT súbory sa mažú cez `UTApi.deleteFiles`.                                             |
-| Safe-url          | Vlastný token `/s/$token` → krátky signed URL | Revoke/expirácia v DB; `uploadthingKey` nikdy na klienta.                                             |
+| Oblasť            | Voľba                                         | Zdôvodnenie                                                            |
+| ----------------- | --------------------------------------------- | ---------------------------------------------------------------------- |
+| Auth              | **Clerk**                                     | Session + middleware pre TanStack Start; lokálny user sync v Postgres. |
+| DB                | **PostgreSQL + Drizzle**                      | Produkčný driver (`pg`); schéma cez `drizzle-kit push` / migrate.      |
+| Mazanie priečinka | Rekurzívne so súhrnom                         | Drive-like UX; UT súbory sa mažú cez `UTApi.deleteFiles`.              |
+| Safe-url          | Vlastný token `/s/$token` → krátky signed URL | Revoke/expirácia v DB; `uploadthingKey` nikdy na klienta.              |
 
 ## Požiadavky
 
@@ -42,15 +42,15 @@ Otvor [http://localhost:3000](http://localhost:3000).
 
 ### Premenné
 
-| Premenná                       | Účel                                              |
-| ------------------------------ | ------------------------------------------------- |
-| `NODE_ENV=production`          | Prod režim (CSP, HSTS, env guards)                |
-| `APP_URL`                      | Canonical URL, sitemap, robots, CSRF (`https://…`) |
-| `DATABASE_URL`                 | `postgresql://…` connection string                |
-| `CLERK_*` / `VITE_CLERK_*`     | Live Clerk kľúče + dashboard origins              |
-| `UPLOADTHING_TOKEN`            | Upload + signed URL (ACL **private** v dashboarde) |
-| `AUDIT_IP_PEPPER`              | Hash IP pri share audite (odporúčané)             |
-| `BACKUP_ENCRYPTION_KEY`        | Šifrované `pnpm db:backup` / `db:restore`         |
+| Premenná                   | Účel                                               |
+| -------------------------- | -------------------------------------------------- |
+| `NODE_ENV=production`      | Prod režim (CSP, HSTS, env guards)                 |
+| `APP_URL`                  | Canonical URL, sitemap, robots, CSRF (`https://…`) |
+| `DATABASE_URL`             | `postgresql://…` connection string                 |
+| `CLERK_*` / `VITE_CLERK_*` | Live Clerk kľúče + dashboard origins               |
+| `UPLOADTHING_TOKEN`        | Upload + signed URL (ACL **private** v dashboarde) |
+| `AUDIT_IP_PEPPER`          | Hash IP pri share audite (odporúčané)              |
+| `BACKUP_ENCRYPTION_KEY`    | Šifrované `pnpm db:backup` / `db:restore`          |
 
 Pri štarte procesu (`pnpm start`) chýbajúce povinné premenné spôsobia hard fail.
 
@@ -87,25 +87,25 @@ Security headers + CSRF sú v `src/start.ts`.
 
 ## Skripty
 
-| Skript               | Popis                         |
-| -------------------- | ----------------------------- |
-| `pnpm dev`           | Vývojový server               |
-| `pnpm build`         | Produkčný build               |
-| `pnpm start`         | Produkčný server (srvx)       |
-| `pnpm typecheck`     | TypeScript                    |
-| `pnpm lint`          | Biome lint                    |
-| `pnpm format`        | Biome format                  |
-| `pnpm check`         | Biome check (lint+format)     |
-| `pnpm test`          | Vitest raz                    |
-| `pnpm test:watch`    | Vitest watch                  |
-| `pnpm test:coverage` | Coverage report               |
-| `pnpm test:e2e`      | Playwright e2e                |
-| `pnpm test:k6`       | k6 load (bežiaci server)      |
-| `pnpm test:k6:smoke` | k6 smoke                      |
-| `pnpm db:push`       | Aplikuj schému do Postgres    |
-| `pnpm db:backup`     | Šifrovaný `pg_dump` backup    |
-| `pnpm db:restore`    | Obnova cez `pg_restore`       |
-| `pnpm db:studio`     | Drizzle Studio                |
+| Skript               | Popis                      |
+| -------------------- | -------------------------- |
+| `pnpm dev`           | Vývojový server            |
+| `pnpm build`         | Produkčný build            |
+| `pnpm start`         | Produkčný server (srvx)    |
+| `pnpm typecheck`     | TypeScript                 |
+| `pnpm lint`          | Biome lint                 |
+| `pnpm format`        | Biome format               |
+| `pnpm check`         | Biome check (lint+format)  |
+| `pnpm test`          | Vitest raz                 |
+| `pnpm test:watch`    | Vitest watch               |
+| `pnpm test:coverage` | Coverage report            |
+| `pnpm test:e2e`      | Playwright e2e             |
+| `pnpm test:k6`       | k6 load (bežiaci server)   |
+| `pnpm test:k6:smoke` | k6 smoke                   |
+| `pnpm db:push`       | Aplikuj schému do Postgres |
+| `pnpm db:backup`     | Šifrovaný `pg_dump` backup |
+| `pnpm db:restore`    | Obnova cez `pg_restore`    |
+| `pnpm db:studio`     | Drizzle Studio             |
 
 ## Load testy (k6)
 

@@ -4,8 +4,9 @@
  *   pnpm test:k6:smoke
  *   BASE_URL=http://127.0.0.1:3000 k6 run k6/smoke.js
  */
-import http from 'k6/http'
+
 import { sleep } from 'k6'
+import http from 'k6/http'
 
 import { jsonHealthOk, okStatus } from './lib/checks.js'
 import { url } from './lib/env.js'
@@ -27,10 +28,10 @@ export default function smoke() {
   okStatus(http.get(url('/sitemap.xml'), { tags: { name: 'sitemap' } }))
 
   // Missing share token → gone UI (framework may surface 410 or 200+body).
-  okStatus(http.get(url('/s/k6-missing-token'), { tags: { name: 'share_gone' } }), [
-    200,
-    410,
-  ])
+  okStatus(
+    http.get(url('/s/k6-missing-token'), { tags: { name: 'share_gone' } }),
+    [200, 410],
+  )
 
   sleep(0.5)
 }

@@ -9,12 +9,12 @@ HTTP load against a **running** Mini Drive instance (dev or prod). Pure Vitest s
 
 ## Scenáre
 
-| Skript | Príkaz | Účel |
-| ------ | ------ | ---- |
-| `smoke.js` | `pnpm test:k6:smoke` | 2 VU / 20s — health, landing, robots, sitemap, missing share |
-| `load.js` | `pnpm test:k6` | Ramp 0→25 VU — mix public endpoints |
-| `spike.js` | `pnpm test:k6:spike` | Short spike na 50 VU |
-| `share-rate.js` | `pnpm test:k6:share-rate` | 1 VU burst na `/s/*` — očakáva 429 po limite |
+| Skript          | Príkaz                    | Účel                                                         |
+| --------------- | ------------------------- | ------------------------------------------------------------ |
+| `smoke.js`      | `pnpm test:k6:smoke`      | 2 VU / 20s — health, landing, robots, sitemap, missing share |
+| `load.js`       | `pnpm test:k6`            | Ramp 0→25 VU — mix public endpoints                          |
+| `spike.js`      | `pnpm test:k6:spike`      | Short spike na 50 VU                                         |
+| `share-rate.js` | `pnpm test:k6:share-rate` | 1 VU burst na `/s/*` — očakáva 429 po limite                 |
 
 ## Premenné
 

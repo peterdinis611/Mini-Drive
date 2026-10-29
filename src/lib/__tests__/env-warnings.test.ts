@@ -40,10 +40,13 @@ describe('warnOptionalProductionEnv', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { warnOptionalProductionEnv } = await import('#/lib/env')
     warnOptionalProductionEnv()
-    expect(warn.mock.calls.some((c) => String(c[0]).includes('AUDIT_IP_PEPPER')))
-      .toBe(true)
     expect(
-      warn.mock.calls.some((c) => String(c[0]).includes('BACKUP_ENCRYPTION_KEY')),
+      warn.mock.calls.some((c) => String(c[0]).includes('AUDIT_IP_PEPPER')),
+    ).toBe(true)
+    expect(
+      warn.mock.calls.some((c) =>
+        String(c[0]).includes('BACKUP_ENCRYPTION_KEY'),
+      ),
     ).toBe(true)
   })
 

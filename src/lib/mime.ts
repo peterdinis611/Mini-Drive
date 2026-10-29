@@ -57,7 +57,10 @@ export function resolveStoredMimeType(type: string, name: string): string {
       pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       odt: 'application/vnd.oasis.opendocument.text',
     }
-    return map[ext] ?? (kind === 'spreadsheet' ? 'text/csv' : 'application/octet-stream')
+    return (
+      map[ext] ??
+      (kind === 'spreadsheet' ? 'text/csv' : 'application/octet-stream')
+    )
   }
   if (kind === 'archive') {
     const map: Record<string, string> = {

@@ -4,8 +4,9 @@
  *   pnpm start   # in another terminal
  *   pnpm test:k6
  */
-import http from 'k6/http'
+
 import { sleep } from 'k6'
+import http from 'k6/http'
 
 import { jsonHealthOk, okStatus } from './lib/checks.js'
 import { url } from './lib/env.js'
@@ -44,17 +45,16 @@ export default function load() {
     okStatus(http.get(url('/sitemap.xml'), { tags: { name: 'sitemap' } }))
   } else if (roll < 0.9) {
     const token = randomToken(24)
-    okStatus(http.get(url(`/s/${token}`), { tags: { name: 'share_gone' } }), [
-      200,
-      410,
-    ])
+    okStatus(
+      http.get(url(`/s/${token}`), { tags: { name: 'share_gone' } }),
+      [200, 410],
+    )
   } else {
     const token = randomToken(24)
-    okStatus(http.get(url(`/e/${token}`), { tags: { name: 'embed_gone' } }), [
-      200,
-      404,
-      410,
-    ])
+    okStatus(
+      http.get(url(`/e/${token}`), { tags: { name: 'embed_gone' } }),
+      [200, 404, 410],
+    )
   }
 
   sleep(0.3 + Math.random() * 0.7)

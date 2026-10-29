@@ -5,8 +5,8 @@ import {
   dispatchQuickAction,
   isQuickAction,
   onQuickAction,
-  queueQuickAction,
   QUICK_ACTION_PENDING_KEY,
+  queueQuickAction,
 } from '#/lib/quick-actions'
 
 describe('isQuickAction', () => {
@@ -38,7 +38,9 @@ describe('dispatchQuickAction / onQuickAction', () => {
     const handler = vi.fn()
     const off = onQuickAction(handler)
     window.dispatchEvent(
-      new CustomEvent('mini-drive:quick-action', { detail: { action: 'nope' } }),
+      new CustomEvent('mini-drive:quick-action', {
+        detail: { action: 'nope' },
+      }),
     )
     expect(handler).not.toHaveBeenCalled()
     off()

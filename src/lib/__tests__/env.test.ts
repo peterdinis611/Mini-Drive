@@ -63,7 +63,8 @@ describe('assertProductionEnv', () => {
     process.env.CLERK_PUBLISHABLE_KEY = 'pk_live_x'
     process.env.VITE_CLERK_PUBLISHABLE_KEY = 'pk_live_x'
     process.env.UPLOADTHING_TOKEN = 'tok'
-    process.env.DATABASE_URL = 'postgresql://postgres:postgres@db:5432/mini_drive'
+    process.env.DATABASE_URL =
+      'postgresql://postgres:postgres@db:5432/mini_drive'
     const { assertProductionEnv } = await import('#/lib/env')
     expect(() => assertProductionEnv()).toThrow(/localhost/)
   })

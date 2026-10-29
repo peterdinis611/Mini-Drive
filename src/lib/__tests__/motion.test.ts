@@ -33,12 +33,16 @@ describe('motion tokens', () => {
   it('staggers children with delay', () => {
     expect(staggerFast.show).toMatchObject(
       expect.objectContaining({
-        transition: expect.objectContaining({ staggerChildren: expect.any(Number) }),
+        transition: expect.objectContaining({
+          staggerChildren: expect.any(Number),
+        }),
       }),
     )
     expect(staggerSlow.show).toMatchObject(
       expect.objectContaining({
-        transition: expect.objectContaining({ staggerChildren: expect.any(Number) }),
+        transition: expect.objectContaining({
+          staggerChildren: expect.any(Number),
+        }),
       }),
     )
   })

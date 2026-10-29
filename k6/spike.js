@@ -3,8 +3,9 @@
  *
  *   pnpm test:k6:spike
  */
-import http from 'k6/http'
+
 import { sleep } from 'k6'
+import http from 'k6/http'
 
 import { jsonHealthOk, okStatus } from './lib/checks.js'
 import { url } from './lib/env.js'

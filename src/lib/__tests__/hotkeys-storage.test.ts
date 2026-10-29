@@ -18,15 +18,15 @@ describe('parseCustomHotkeys', () => {
   })
 
   it('keeps object maps', () => {
-    expect(parseCustomHotkeys('{"search":"mod+k"}')).toEqual({
-      search: 'mod+k',
+    expect(parseCustomHotkeys('{"search.open":"mod+k"}')).toEqual({
+      'search.open': 'mod+k',
     })
   })
 })
 
 describe('serializeCustomHotkeys', () => {
   it('round-trips through JSON', () => {
-    const custom = { search: 'mod+k', upload: 'mod+u' }
+    const custom = { 'search.open': 'mod+k', 'files.upload': 'mod+u' }
     expect(JSON.parse(serializeCustomHotkeys(custom))).toEqual(custom)
   })
 })
@@ -41,9 +41,9 @@ describe('load / save custom hotkeys', () => {
   })
 
   it('persists and reloads', () => {
-    saveCustomHotkeys({ search: 'mod+/' })
+    saveCustomHotkeys({ 'search.open': 'mod+/' })
     expect(window.localStorage.getItem(HOTKEYS_STORAGE_KEY)).toContain('mod+/')
-    expect(loadCustomHotkeys()).toEqual({ search: 'mod+/' })
+    expect(loadCustomHotkeys()).toEqual({ 'search.open': 'mod+/' })
   })
 
   it('tolerates corrupt storage', () => {
