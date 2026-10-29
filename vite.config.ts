@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import { redact } from '@tanstack/redact/vite'
 import viteReact from '@vitejs/plugin-react'
 import rsc from '@vitejs/plugin-rsc'
 import tailwindcss from '@tailwindcss/vite'
@@ -12,15 +13,17 @@ const config = defineConfig({
     port: 3000,
     strictPort: true,
   },
-  // Native addons must load via Node, not Vite's SSR module runner
-  // (bindings breaks under eval: "Cannot read properties of undefined (reading 'indexOf')").
+  // Redact needs server deps bundled so their `react` imports resolve to the
+  // same runtime. better-sqlite3 stays external (native Node addon).
+  // https://tanstack.com/redact/latest/docs/start
   ssr: {
+    noExternal: true,
     external: ['better-sqlite3'],
   },
   optimizeDeps: {
     // better-sqlite3: native addon. radix-ui: "use client" tree — prebundling it
     // triggers RSC "inconsistently optimized" spam for every @radix-ui/* package.
-    exclude: ['better-sqlite3', 'radix-ui'],
+    exclude: ['better-sqlite3', 'radix-ui', '@tanstack/redact'],
     include: ['@clerk/tanstack-react-start'],
   },
   build: {
@@ -43,6 +46,14 @@ const config = defineConfig({
     }),
     rsc(),
     viteReact(),
+    // After Start + React. RSC env stays on upstream React; client/SSR use Redact.
+    redact({
+      features: {
+        // Unused in this app; keep portal/suspense/context for Radix + Start.
+        activity: false,
+        fragmentRefs: false,
+      },
+    }),
   ],
 })
 
