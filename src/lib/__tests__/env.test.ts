@@ -63,9 +63,22 @@ describe('assertProductionEnv', () => {
     process.env.CLERK_PUBLISHABLE_KEY = 'pk_live_x'
     process.env.VITE_CLERK_PUBLISHABLE_KEY = 'pk_live_x'
     process.env.UPLOADTHING_TOKEN = 'tok'
-    process.env.DATABASE_URL = '/data/mini-drive.db'
+    process.env.DATABASE_URL = 'postgresql://postgres:postgres@db:5432/mini_drive'
     const { assertProductionEnv } = await import('#/lib/env')
     expect(() => assertProductionEnv()).toThrow(/localhost/)
+  })
+
+  it('rejects non-postgres DATABASE_URL in production', async () => {
+    process.env.NODE_ENV = 'production'
+    process.env.npm_lifecycle_event = 'start'
+    process.env.APP_URL = 'https://drive.example.com'
+    process.env.CLERK_SECRET_KEY = 'sk_live_x'
+    process.env.CLERK_PUBLISHABLE_KEY = 'pk_live_x'
+    process.env.VITE_CLERK_PUBLISHABLE_KEY = 'pk_live_x'
+    process.env.UPLOADTHING_TOKEN = 'tok'
+    process.env.DATABASE_URL = 'dev.db'
+    const { assertProductionEnv } = await import('#/lib/env')
+    expect(() => assertProductionEnv()).toThrow(/postgresql/)
   })
 
   it('accepts a complete production env', async () => {
@@ -76,7 +89,8 @@ describe('assertProductionEnv', () => {
     process.env.CLERK_PUBLISHABLE_KEY = 'pk_live_x'
     process.env.VITE_CLERK_PUBLISHABLE_KEY = 'pk_live_x'
     process.env.UPLOADTHING_TOKEN = 'tok'
-    process.env.DATABASE_URL = '/data/mini-drive.db'
+    process.env.DATABASE_URL =
+      'postgresql://postgres:postgres@db:5432/mini_drive'
     const { assertProductionEnv } = await import('#/lib/env')
     expect(() => assertProductionEnv()).not.toThrow()
   })

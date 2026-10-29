@@ -8,12 +8,10 @@ export const Route = createFileRoute('/api/health')({
         let dbOk = false
 
         try {
-          // Use the shared SQLite handle (avoid re-importing the full Drizzle schema graph).
-          const { sqlite } = await import('#/db')
-          const row = sqlite.prepare('SELECT 1 AS ok').get() as
-            | { ok: number }
-            | undefined
-          dbOk = row?.ok === 1
+          const { pool, waitForDb } = await import('#/db')
+          await waitForDb()
+          const result = await pool.query<{ ok: number }>('SELECT 1 AS ok')
+          dbOk = result.rows[0]?.ok === 1
         } catch (error) {
           console.error('[mini-drive] health database check failed', error)
           dbOk = false

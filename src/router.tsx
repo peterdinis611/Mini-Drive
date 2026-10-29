@@ -13,7 +13,7 @@ export function getRouter() {
     context,
     scrollRestoration: true,
     defaultPreload: 'intent',
-    defaultPreloadStaleTime: 30_000,
+    defaultPreloadStaleTime: 60_000,
     defaultPendingMs: 120,
     defaultPendingMinMs: 250,
     defaultPendingComponent: RoutePending,

@@ -50,9 +50,9 @@ export function assertProductionEnv(): void {
   }
 
   const dbUrl = process.env.DATABASE_URL!.trim()
-  if (dbUrl === 'dev.db' || dbUrl.endsWith('/dev.db')) {
+  if (!/^postgres(ql)?:\/\//i.test(dbUrl)) {
     throw new Error(
-      '[mini-drive] DATABASE_URL must not use the local `dev.db` path in production.',
+      '[mini-drive] DATABASE_URL must be a postgresql:// connection string in production.',
     )
   }
 }

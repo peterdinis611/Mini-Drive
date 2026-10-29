@@ -1,28 +1,29 @@
 import { relations, sql } from 'drizzle-orm'
 import {
+  boolean,
   index,
   integer,
-  sqliteTable,
+  pgTable,
   text,
+  timestamp,
   uniqueIndex,
-} from 'drizzle-orm/sqlite-core'
+} from 'drizzle-orm/pg-core'
 
-export const user = sqliteTable('user', {
+const ts = (name: string) =>
+  timestamp(name, { withTimezone: true, mode: 'date' })
+
+export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
-  emailVerified: integer('email_verified', { mode: 'boolean' })
-    .notNull()
-    .default(sql`0`),
+  emailVerified: boolean('email_verified').notNull().default(false),
   image: text('image'),
-  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at')
     .notNull()
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
-  updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-    .notNull()
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .defaultNow()
     .$onUpdate(() => new Date()),
-  onboardedAt: integer('onboarded_at', { mode: 'timestamp_ms' }),
+  onboardedAt: ts('onboarded_at'),
   viewPreference: text('view_preference', { enum: ['grid', 'list'] })
     .notNull()
     .default('list'),
@@ -35,9 +36,7 @@ export const user = sqliteTable('user', {
   defaultShareExpiresIn: integer('default_share_expires_in')
     .notNull()
     .default(3600),
-  confirmDelete: integer('confirm_delete', { mode: 'boolean' })
-    .notNull()
-    .default(true),
+  confirmDelete: boolean('confirm_delete').notNull().default(true),
   onboardingStep: integer('onboarding_step').notNull().default(1),
   /** JSON map of TanStack Hotkeys custom bindings. */
   customHotkeys: text('custom_hotkeys'),
@@ -45,18 +44,16 @@ export const user = sqliteTable('user', {
   lastFolderId: text('last_folder_id'),
 })
 
-export const session = sqliteTable(
+export const session = pgTable(
   'session',
   {
     id: text('id').primaryKey(),
-    expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
+    expiresAt: ts('expires_at').notNull(),
     token: text('token').notNull().unique(),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    createdAt: ts('created_at').notNull().defaultNow(),
+    updatedAt: ts('updated_at')
       .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .defaultNow()
       .$onUpdate(() => new Date()),
     ipAddress: text('ip_address'),
     userAgent: text('user_agent'),
@@ -67,7 +64,7 @@ export const session = sqliteTable(
   (table) => [index('session_userId_idx').on(table.userId)],
 )
 
-export const account = sqliteTable(
+export const account = pgTable(
   'account',
   {
     id: text('id').primaryKey(),
@@ -79,44 +76,36 @@ export const account = sqliteTable(
     accessToken: text('access_token'),
     refreshToken: text('refresh_token'),
     idToken: text('id_token'),
-    accessTokenExpiresAt: integer('access_token_expires_at', {
-      mode: 'timestamp_ms',
-    }),
-    refreshTokenExpiresAt: integer('refresh_token_expires_at', {
-      mode: 'timestamp_ms',
-    }),
+    accessTokenExpiresAt: ts('access_token_expires_at'),
+    refreshTokenExpiresAt: ts('refresh_token_expires_at'),
     scope: text('scope'),
     password: text('password'),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    createdAt: ts('created_at').notNull().defaultNow(),
+    updatedAt: ts('updated_at')
       .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   (table) => [index('account_userId_idx').on(table.userId)],
 )
 
-export const verification = sqliteTable(
+export const verification = pgTable(
   'verification',
   {
     id: text('id').primaryKey(),
     identifier: text('identifier').notNull(),
     value: text('value').notNull(),
-    expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    expiresAt: ts('expires_at').notNull(),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    updatedAt: ts('updated_at')
       .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   (table) => [index('verification_identifier_idx').on(table.identifier)],
 )
 
-export const folders = sqliteTable(
+export const folders = pgTable(
   'folders',
   {
     id: text('id')
@@ -131,10 +120,8 @@ export const folders = sqliteTable(
     color: text('color'),
     /** 0 = normal, 1–3 = higher priority pin order. */
     priority: integer('priority').notNull().default(0),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
-    deletedAt: integer('deleted_at', { mode: 'timestamp_ms' }),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    deletedAt: ts('deleted_at'),
   },
   (table) => [
     uniqueIndex('folders_user_parent_name_uidx')
@@ -145,7 +132,7 @@ export const folders = sqliteTable(
   ],
 )
 
-export const files = sqliteTable(
+export const files = pgTable(
   'files',
   {
     id: text('id')
@@ -161,10 +148,8 @@ export const files = sqliteTable(
     size: integer('size').notNull(),
     mimeType: text('mime_type').notNull(),
     uploadthingKey: text('uploadthing_key').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
-    deletedAt: integer('deleted_at', { mode: 'timestamp_ms' }),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    deletedAt: ts('deleted_at'),
     currentVersion: integer('current_version').notNull().default(1),
     /** SHA-256 of file bytes — duplicate detection. */
     contentHash: text('content_hash'),
@@ -182,7 +167,7 @@ export const files = sqliteTable(
 )
 
 /** Comments / discussion on a file. */
-export const fileComments = sqliteTable(
+export const fileComments = pgTable(
   'file_comments',
   {
     id: text('id')
@@ -195,9 +180,7 @@ export const fileComments = sqliteTable(
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     body: text('body').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    createdAt: ts('created_at').notNull().defaultNow(),
   },
   (table) => [
     index('file_comments_fileId_idx').on(table.fileId),
@@ -206,7 +189,7 @@ export const fileComments = sqliteTable(
 )
 
 /** Single-user (and future multi-user) audit trail. */
-export const activityEvents = sqliteTable(
+export const activityEvents = pgTable(
   'activity_events',
   {
     id: text('id')
@@ -222,9 +205,7 @@ export const activityEvents = sqliteTable(
     targetId: text('target_id'),
     summary: text('summary').notNull(),
     metaJson: text('meta_json'),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    createdAt: ts('created_at').notNull().defaultNow(),
   },
   (table) => [
     index('activity_events_userId_idx').on(table.userId),
@@ -233,7 +214,7 @@ export const activityEvents = sqliteTable(
 )
 
 /** Named saved searches (separate from smart folders). */
-export const savedSearches = sqliteTable(
+export const savedSearches = pgTable(
   'saved_searches',
   {
     id: text('id')
@@ -245,15 +226,13 @@ export const savedSearches = sqliteTable(
     name: text('name').notNull(),
     query: text('query').notNull(),
     kind: text('kind'),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    createdAt: ts('created_at').notNull().defaultNow(),
   },
   (table) => [index('saved_searches_userId_idx').on(table.userId)],
 )
 
 /** Pinned files / folders for quick access. */
-export const favorites = sqliteTable(
+export const favorites = pgTable(
   'favorites',
   {
     id: text('id')
@@ -264,9 +243,7 @@ export const favorites = sqliteTable(
       .references(() => user.id, { onDelete: 'cascade' }),
     targetType: text('target_type', { enum: ['file', 'folder'] }).notNull(),
     targetId: text('target_id').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    createdAt: ts('created_at').notNull().defaultNow(),
   },
   (table) => [
     uniqueIndex('favorites_user_target_uidx').on(
@@ -278,7 +255,7 @@ export const favorites = sqliteTable(
   ],
 )
 
-export const tags = sqliteTable(
+export const tags = pgTable(
   'tags',
   {
     id: text('id')
@@ -289,9 +266,7 @@ export const tags = sqliteTable(
       .references(() => user.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     color: text('color').notNull().default('#2f6fed'),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    createdAt: ts('created_at').notNull().defaultNow(),
   },
   (table) => [
     uniqueIndex('tags_user_name_uidx').on(table.userId, table.name),
@@ -299,7 +274,7 @@ export const tags = sqliteTable(
   ],
 )
 
-export const fileTags = sqliteTable(
+export const fileTags = pgTable(
   'file_tags',
   {
     fileId: text('file_id')
@@ -315,7 +290,7 @@ export const fileTags = sqliteTable(
   ],
 )
 
-export const folderTags = sqliteTable(
+export const folderTags = pgTable(
   'folder_tags',
   {
     folderId: text('folder_id')
@@ -332,7 +307,7 @@ export const folderTags = sqliteTable(
 )
 
 /** Saved smart-folder rules (JSON filter). */
-export const smartFolders = sqliteTable(
+export const smartFolders = pgTable(
   'smart_folders',
   {
     id: text('id')
@@ -344,15 +319,13 @@ export const smartFolders = sqliteTable(
     name: text('name').notNull(),
     /** JSON: { query?, kind?, tagId?, duplicatesOnly? } */
     rulesJson: text('rules_json').notNull().default('{}'),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    createdAt: ts('created_at').notNull().defaultNow(),
   },
   (table) => [index('smart_folders_userId_idx').on(table.userId)],
 )
 
 /** Archived prior revisions of a file (current blob stays on `files`). */
-export const fileVersions = sqliteTable(
+export const fileVersions = pgTable(
   'file_versions',
   {
     id: text('id')
@@ -366,9 +339,7 @@ export const fileVersions = sqliteTable(
     size: integer('size').notNull(),
     mimeType: text('mime_type').notNull(),
     uploadthingKey: text('uploadthing_key').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    createdAt: ts('created_at').notNull().defaultNow(),
   },
   (table) => [
     uniqueIndex('file_versions_file_version_uidx').on(
@@ -379,7 +350,7 @@ export const fileVersions = sqliteTable(
   ],
 )
 
-export const shareLinks = sqliteTable(
+export const shareLinks = pgTable(
   'share_links',
   {
     id: text('id')
@@ -389,16 +360,14 @@ export const shareLinks = sqliteTable(
       .notNull()
       .references(() => files.id, { onDelete: 'cascade' }),
     token: text('token').notNull().unique(),
-    expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
+    expiresAt: ts('expires_at').notNull(),
     createdBy: text('created_by')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
-    revokedAt: integer('revoked_at', { mode: 'timestamp_ms' }),
+    revokedAt: ts('revoked_at'),
     /** scrypt hash — never return plaintext; null = open link. */
     passwordHash: text('password_hash'),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    createdAt: ts('created_at').notNull().defaultNow(),
   },
   (table) => [
     index('share_links_fileId_idx').on(table.fileId),
@@ -407,7 +376,7 @@ export const shareLinks = sqliteTable(
 )
 
 /** Audit log of successful public share opens (HMAC IP fingerprint + UA truncated). */
-export const shareAccessLogs = sqliteTable(
+export const shareAccessLogs = pgTable(
   'share_access_logs',
   {
     id: text('id')
@@ -416,9 +385,7 @@ export const shareAccessLogs = sqliteTable(
     shareLinkId: text('share_link_id')
       .notNull()
       .references(() => shareLinks.id, { onDelete: 'cascade' }),
-    accessedAt: integer('accessed_at', { mode: 'timestamp_ms' })
-      .notNull()
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    accessedAt: ts('accessed_at').notNull().defaultNow(),
     /** HMAC-SHA256 fingerprint — never store raw IP. */
     ipAddress: text('ip_address').notNull(),
     userAgent: text('user_agent'),

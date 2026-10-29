@@ -1,56 +1,61 @@
 #!/usr/bin/env node
 /**
- * Production entry: srvx serves dist/client static assets + dist/server/server.js fetch.
- * Resolves srvx from a direct dependency or the pnpm virtual store (transitive).
+ * Production entry: srvx serves hashed Vite client assets with long-lived cache
+ * headers, then forwards everything else to dist/server/server.js.
  */
-import { spawn } from 'node:child_process'
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { serve } from 'srvx/node'
+import { staticMiddleware } from 'srvx/static'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 process.chdir(root)
 process.env.NODE_ENV = 'production'
 
-function resolveSrvxBin() {
-  const direct = join(root, 'node_modules/srvx/bin/srvx.mjs')
-  if (existsSync(direct)) return direct
-
-  const pnpmDir = join(root, 'node_modules/.pnpm')
-  if (!existsSync(pnpmDir)) return null
-  const match = readdirSync(pnpmDir).find((name) => name.startsWith('srvx@'))
-  if (!match) return null
-  const nested = join(pnpmDir, match, 'node_modules/srvx/bin/srvx.mjs')
-  return existsSync(nested) ? nested : null
-}
-
-const bin = resolveSrvxBin()
-if (!bin) {
-  console.error(
-    '[mini-drive] srvx not found. Run `pnpm install` (srvx is a dependency).',
-  )
-  process.exit(1)
-}
-
 const serverEntry = join(root, 'dist/server/server.js')
+const clientDir = join(root, 'dist/client')
+
 if (!existsSync(serverEntry)) {
   console.error(
     '[mini-drive] Missing dist/server/server.js — run `pnpm build` first.',
   )
   process.exit(1)
 }
+if (!existsSync(clientDir)) {
+  console.error('[mini-drive] Missing dist/client — run `pnpm build` first.')
+  process.exit(1)
+}
 
-const args = ['--prod', '-s', '../client', 'dist/server/server.js']
-if (process.env.PORT) args.unshift(`--port=${process.env.PORT}`)
-if (process.env.HOST) args.unshift(`--host=${process.env.HOST}`)
+const mod = await import(pathToFileURL(serverEntry).href)
+const entry = mod.default ?? mod
+if (typeof entry?.fetch !== 'function') {
+  console.error('[mini-drive] Server entry must export { fetch }.')
+  process.exit(1)
+}
 
-const child = spawn(process.execPath, [bin, ...args], {
-  cwd: root,
-  stdio: 'inherit',
-  env: process.env,
+const port = Number(process.env.PORT || 3000)
+const hostname = process.env.HOST || process.env.HOSTNAME || undefined
+
+const server = serve({
+  port,
+  hostname,
+  gracefulShutdown: true,
+  fetch: (request) => entry.fetch(request),
+  middleware: [
+    // Hashed Vite bundles + public/ copies — long cache; HTML still comes from fetch.
+    staticMiddleware({
+      dir: clientDir,
+      maxAge: 31_536_000,
+      immutable: true,
+      compress: true,
+      etag: true,
+      lastModified: true,
+    }),
+  ],
 })
 
-child.on('exit', (code, signal) => {
-  if (signal) process.kill(process.pid, signal)
-  process.exit(code ?? 1)
-})
+await server.ready()
+console.log(
+  `[mini-drive] listening on http://${hostname || 'localhost'}:${port}/`,
+)

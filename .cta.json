@@ -10,7 +10,7 @@
   "intent": true,
   "addOnOptions": {
     "drizzle": {
-      "database": "sqlite"
+      "database": "postgresql"
     }
   },
   "projectPreset": "default",

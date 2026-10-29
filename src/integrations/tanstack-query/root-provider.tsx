@@ -6,13 +6,18 @@ export function getContext() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 30_000,
-        gcTime: 5 * 60_000,
+        // Drive chrome / folder listings change via explicit invalidate().
+        staleTime: 60_000,
+        gcTime: 15 * 60_000,
         refetchOnWindowFocus: false,
+        refetchOnReconnect: true,
         retry: 1,
+        // Avoid stampedes when many components mount the same query.
+        networkMode: 'online',
       },
       mutations: {
         retry: 0,
+        networkMode: 'online',
       },
     },
   })

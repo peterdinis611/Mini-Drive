@@ -1,7 +1,6 @@
 allowBuilds:
   esbuild: true
   lightningcss: true
-  better-sqlite3: true
   unrs-resolver: true
   # marketing-only postinstall (star on GitHub) — not needed
   pompelmi: false
@@ -13,5 +12,8 @@ overrides:
   xmlbuilder@11: link:vendor/xmlbuilder11
   # Clerk pulls query-core@5.105 while app pins 5.104 — unify for tsc.
   "@tanstack/query-core": "5.104.4"
+  # Prefer the pg peer build of drizzle (avoid dual better-sqlite3 peer graph).
+  "drizzle-orm>better-sqlite3": "-"
+  "drizzle-orm>@types/better-sqlite3": "-"
 patchedDependencies:
   "@uploadthing/shared@7.1.10": patches/@uploadthing__shared@7.1.10.patch

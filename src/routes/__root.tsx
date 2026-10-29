@@ -75,8 +75,14 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         { name: 'application-name', content: APP_NAME },
       ],
       links: [
-        { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
+        {
+          rel: 'icon',
+          href: '/favicon.svg',
+          type: 'image/svg+xml',
+          sizes: 'any',
+        },
         { rel: 'apple-touch-icon', href: '/favicon.svg' },
+        { rel: 'mask-icon', href: '/favicon.svg', color: '#2f6fed' },
         { rel: 'manifest', href: '/site.webmanifest' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         {
@@ -90,6 +96,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
           href: 'https://cdn.fontshare.com',
           crossOrigin: 'anonymous',
         },
+        { rel: 'dns-prefetch', href: 'https://uploadthing.com' },
+        { rel: 'dns-prefetch', href: 'https://utfs.io' },
+        { rel: 'dns-prefetch', href: 'https://clerk.com' },
         {
           rel: 'preload',
           as: 'style',

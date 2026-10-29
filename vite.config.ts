@@ -14,23 +14,24 @@ const config = defineConfig({
     strictPort: true,
   },
   // Redact needs server deps bundled so their `react` imports resolve to the
-  // same runtime. better-sqlite3 stays external (native Node addon).
+  // same runtime. `pg` stays external (Node driver).
   // https://tanstack.com/redact/latest/docs/start
   ssr: {
-    // Bundle app + most deps for Redact; keep native / ORM packages as Node requires
-    // so Drizzle symbols and better-sqlite3 bindings stay single-instance.
+    // Bundle app + most deps for Redact; keep Postgres driver / ORM as Node requires
+    // so Drizzle symbols stay single-instance.
     noExternal: true,
     external: [
-      'better-sqlite3',
+      'pg',
+      'pg-native',
       'drizzle-orm',
-      'drizzle-orm/better-sqlite3',
-      'drizzle-orm/sqlite-core',
+      'drizzle-orm/node-postgres',
+      'drizzle-orm/pg-core',
     ],
   },
   optimizeDeps: {
-    // better-sqlite3: native addon. radix-ui: "use client" tree — prebundling it
+    // pg: Node driver. radix-ui: "use client" tree — prebundling it
     // triggers RSC "inconsistently optimized" spam for every @radix-ui/* package.
-    exclude: ['better-sqlite3', 'radix-ui', '@tanstack/redact'],
+    exclude: ['pg', 'pg-native', 'radix-ui', '@tanstack/redact'],
     include: ['@clerk/tanstack-react-start'],
   },
   build: {
