@@ -1,5 +1,5 @@
 import { APP_NAME } from '#/lib/constants'
-import { SITE, getSiteUrl } from '#/lib/site'
+import { getSiteUrl, SITE } from '#/lib/site'
 
 type SeoInput = {
   title: string
@@ -52,9 +52,7 @@ export function buildSeoHead({
   const canonical = absoluteUrl(path)
   const ogImage = image ?? `${siteUrl}/og.svg`
   const fullTitle =
-    brandSuffix && !title.includes(APP_NAME)
-      ? `${title} · ${APP_NAME}`
-      : title
+    brandSuffix && !title.includes(APP_NAME) ? `${title} · ${APP_NAME}` : title
 
   const robots = noIndex
     ? 'noindex, nofollow, noarchive'
@@ -75,7 +73,10 @@ export function buildSeoHead({
     { name: 'mobile-web-app-capable', content: 'yes' },
     { name: 'keywords', content: [...keywords].join(', ') },
     { name: 'robots', content: robots },
-    { name: 'googlebot', content: noIndex ? 'noindex, nofollow' : 'index, follow' },
+    {
+      name: 'googlebot',
+      content: noIndex ? 'noindex, nofollow' : 'index, follow',
+    },
     { property: 'og:site_name', content: APP_NAME },
     { property: 'og:type', content: ogType },
     { property: 'og:locale', content: SITE.locale },

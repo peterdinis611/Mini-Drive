@@ -20,10 +20,7 @@ export const Route = createFileRoute('/files/$folderId')({
       ])
       return { chrome, contents }
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === 'Priečinok neexistuje'
-      ) {
+      if (error instanceof Error && error.message === 'Priečinok neexistuje') {
         throw notFound()
       }
       throw error

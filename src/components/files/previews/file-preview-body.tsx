@@ -7,8 +7,8 @@ import type { FileKind } from '#/lib/file-kind'
 import { ArchivePreview } from './archive-preview'
 import { AudioPreview } from './audio-preview'
 import { FallbackPreview } from './fallback-preview'
-import { VideoPreview } from './video-preview'
 import type { PreviewShellProps, ThemePreference } from './types'
+import { VideoPreview } from './video-preview'
 
 const ImagePreview = lazy(() =>
   import('./image-preview').then((m) => ({ default: m.ImagePreview })),

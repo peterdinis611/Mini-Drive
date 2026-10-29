@@ -27,6 +27,10 @@ vi.mock('next-themes', () => ({
   useTheme: () => ({ resolvedTheme: 'dark', setTheme: vi.fn() }),
 }))
 
+vi.mock('@clerk/tanstack-react-start', () => ({
+  useAuth: () => ({ isSignedIn: true, userId: 'user_test' }),
+}))
+
 vi.mock('#/lib/toast', () => ({
   toast: {
     success: vi.fn(),
@@ -73,11 +77,11 @@ describe('OnboardingWizard', () => {
       />,
     )
 
-    expect(screen.getByRole('heading', { name: /Mini Drive/i })).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Pokračovať' }))
     expect(
-      await screen.findByText(/Profil a preferencie/i),
+      screen.getByRole('heading', { name: /Mini Drive/i }),
     ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Pokračovať' }))
+    expect(await screen.findByText(/Profil a preferencie/i)).toBeInTheDocument()
   })
 
   it('exposes skip action', async () => {

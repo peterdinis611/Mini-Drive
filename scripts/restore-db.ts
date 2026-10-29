@@ -1,12 +1,16 @@
 /**
- * Decrypt an encrypted SQLite backup.
+ * Decrypt an encrypted Postgres dump and restore with `pg_restore`.
  *
- *   BACKUP_ENCRYPTION_KEY=... pnpm db:restore -- backups/foo.db.enc
- *   BACKUP_ENCRYPTION_KEY=... pnpm db:restore -- backups/foo.db.enc --out restored.db
+ *   BACKUP_ENCRYPTION_KEY=... pnpm db:restore -- backups/foo.dump.enc
+ *   BACKUP_ENCRYPTION_KEY=... pnpm db:restore -- backups/foo.dump.enc --url postgresql://...
  */
+
+import { execFileSync } from 'node:child_process'
+import { randomUUID } from 'node:crypto'
+import { readFileSync, unlinkSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { resolve } from 'node:path'
 import { config } from 'dotenv'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
 
 import { decryptDbBackup } from '../src/lib/db-backup'
 import { getFileBytesSync } from '../src/lib/file-bytes'
@@ -24,38 +28,52 @@ function resolvePassphrase(): string {
   return key
 }
 
-function parseArgs(argv: string[]): { input: string; out: string } {
-  const outIdx = argv.indexOf('--out')
-  let out = 'restored.db'
+function parseArgs(argv: string[]): { input: string; url: string } {
+  const urlIdx = argv.indexOf('--url')
+  let url = (process.env.DATABASE_URL ?? '').trim()
   const rest = [...argv]
-  if (outIdx >= 0) {
-    const value = rest[outIdx + 1]
-    if (!value) throw new Error('Chýba cesta za --out')
-    out = value
-    rest.splice(outIdx, 2)
+  if (urlIdx >= 0) {
+    const value = rest[urlIdx + 1]
+    if (!value) throw new Error('Chýba connection string za --url')
+    url = value
+    rest.splice(urlIdx, 2)
   }
   const input = rest.find((a) => !a.startsWith('-'))
   if (!input) {
     throw new Error(
-      'Použitie: pnpm db:restore -- <backup.db.enc> [--out restored.db]',
+      'Použitie: pnpm db:restore -- <backup.dump.enc> [--url postgresql://…]',
     )
   }
-  return { input, out }
+  if (!/^postgres(ql)?:\/\//i.test(url)) {
+    throw new Error('DATABASE_URL / --url must be a postgresql:// URL')
+  }
+  return { input, url }
 }
 
 const passphrase = resolvePassphrase()
-const { input, out } = parseArgs(process.argv.slice(2))
+const { input, url } = parseArgs(process.argv.slice(2))
 const inPath = resolve(process.cwd(), input)
-const outPath = resolve(process.cwd(), out)
 
 const archiveBytes = getFileBytesSync(inPath)
 const blob = readFileSync(inPath)
 const plaintext = decryptDbBackup(blob, passphrase)
 
-mkdirSync(dirname(outPath), { recursive: true })
-writeFileSync(outPath, plaintext)
+const tmp = resolve(tmpdir(), `mini-drive-restore-${randomUUID()}.dump`)
+try {
+  writeFileSync(tmp, plaintext)
+  execFileSync(
+    'pg_restore',
+    ['--clean', '--if-exists', '--no-owner', `--dbname=${url}`, tmp],
+    { stdio: ['ignore', 'inherit', 'inherit'] },
+  )
+} finally {
+  try {
+    unlinkSync(tmp)
+  } catch {
+    // ignore
+  }
+}
 
-const restoredBytes = getFileBytesSync(outPath)
 console.log(
-  `Restored DB → ${outPath} (${formatFileSize(archiveBytes)} → ${formatFileSize(restoredBytes)})`,
+  `Restored Postgres dump (${formatFileSize(archiveBytes)} archive) → ${url}`,
 )

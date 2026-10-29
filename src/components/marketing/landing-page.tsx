@@ -132,7 +132,10 @@ export function LandingPage() {
               {HERO_CARDS.map((card) => (
                 <li key={card.id} className="landing-card-item">
                   <figure className={`landing-card ${card.className}`}>
-                    <div className="landing-card-art" aria-hidden={!('image' in card)}>
+                    <div
+                      className="landing-card-art"
+                      aria-hidden={!('image' in card)}
+                    >
                       {'image' in card ? (
                         <img
                           src={card.image.src}
@@ -173,7 +176,11 @@ export function LandingPage() {
             </p>
           </section>
 
-          <section className="landing-block" id="ako" aria-labelledby="steps-title">
+          <section
+            className="landing-block"
+            id="ako"
+            aria-labelledby="steps-title"
+          >
             <header className="landing-block-head">
               <p className="landing-step-index">02 — 04</p>
               <h2 id="steps-title">Tri ťahy do safe-url</h2>
@@ -226,10 +233,7 @@ export function LandingPage() {
             </ul>
           </section>
 
-          <aside
-            className="landing-final"
-            aria-labelledby="final-title"
-          >
+          <aside className="landing-final" aria-labelledby="final-title">
             <p className="landing-badge">04 — 04</p>
             <h2 id="final-title">Postav si svoj archív</h2>
             <p>
@@ -298,8 +302,23 @@ function ArtFolders() {
         strokeWidth="3.5"
         strokeLinejoin="round"
       />
-      <rect x="32" y="52" width="56" height="11" rx="4" fill="#101828" opacity="0.18" />
-      <circle cx="90" cy="82" r="18" fill="#7eb8ff" stroke="#101828" strokeWidth="3.5" />
+      <rect
+        x="32"
+        y="52"
+        width="56"
+        height="11"
+        rx="4"
+        fill="#101828"
+        opacity="0.18"
+      />
+      <circle
+        cx="90"
+        cy="82"
+        r="18"
+        fill="#7eb8ff"
+        stroke="#101828"
+        strokeWidth="3.5"
+      />
       <path
         d="M82 82h16M90 74v16"
         stroke="#101828"
@@ -324,8 +343,24 @@ function ArtSafeUrl() {
         strokeWidth="3.5"
       />
       <rect x="30" y="40" width="54" height="13" rx="6" fill="#101828" />
-      <rect x="30" y="60" width="36" height="11" rx="5" fill="#2f6fed" stroke="#101828" strokeWidth="2" />
-      <circle cx="88" cy="86" r="20" fill="#7eb8ff" stroke="#101828" strokeWidth="3.5" />
+      <rect
+        x="30"
+        y="60"
+        width="36"
+        height="11"
+        rx="5"
+        fill="#2f6fed"
+        stroke="#101828"
+        strokeWidth="2"
+      />
+      <circle
+        cx="88"
+        cy="86"
+        r="20"
+        fill="#7eb8ff"
+        stroke="#101828"
+        strokeWidth="3.5"
+      />
       <path
         d="M78 86c0-5.5 4-10 10-10s10 4.5 10 10"
         stroke="#101828"
@@ -411,7 +446,14 @@ function ArtLock() {
         strokeWidth="5"
         strokeLinecap="round"
       />
-      <circle cx="92" cy="32" r="15" fill="#7eb8ff" stroke="#101828" strokeWidth="3" />
+      <circle
+        cx="92"
+        cy="32"
+        r="15"
+        fill="#7eb8ff"
+        stroke="#101828"
+        strokeWidth="3"
+      />
     </svg>
   )
 }

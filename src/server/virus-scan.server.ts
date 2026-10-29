@@ -1,4 +1,4 @@
-import { scanBuffer, Verdict, type ScanOptions } from 'pompelmi'
+import { type ScanOptions, scanBuffer, Verdict } from 'pompelmi'
 
 import { UPLOAD_LIMITS } from '#/lib/constants'
 import {
@@ -109,9 +109,7 @@ export async function scanBytesForShare(
             {
               code: 'CLAMAV_UNAVAILABLE',
               detail:
-                err instanceof Error
-                  ? err.message
-                  : 'ClamAV nie je dostupný',
+                err instanceof Error ? err.message : 'ClamAV nie je dostupný',
             },
           ],
           engines,

@@ -76,12 +76,19 @@ export function ShareStory() {
 function ShareFragment({ state }: { state: number }) {
   if (state === 0) {
     return (
-      <div className="landing-safeurl" data-ui style={{ width: 'min(100%, 26rem)' }}>
+      <div
+        className="landing-safeurl"
+        data-ui
+        style={{ width: 'min(100%, 26rem)' }}
+      >
         <p className="landing-safeurl-label">Vybraný súbor</p>
         <div className="landing-safeurl-file" data-active="true">
           <div>
             <strong>podklady-klient.pdf</strong>
-            <span className="landing-safeurl-label" style={{ display: 'block' }}>
+            <span
+              className="landing-safeurl-label"
+              style={{ display: 'block' }}
+            >
               1,1 MB · priečinok Klienti
             </span>
           </div>
@@ -89,7 +96,10 @@ function ShareFragment({ state }: { state: number }) {
         <div className="landing-safeurl-file" style={{ opacity: 0.55 }}>
           <div>
             <strong>invoice-088.pdf</strong>
-            <span className="landing-safeurl-label" style={{ display: 'block' }}>
+            <span
+              className="landing-safeurl-label"
+              style={{ display: 'block' }}
+            >
               92 KB
             </span>
           </div>
@@ -100,7 +110,11 @@ function ShareFragment({ state }: { state: number }) {
 
   if (state === 1) {
     return (
-      <div className="landing-safeurl" data-ui style={{ width: 'min(100%, 26rem)' }}>
+      <div
+        className="landing-safeurl"
+        data-ui
+        style={{ width: 'min(100%, 26rem)' }}
+      >
         <p className="landing-safeurl-label">Expirácia safe-url</p>
         <div className="landing-ttl">
           <button type="button">1 hodina</button>
@@ -120,7 +134,11 @@ function ShareFragment({ state }: { state: number }) {
   }
 
   return (
-    <div className="landing-safeurl" data-ui style={{ width: 'min(100%, 26rem)' }}>
+    <div
+      className="landing-safeurl"
+      data-ui
+      style={{ width: 'min(100%, 26rem)' }}
+    >
       <p className="landing-safeurl-label">Odkaz pripravený</p>
       <p className="landing-url-readout">
         mini.drive/s/<em>p9r2xm</em>

@@ -62,9 +62,9 @@ describe('getErrorMessage', () => {
   })
 
   it('maps chunk load failures', () => {
-    expect(getErrorMessage(new Error('ChunkLoadError: Loading chunk 3 failed'))).toBe(
-      'Nepodarilo sa načítať časť aplikácie. Obnov stránku.',
-    )
+    expect(
+      getErrorMessage(new Error('ChunkLoadError: Loading chunk 3 failed')),
+    ).toBe('Nepodarilo sa načítať časť aplikácie. Obnov stránku.')
   })
 })
 
@@ -100,7 +100,9 @@ describe('reportError', () => {
   })
 
   it('logs in DEV with optional context and stack', () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const errorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined)
     reportError(new Error('x'), 'preview', { componentStack: 'at Foo' })
     expect(errorSpy).toHaveBeenCalled()
     expect(String(errorSpy.mock.calls[0]?.[0])).toContain('preview')

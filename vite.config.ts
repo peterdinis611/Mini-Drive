@@ -1,8 +1,9 @@
-import { defineConfig } from 'vite'
+import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import { redact } from '@tanstack/redact/vite'
 import viteReact from '@vitejs/plugin-react'
 import rsc from '@vitejs/plugin-rsc'
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'vite'
 
 const isProd = process.env.NODE_ENV === 'production'
 
@@ -12,15 +13,25 @@ const config = defineConfig({
     port: 3000,
     strictPort: true,
   },
-  // Native addons must load via Node, not Vite's SSR module runner
-  // (bindings breaks under eval: "Cannot read properties of undefined (reading 'indexOf')").
+  // Redact needs server deps bundled so their `react` imports resolve to the
+  // same runtime. `pg` stays external (Node driver).
+  // https://tanstack.com/redact/latest/docs/start
   ssr: {
-    external: ['better-sqlite3'],
+    // Bundle app + most deps for Redact; keep Postgres driver / ORM as Node requires
+    // so Drizzle symbols stay single-instance.
+    noExternal: true,
+    external: [
+      'pg',
+      'pg-native',
+      'drizzle-orm',
+      'drizzle-orm/node-postgres',
+      'drizzle-orm/pg-core',
+    ],
   },
   optimizeDeps: {
-    // better-sqlite3: native addon. radix-ui: "use client" tree — prebundling it
+    // pg: Node driver. radix-ui: "use client" tree — prebundling it
     // triggers RSC "inconsistently optimized" spam for every @radix-ui/* package.
-    exclude: ['better-sqlite3', 'radix-ui'],
+    exclude: ['pg', 'pg-native', 'radix-ui', '@tanstack/redact'],
     include: ['@clerk/tanstack-react-start'],
   },
   build: {
@@ -43,6 +54,14 @@ const config = defineConfig({
     }),
     rsc(),
     viteReact(),
+    // After Start + React. RSC env stays on upstream React; client/SSR use Redact.
+    redact({
+      features: {
+        // Unused in this app; keep portal/suspense/context for Radix + Start.
+        activity: false,
+        fragmentRefs: false,
+      },
+    }),
   ],
 })
 

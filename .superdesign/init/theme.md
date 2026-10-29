@@ -3,26 +3,32 @@
 ## Compact token summary
 
 ### Product
+
 - Mini Drive — personal cloud file manager (Notion-inspired workspace aesthetic)
 - Stack: TanStack Start/Router, React 19, Tailwind v4, shadcn/ui (Radix), Motion, Three.js accents
 
 ### Colors (light)
+
 - background `#ffffff` · foreground `#37352f` · primary `#2383e2` · muted `#f7f6f3` · border `#e9e9e7`
 - sidebar `#f7f6f3` · accent `#e7f3ff` · destructive `#eb5757`
 
 ### Colors (dark)
+
 - background `#191919` · foreground `#ffffffcf` · primary `#529cca` · card `#202020` · border `#2f2f2f`
 
 ### Typography
+
 - sans: Figtree · display: Literata · radius: 0.5rem
 
 ### Layout
+
 - AppShell: collapsible left sidebar (lg+) + mobile Sheet; sticky header with title/actions
 - Content: rounded panels `rounded-2xl border border-border/70 bg-card/40`
 
 ## Raw source
 
 ### src/styles.css
+
 ```css
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';

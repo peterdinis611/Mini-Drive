@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest'
 import {
   canInlinePreview,
   codeLanguageFromName,
+  type FileKind,
   fileKindIcon,
   fileKindLabel,
   getFileKind,
-  type FileKind,
 } from '#/lib/file-kind'
 
 describe('getFileKind', () => {
@@ -62,12 +62,13 @@ describe('fileKindLabel + fileKindIcon', () => {
     expect(fileKindLabel('text')).toBe('Text')
     expect(fileKindLabel('code')).toBe('Kód')
     expect(fileKindLabel('spreadsheet')).toBe('Tabuľka')
+    expect(fileKindLabel('office')).toBe('Office')
     expect(fileKindLabel('archive')).toBe('Archív')
     expect(fileKindLabel('file')).toBe('Súbor')
   })
 
   it('returns a lucide icon component for every kind', () => {
-    for (const kind of kinds) {
+    for (const kind of [...kinds, 'office' as FileKind]) {
       expect(typeof fileKindIcon(kind)).toBe('object')
     }
   })
@@ -78,6 +79,7 @@ describe('canInlinePreview', () => {
     expect(canInlinePreview('image')).toBe(true)
     expect(canInlinePreview('code')).toBe(true)
     expect(canInlinePreview('spreadsheet')).toBe(true)
+    expect(canInlinePreview('office')).toBe(true)
     expect(canInlinePreview('archive')).toBe(false)
     expect(canInlinePreview('file')).toBe(false)
   })

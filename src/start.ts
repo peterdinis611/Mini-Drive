@@ -8,8 +8,12 @@ import { setResponseHeader } from '@tanstack/react-start/server'
 
 import { silenceClerkDevKeySpam } from '#/lib/clerk-dev-silence'
 import { buildContentSecurityPolicy } from '#/lib/csp'
+import { assertProductionEnv, warnOptionalProductionEnv } from '#/lib/env'
+import { cacheControlForPath } from '#/lib/http-cache'
 
 silenceClerkDevKeySpam()
+assertProductionEnv()
+warnOptionalProductionEnv()
 
 const csrfMiddleware = createCsrfMiddleware({
   filter: (ctx) => ctx.handlerType === 'serverFn',
@@ -19,8 +23,9 @@ const csrfMiddleware = createCsrfMiddleware({
 })
 
 const securityHeadersMiddleware = createMiddleware().server(
-  async ({ next }) => {
+  async ({ request, next }) => {
     const result = await next()
+    const pathname = new URL(request.url).pathname
 
     setResponseHeader('X-Content-Type-Options', 'nosniff')
     setResponseHeader('X-Frame-Options', 'DENY')
@@ -37,6 +42,11 @@ const securityHeadersMiddleware = createMiddleware().server(
       ),
     )
 
+    const cacheControl = cacheControlForPath(pathname)
+    if (cacheControl) {
+      setResponseHeader('Cache-Control', cacheControl)
+    }
+
     if (process.env.NODE_ENV === 'production') {
       setResponseHeader(
         'Strict-Transport-Security',
@@ -50,10 +60,21 @@ const securityHeadersMiddleware = createMiddleware().server(
   },
 )
 
+const clerk = clerkMiddleware()
+
+/** Skip Clerk on liveness probes so orchestrators don't need auth secrets. */
+const clerkUnlessHealth = createMiddleware().server(async (ctx) => {
+  const path = new URL(ctx.request.url).pathname
+  if (path === '/api/health') {
+    return ctx.next()
+  }
+  return clerk.options.server!(ctx)
+})
+
 export const startInstance = createStart(() => ({
   requestMiddleware: [
     csrfMiddleware,
     securityHeadersMiddleware,
-    clerkMiddleware(),
+    clerkUnlessHealth,
   ],
 }))

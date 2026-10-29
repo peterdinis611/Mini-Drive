@@ -26,9 +26,7 @@ describe('SectionErrorFallback', () => {
       />,
     )
 
-    expect(
-      screen.getByRole('alert'),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toBeInTheDocument()
     expect(screen.getByText('Náhľad spadol')).toBeInTheDocument()
     expect(screen.getByText('Preview zlyhalo')).toBeInTheDocument()
 

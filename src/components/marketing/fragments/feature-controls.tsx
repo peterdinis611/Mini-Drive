@@ -37,7 +37,8 @@ export function PrivacySwitches() {
         />
       </div>
       <p className="landing-safeurl-label" style={{ margin: 0 }}>
-        Stav: {acl ? 'súkromné' : 'otvorené'} · audit {audit ? 'zapnutý' : 'vypnutý'}
+        Stav: {acl ? 'súkromné' : 'otvorené'} · audit{' '}
+        {audit ? 'zapnutý' : 'vypnutý'}
       </p>
     </div>
   )
@@ -54,7 +55,10 @@ export function FolderQuotaPanel() {
         <span aria-hidden>·</span>
         <span>2025</span>
       </div>
-      <div className="landing-folder-row landing-folder-indent" data-active="true">
+      <div
+        className="landing-folder-row landing-folder-indent"
+        data-active="true"
+      >
         <span aria-hidden>·</span>
         <span>2026</span>
       </div>

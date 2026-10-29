@@ -1,4 +1,7 @@
-import { canInlinePreview as canPreviewKind, getFileKind } from '#/lib/file-kind'
+import {
+  canInlinePreview as canPreviewKind,
+  getFileKind,
+} from '#/lib/file-kind'
 
 /** Expand UploadThing shorthand / empty types into a real MIME string. */
 export function resolveStoredMimeType(type: string, name: string): string {
@@ -41,15 +44,23 @@ export function resolveStoredMimeType(type: string, name: string): string {
     }
     return map[ext] ?? 'audio/mpeg'
   }
-  if (kind === 'spreadsheet') {
+  if (kind === 'spreadsheet' || kind === 'office') {
     const map: Record<string, string> = {
       csv: 'text/csv',
       tsv: 'text/tab-separated-values',
       xls: 'application/vnd.ms-excel',
       xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       ods: 'application/vnd.oasis.opendocument.spreadsheet',
+      doc: 'application/msword',
+      docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ppt: 'application/vnd.ms-powerpoint',
+      pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      odt: 'application/vnd.oasis.opendocument.text',
     }
-    return map[ext] ?? 'text/csv'
+    return (
+      map[ext] ??
+      (kind === 'spreadsheet' ? 'text/csv' : 'application/octet-stream')
+    )
   }
   if (kind === 'archive') {
     const map: Record<string, string> = {

@@ -20,6 +20,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SharesRouteImport } from './routes/shares'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TrashRouteImport } from './routes/trash'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiUploadthingRouteImport } from './routes/api/uploadthing'
 import { Route as ETokenRouteImport } from './routes/e/$token'
 import { Route as FilesIndexRouteImport } from './routes/files/index'
@@ -83,6 +84,11 @@ const TrashRoute = TrashRouteImport.update({
   path: '/trash',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiUploadthingRoute = ApiUploadthingRouteImport.update({
   id: '/api/uploadthing',
   path: '/api/uploadthing',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/shares': typeof SharesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trash': typeof TrashRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/e/$token': typeof ETokenRoute
   '/files/$folderId': typeof FilesFolderIdRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/shares': typeof SharesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trash': typeof TrashRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/e/$token': typeof ETokenRoute
   '/files/$folderId': typeof FilesFolderIdRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/shares': typeof SharesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trash': typeof TrashRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/e/$token': typeof ETokenRoute
   '/files/$folderId': typeof FilesFolderIdRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/shares'
     | '/sitemap.xml'
     | '/trash'
+    | '/api/health'
     | '/api/uploadthing'
     | '/e/$token'
     | '/files/$folderId'
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/shares'
     | '/sitemap.xml'
     | '/trash'
+    | '/api/health'
     | '/api/uploadthing'
     | '/e/$token'
     | '/files/$folderId'
@@ -234,6 +245,7 @@ export interface FileRouteTypes {
     | '/shares'
     | '/sitemap.xml'
     | '/trash'
+    | '/api/health'
     | '/api/uploadthing'
     | '/e/$token'
     | '/files/$folderId'
@@ -255,6 +267,7 @@ export interface RootRouteChildren {
   SharesRoute: typeof SharesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TrashRoute: typeof TrashRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiUploadthingRoute: typeof ApiUploadthingRoute
   ETokenRoute: typeof ETokenRoute
   FilesFolderIdRoute: typeof FilesFolderIdRoute
@@ -343,6 +356,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrashRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/uploadthing': {
       id: '/api/uploadthing'
       path: '/api/uploadthing'
@@ -407,6 +427,7 @@ const rootRouteChildren: RootRouteChildren = {
   SharesRoute: SharesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TrashRoute: TrashRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiUploadthingRoute: ApiUploadthingRoute,
   ETokenRoute: ETokenRoute,
   FilesFolderIdRoute: FilesFolderIdRoute,
@@ -418,3 +439,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

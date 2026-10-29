@@ -1,6 +1,6 @@
 import Fuse from 'fuse.js'
 
-import { getFileKind, type FileKind } from '#/lib/file-kind'
+import { type FileKind, getFileKind } from '#/lib/file-kind'
 import { DRIVE_FUSE_OPTIONS } from '#/lib/fuse-options'
 
 export type DriveKindFilter =

@@ -1,9 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { Tag } from 'lucide-react'
-import { toast } from '#/lib/toast'
-
+import { useEffect, useState } from 'react'
 import { Button } from '#/components/ui/button'
 import { Checkbox } from '#/components/ui/checkbox'
 import {
@@ -15,6 +13,7 @@ import {
   DialogTitle,
 } from '#/components/ui/dialog'
 import { getErrorMessage } from '#/lib/errors'
+import { toast } from '#/lib/toast'
 import { listTags, setFileTags } from '#/server/functions/tags'
 
 type Props = {
@@ -30,9 +29,9 @@ export function FileTagsDialog({
   fileName,
   onOpenChange,
 }: Props) {
-  const [tags, setTags] = useState<Array<{ id: string; name: string; color: string }>>(
-    [],
-  )
+  const [tags, setTags] = useState<
+    Array<{ id: string; name: string; color: string }>
+  >([])
   const [selected, setSelected] = useState<Set<string>>(() => new Set())
   const [saving, setSaving] = useState(false)
 

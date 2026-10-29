@@ -1,5 +1,4 @@
 import { useClerk } from '@clerk/tanstack-react-start'
-import { useState, useTransition } from 'react'
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import {
   AlertTriangle,
@@ -16,15 +15,14 @@ import {
   Trash2,
 } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
-
+import { useState, useTransition } from 'react'
+import type { z } from 'zod'
+import { TagsSmartFoldersPanel } from '#/components/files/tags-smart-folders-panel'
 import { AppShell } from '#/components/layout/app-shell'
-import { AppShellPending } from '#/components/ui/preload-spinner'
-import { usePersistTheme } from '#/hooks/use-persist-theme'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
 import { DeleteAllDialog } from '#/components/settings/delete-all-dialog'
 import { HotkeysSettings } from '#/components/settings/hotkeys-settings'
-import { TagsSmartFoldersPanel } from '#/components/files/tags-smart-folders-panel'
 import {
   Accordion,
   AccordionContent,
@@ -35,6 +33,7 @@ import { Alert, AlertDescription, AlertTitle } from '#/components/ui/alert'
 import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
+import { AppShellPending } from '#/components/ui/preload-spinner'
 import {
   Select,
   SelectContent,
@@ -44,6 +43,7 @@ import {
 } from '#/components/ui/select'
 import { Switch } from '#/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
+import { usePersistTheme } from '#/hooks/use-persist-theme'
 import {
   AUTH_LIMITS,
   SHARE_EXPIRY_PRESETS,
@@ -60,14 +60,13 @@ import { toast } from '#/lib/toast'
 import { cn } from '#/lib/utils'
 import {
   DELETE_ALL_CONFIRM_WORD,
-  themePreferenceSchema,
+  type themePreferenceSchema,
   updateSettingsSchema,
-  viewPreferenceSchema,
+  type viewPreferenceSchema,
 } from '#/lib/validation'
 import { getAppChrome } from '#/server/functions/drive'
 import { updateSettings } from '#/server/functions/settings'
 import { deleteAllDriveContent } from '#/server/functions/trash'
-import type { z } from 'zod'
 
 export const Route = createFileRoute('/settings')({
   beforeLoad: requireOnboardedSession,
@@ -334,7 +333,9 @@ function SettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="settings-share-ttl">Predvolená platnosť safe-url</Label>
+                <Label htmlFor="settings-share-ttl">
+                  Predvolená platnosť safe-url
+                </Label>
                 <Select
                   value={String(defaultShareExpiresIn)}
                   onValueChange={(value) =>
@@ -496,7 +497,8 @@ function SettingsPage() {
                     <ul className="space-y-2 text-sm text-muted-foreground">
                       <li>
                         Verejné zdieľania idú cez short-lived signed URL; IP v
-                        audite je len HMAC otlačok. Heslo na odkaze je voliteľné.
+                        audite je len HMAC otlačok. Heslo na odkaze je
+                        voliteľné.
                       </li>
                       <li>
                         Pred vytvorením odkazu sa súbor skenuje (heuristiky +

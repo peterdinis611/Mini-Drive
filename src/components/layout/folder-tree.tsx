@@ -1,14 +1,13 @@
 'use client'
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { Link } from '@tanstack/react-router'
 import { useDebouncedValue } from '@tanstack/react-pacer'
+import { Link } from '@tanstack/react-router'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
-  ChevronsDownUp,
-  ChevronsUpDown,
   ChevronDown,
   ChevronRight,
+  ChevronsDownUp,
+  ChevronsUpDown,
   Folder,
   FolderOpen,
   Folders,
@@ -17,14 +16,15 @@ import {
   X,
 } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 
 import type { FolderTreeNode } from '#/components/files/types'
 import {
   buildFolderTree,
   collectExpandableFolderIds,
+  type FlatFolderRow,
   flattenFolderRows,
   getAncestorFolderIds,
-  type FlatFolderRow,
 } from '#/lib/folder-tree'
 import { cn } from '#/lib/utils'
 
@@ -84,10 +84,7 @@ export function FolderTree({ folders, activeFolderId, onNavigate }: Props) {
     getItemKey: (index) => (index === 0 ? '__root__' : rows[index - 1]!.id),
   })
 
-  const expandableIds = useMemo(
-    () => collectExpandableFolderIds(tree),
-    [tree],
-  )
+  const expandableIds = useMemo(() => collectExpandableFolderIds(tree), [tree])
 
   function expandAll() {
     const next: Record<string, boolean> = {}
@@ -199,9 +196,7 @@ export function FolderTree({ folders, activeFolderId, onNavigate }: Props) {
                   <Link
                     to="/files"
                     onClick={onNavigate}
-                    aria-current={
-                      activeFolderId === null ? 'page' : undefined
-                    }
+                    aria-current={activeFolderId === null ? 'page' : undefined}
                     className={cn(
                       'group flex h-[34px] items-center gap-2 rounded-xl px-2 text-sm transition',
                       activeFolderId === null
@@ -276,9 +271,7 @@ export function FolderTree({ folders, activeFolderId, onNavigate }: Props) {
           </output>
         ) : null}
 
-        {!hasFilter && folders.length === 0 ? (
-          <FolderTreeEmpty />
-        ) : null}
+        {!hasFilter && folders.length === 0 ? <FolderTreeEmpty /> : null}
       </nav>
     </div>
   )

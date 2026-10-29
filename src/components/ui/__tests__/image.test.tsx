@@ -47,13 +47,7 @@ describe('Image', () => {
 
   it('respects explicit loading when priority is off', () => {
     render(
-      <Image
-        src="/e.png"
-        alt="Eager"
-        width={10}
-        height={10}
-        loading="eager"
-      />,
+      <Image src="/e.png" alt="Eager" width={10} height={10} loading="eager" />,
     )
     expect(screen.getByRole('img', { name: 'Eager' })).toHaveAttribute(
       'loading',
@@ -116,12 +110,7 @@ describe('Image', () => {
   it('merges custom style over objectFit defaults', () => {
     render(
       <div className="relative size-20">
-        <Image
-          src="/style.png"
-          alt="Styled"
-          fill
-          style={{ opacity: 0.5 }}
-        />
+        <Image src="/style.png" alt="Styled" fill style={{ opacity: 0.5 }} />
       </div>,
     )
     const img = screen.getByRole('img', { name: 'Styled' })

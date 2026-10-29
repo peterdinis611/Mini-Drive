@@ -1,7 +1,7 @@
 'use client'
 
-import { lazy, Suspense, useMemo } from 'react'
 import type { PDFViewerConfig } from '@embedpdf/react-pdf-viewer'
+import { lazy, Suspense, useMemo } from 'react'
 
 import { PreviewLoading } from '#/components/ui/preload-spinner'
 import { cn } from '#/lib/utils'

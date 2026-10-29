@@ -20,8 +20,8 @@ export function ArchivePreview({
         <p className="font-medium text-foreground">{fileName}</p>
         <p className="text-sm text-muted-foreground">
           Archív ({formatFileSize(fileSize)}
-          {mimeType ? ` · ${mimeType}` : ''}) sa nedá zobraziť inline — stiahni a
-          rozbaľ lokálne.
+          {mimeType ? ` · ${mimeType}` : ''}) sa nedá zobraziť inline — stiahni
+          a rozbaľ lokálne.
         </p>
       </div>
       <Button asChild variant="outline">

@@ -11,8 +11,8 @@ import {
 } from '#/components/ui/dialog'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
-import { getErrorMessage } from '#/lib/errors'
 import { NAME_MAX_LENGTH } from '#/lib/constants'
+import { getErrorMessage } from '#/lib/errors'
 import { fileNameSchema } from '#/lib/validation'
 
 type Props = {
@@ -63,9 +63,7 @@ export function NameDialog({
             event.preventDefault()
             const parsed = fileNameSchema.safeParse(name)
             if (!parsed.success) {
-              setError(
-                parsed.error.issues[0]?.message ?? 'Neplatný názov',
-              )
+              setError(parsed.error.issues[0]?.message ?? 'Neplatný názov')
               return
             }
 

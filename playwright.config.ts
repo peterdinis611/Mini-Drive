@@ -4,7 +4,15 @@ import dotenv from 'dotenv'
 dotenv.config({ path: '.env.local' })
 dotenv.config()
 
+// Prefer localhost over 127.0.0.1 — Vite binds IPv6 ::1 by default on macOS.
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
+const port = (() => {
+  try {
+    return new URL(baseURL).port || '3000'
+  } catch {
+    return '3000'
+  }
+})()
 
 export default defineConfig({
   testDir: './e2e',
@@ -31,9 +39,10 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
-        command: 'pnpm dev',
-        url: baseURL,
+        command: `pnpm exec vite dev --port ${port} --strictPort`,
+        // Static asset readiness — `/api/health` is 503 when Postgres is down (Docker off).
+        url: `${baseURL}/favicon.svg`,
         reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
+        timeout: 180_000,
       },
 })

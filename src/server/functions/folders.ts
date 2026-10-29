@@ -1,12 +1,11 @@
 import { createServerFn } from '@tanstack/react-start'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
-
+import type { FolderNode } from '#/lib/folder-ops'
 import {
   buildBreadcrumbs,
   canMoveFolder,
   collectDescendantIds,
 } from '#/lib/folder-ops'
-import type { FolderNode } from '#/lib/folder-ops'
 import {
   createFolderSchema,
   deleteFolderSchema,
@@ -16,8 +15,8 @@ import {
   setLastFolderSchema,
   updateFolderStyleSchema,
 } from '#/lib/validation'
-import { firstOrNull, firstOrThrow } from '#/server/db-helpers.server'
 import { recordActivity } from '#/server/activity.server'
+import { firstOrNull, firstOrThrow } from '#/server/db-helpers.server'
 
 async function loadUserFolders(userId: string): Promise<FolderNode[]> {
   const { db } = await import('#/db')
@@ -473,8 +472,7 @@ export const cleanupEmptyFolders = createServerFn({ method: 'POST' }).handler(
 
     const emptyIds = allFolders
       .filter(
-        (folder) =>
-          !foldersWithFiles.has(folder.id) && !parents.has(folder.id),
+        (folder) => !foldersWithFiles.has(folder.id) && !parents.has(folder.id),
       )
       .map((folder) => folder.id)
 
@@ -537,8 +535,7 @@ export const listEmptyFolders = createServerFn({ method: 'GET' }).handler(
     )
 
     return allFolders.filter(
-      (folder) =>
-        !foldersWithFiles.has(folder.id) && !parents.has(folder.id),
+      (folder) => !foldersWithFiles.has(folder.id) && !parents.has(folder.id),
     )
   },
 )

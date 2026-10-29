@@ -8,11 +8,5 @@ type Props = PreviewShellProps & {
 }
 
 export function PdfPreview({ url, fileName, theme }: Props) {
-  return (
-    <EmbedPdfViewer
-      url={url}
-      fileName={fileName}
-      theme={theme}
-    />
-  )
+  return <EmbedPdfViewer url={url} fileName={fileName} theme={theme} />
 }

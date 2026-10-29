@@ -1,7 +1,7 @@
 import { auth, clerkClient } from '@clerk/tanstack-react-start/server'
 import { eq } from 'drizzle-orm'
 
-import { db, sqlite } from '#/db'
+import { db, pool } from '#/db'
 import { rekeyUserId } from '#/db/rekey-user'
 import { user } from '#/db/schema'
 
@@ -21,7 +21,10 @@ function displayName(parts: {
   username: string | null
   email: string
 }) {
-  const full = [parts.firstName, parts.lastName].filter(Boolean).join(' ').trim()
+  const full = [parts.firstName, parts.lastName]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
   if (full) return full
   if (parts.username?.trim()) return parts.username.trim()
   return parts.email.split('@')[0] || 'User'
@@ -45,7 +48,7 @@ async function findUserByEmail(email: string): Promise<AppUser | undefined> {
     .then((rows) => rows[0])
 }
 
-/** Ensure a local SQLite user row exists for the Clerk user (app prefs / ownership). */
+/** Ensure a local Postgres user row exists for the Clerk user (app prefs / ownership). */
 async function ensureLocalUser(clerkUserId: string): Promise<AppUser> {
   const existing = await findUserById(clerkUserId)
   if (existing) return existing
@@ -75,7 +78,7 @@ async function ensureLocalUser(clerkUserId: string): Promise<AppUser> {
   // Legacy better-auth row with same email but different id → re-key to Clerk.
   const byEmail = await findUserByEmail(primaryEmail)
   if (byEmail && byEmail.id !== clerkUserId) {
-    rekeyUserId(sqlite, byEmail.id, clerkUserId)
+    await rekeyUserId(pool, byEmail.id, clerkUserId)
     await db
       .update(user)
       .set({
@@ -100,11 +103,10 @@ async function ensureLocalUser(clerkUserId: string): Promise<AppUser> {
     })
   } catch {
     const raced =
-      (await findUserById(clerkUserId)) ??
-      (await findUserByEmail(primaryEmail))
+      (await findUserById(clerkUserId)) ?? (await findUserByEmail(primaryEmail))
     if (raced) {
       if (raced.id !== clerkUserId) {
-        rekeyUserId(sqlite, raced.id, clerkUserId)
+        await rekeyUserId(pool, raced.id, clerkUserId)
         const linked = await findUserById(clerkUserId)
         if (linked) return linked
       }

@@ -6,10 +6,7 @@ type Props = {
 }
 
 /** CSS-only atmosphere (no WebGL). */
-export function AtmosphereBackdrop({
-  intensity = 'soft',
-  className,
-}: Props) {
+export function AtmosphereBackdrop({ intensity = 'soft', className }: Props) {
   return (
     <div
       className={cn(

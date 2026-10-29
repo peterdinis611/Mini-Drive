@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { Image, DEFAULT_BLUR_DATA_URL } from '#/components/ui/image'
+import { DEFAULT_BLUR_DATA_URL, Image } from '#/components/ui/image'
 import { fileKindIcon, getFileKind } from '#/lib/file-kind'
 import { cn } from '#/lib/utils'
 

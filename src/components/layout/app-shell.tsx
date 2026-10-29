@@ -1,15 +1,15 @@
-import { Suspense, useState } from 'react'
 import { Menu, PanelLeft } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { Suspense, useState } from 'react'
 
 import { AppErrorBoundary } from '#/components/error-boundary/app-error-boundary'
 import { DriveSearchHost } from '#/components/files/drive-search-dialog'
+import type { FolderTreeNode } from '#/components/files/types'
 import { DriveHotkeys } from '#/components/hotkeys/drive-hotkeys'
 import { HotkeysCheatSheetHost } from '#/components/hotkeys/hotkeys-cheat-sheet'
-import { AppSidebar } from '#/components/layout/app-sidebar'
 import type { DriveStats } from '#/components/layout/app-sidebar'
+import { AppSidebar } from '#/components/layout/app-sidebar'
 import { QuickActionsFab } from '#/components/layout/quick-actions-fab'
-import type { FolderTreeNode } from '#/components/files/types'
 import { Button } from '#/components/ui/button'
 import { SectionLoading } from '#/components/ui/preload-spinner'
 import {
@@ -51,14 +51,8 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false)
   const [desktopCollapsed, setDesktopCollapsed] = useState(false)
   const [resizing, setResizing] = useState(false)
-  const {
-    width,
-    resetWidth,
-    onResizePointerDown,
-    onResizeKeyDown,
-    min,
-    max,
-  } = useSidebarWidth()
+  const { width, resetWidth, onResizePointerDown, onResizeKeyDown, min, max } =
+    useSidebarWidth()
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -75,7 +69,10 @@ export function AppShell({
                 transition={
                   resizing || reduce
                     ? { duration: 0 }
-                    : { ...riseTransition, width: { type: 'spring', stiffness: 380, damping: 36 } }
+                    : {
+                        ...riseTransition,
+                        width: { type: 'spring', stiffness: 380, damping: 36 },
+                      }
                 }
                 style={{ width }}
               >
@@ -229,9 +226,7 @@ export function AppShell({
                 resetKeys={[title]}
                 sectionTitle="Obsah stránky zlyhal"
               >
-                <Suspense fallback={<SectionLoading />}>
-                  {children}
-                </Suspense>
+                <Suspense fallback={<SectionLoading />}>{children}</Suspense>
               </AppErrorBoundary>
             </motion.main>
           </div>

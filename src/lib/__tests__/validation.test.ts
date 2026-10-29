@@ -35,12 +35,12 @@ describe('auth schemas', () => {
     expect(() => passwordSchema.parse('12345678901')).toThrow() // 11 chars
     expect(passwordSchema.parse('123456789012')).toBe('123456789012')
     // Login still accepts shorter legacy passwords
-    expect(loginSchema.parse({ email: 'a@b.sk', password: 'oldpass1' })).toEqual(
-      {
-        email: 'a@b.sk',
-        password: 'oldpass1',
-      },
-    )
+    expect(
+      loginSchema.parse({ email: 'a@b.sk', password: 'oldpass1' }),
+    ).toEqual({
+      email: 'a@b.sk',
+      password: 'oldpass1',
+    })
   })
 })
 
@@ -85,7 +85,9 @@ describe('validateFilesForUpload', () => {
       message: 'Nevybral si žiadny súbor',
     })
     expect(
-      validateFilesForUpload([new File([], 'empty.txt', { type: 'text/plain' })]),
+      validateFilesForUpload([
+        new File([], 'empty.txt', { type: 'text/plain' }),
+      ]),
     ).toMatchObject({ ok: false })
   })
 

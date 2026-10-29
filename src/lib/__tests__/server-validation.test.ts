@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import { AppError } from '#/lib/errors'
 import {
-  DELETE_ALL_CONFIRM_WORD,
-  EMPTY_TRASH_CONFIRM_WORD,
   bulkMoveFilesSchema,
+  DELETE_ALL_CONFIRM_WORD,
   deleteAllDriveSchema,
+  EMPTY_TRASH_CONFIRM_WORD,
   emptyTrashSchema,
   fileIdsSchema,
   parseServerInput,
@@ -17,9 +17,9 @@ const UUID2 = '550e8400-e29b-41d4-a716-446655440001'
 
 describe('unique file id lists', () => {
   it('rejects duplicates', () => {
-    expect(() =>
-      fileIdsSchema.parse({ fileIds: [UUID, UUID] }),
-    ).toThrow(/duplicitné/i)
+    expect(() => fileIdsSchema.parse({ fileIds: [UUID, UUID] })).toThrow(
+      /duplicitné/i,
+    )
     expect(() =>
       bulkMoveFilesSchema.parse({
         fileIds: [UUID, UUID],
@@ -37,18 +37,16 @@ describe('unique file id lists', () => {
 
 describe('destructive confirm schemas', () => {
   it('requires delete-all confirm word (case-insensitive sk)', () => {
-    expect(
-      deleteAllDriveSchema.parse({ confirm: 'zmazať' }),
-    ).toEqual({ confirm: DELETE_ALL_CONFIRM_WORD })
-    expect(() =>
-      deleteAllDriveSchema.parse({ confirm: 'ano' }),
-    ).toThrow()
+    expect(deleteAllDriveSchema.parse({ confirm: 'zmazať' })).toEqual({
+      confirm: DELETE_ALL_CONFIRM_WORD,
+    })
+    expect(() => deleteAllDriveSchema.parse({ confirm: 'ano' })).toThrow()
   })
 
   it('requires empty-trash confirm word', () => {
-    expect(
-      emptyTrashSchema.parse({ confirm: 'vyprázdniť' }),
-    ).toEqual({ confirm: EMPTY_TRASH_CONFIRM_WORD })
+    expect(emptyTrashSchema.parse({ confirm: 'vyprázdniť' })).toEqual({
+      confirm: EMPTY_TRASH_CONFIRM_WORD,
+    })
     expect(() => emptyTrashSchema.parse({ confirm: 'ok' })).toThrow()
   })
 })
@@ -71,9 +69,7 @@ describe('uploadInputSchema', () => {
   })
 
   it('rejects forbidden saveAsName', () => {
-    expect(() =>
-      uploadInputSchema.parse({ saveAsName: 'a/b.pdf' }),
-    ).toThrow()
+    expect(() => uploadInputSchema.parse({ saveAsName: 'a/b.pdf' })).toThrow()
   })
 })
 

@@ -1,7 +1,7 @@
 'use client'
 
-import { useNavigate } from '@tanstack/react-router'
 import { useAppHotkeys, useHotkeys } from '@tanstack/react-hotkeys'
+import { useNavigate } from '@tanstack/react-router'
 
 import { dispatchQuickAction } from '#/lib/quick-actions'
 

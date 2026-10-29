@@ -1,13 +1,10 @@
 'use client'
 
 import { useAuth } from '@clerk/tanstack-react-start'
-import { useEffect } from 'react'
 import { useTheme } from 'next-themes'
+import { useEffect } from 'react'
 
-import {
-  hasThemeSynced,
-  markThemeSynced,
-} from '#/lib/theme-preference'
+import { hasThemeSynced, markThemeSynced } from '#/lib/theme-preference'
 import { getSession } from '#/server/session'
 
 /**

@@ -12,4 +12,14 @@ describe('applyRenamePattern', () => {
     )
     expect(applyRenamePattern('readme', 'doc-{n}', 2)).toBe('doc-2')
   })
+
+  it('keeps multi-dot names on the last extension', () => {
+    expect(applyRenamePattern('archive.tar.gz', '{name}-copy{ext}', 1)).toBe(
+      'archive.tar-copy.gz',
+    )
+  })
+
+  it('leaves unknown tokens untouched', () => {
+    expect(applyRenamePattern('a.txt', 'x-{id}{ext}', 1)).toBe('x-{id}.txt')
+  })
 })

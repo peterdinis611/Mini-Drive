@@ -313,9 +313,7 @@ export function AppSidebar({
       <ScrollArea className="min-h-0 flex-1 px-2 pb-2">
         <FolderTree
           folders={folders}
-          activeFolderId={
-            pathname.startsWith('/files') ? activeFolderId : null
-          }
+          activeFolderId={pathname.startsWith('/files') ? activeFolderId : null}
           onNavigate={onNavigate}
         />
       </ScrollArea>
@@ -452,9 +450,7 @@ function TreeNode({
           type="button"
           className="flex size-6 items-center justify-center text-muted-foreground"
           aria-label={isOpen ? 'Zbaliť' : 'Rozbaliť'}
-          onClick={() =>
-            setOpen((prev) => ({ ...prev, [node.id]: !isOpen }))
-          }
+          onClick={() => setOpen((prev) => ({ ...prev, [node.id]: !isOpen }))}
           disabled={!hasChildren}
         >
           {hasChildren ? (
@@ -589,4 +585,3 @@ export function AtmosphereShell({
   )
 }
 ```
-

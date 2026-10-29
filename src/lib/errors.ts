@@ -22,14 +22,23 @@ const MESSAGE_MAP: Array<[RegExp | string, string]> = [
     /Loading chunk [\d]+ failed/i,
     'Nepodarilo sa načítať časť aplikácie. Obnov stránku.',
   ],
-  [/dynamically imported module/i, 'Nepodarilo sa načítať modul. Obnov stránku.'],
+  [
+    /dynamically imported module/i,
+    'Nepodarilo sa načítať modul. Obnov stránku.',
+  ],
   [/UPLOADTHING_TOKEN/i, 'Úložisko nie je nakonfigurované (chýba token).'],
   [
     /ACL overrides are not allowed/i,
     'UploadThing nepovoľuje ACL override. Odstráň acl z route alebo to zapni v dashboarde.',
   ],
-  [/XHR failed 400/i, 'Upload zlyhal (400). Skontroluj UploadThing nastavenia.'],
-  [/Minified React error/i, 'V aplikácii nastala chyba vykreslenia. Skús obnoviť stránku.'],
+  [
+    /XHR failed 400/i,
+    'Upload zlyhal (400). Skontroluj UploadThing nastavenia.',
+  ],
+  [
+    /Minified React error/i,
+    'V aplikácii nastala chyba vykreslenia. Skús obnoviť stránku.',
+  ],
 ]
 
 function mapKnownMessage(message: string): string {
@@ -120,9 +129,7 @@ export function formatZodError(error: ZodError): string {
   return error.issues[0].message
 }
 
-export function firstZodFieldErrors(
-  error: ZodError,
-): Record<string, string> {
+export function firstZodFieldErrors(error: ZodError): Record<string, string> {
   const out: Record<string, string> = {}
   for (const issue of error.issues) {
     const key = issue.path[0]

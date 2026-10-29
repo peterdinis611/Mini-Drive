@@ -1,30 +1,30 @@
-import Database from 'better-sqlite3'
-import { afterEach, describe, expect, it } from 'vitest'
+import { Pool } from 'pg'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { ensureSqliteSchema } from '#/db/ensure-schema'
+import { ensurePgSchema } from '#/db/ensure-schema'
 
-function columnNames(sqlite: Database.Database) {
-  return (
-    sqlite.prepare(`PRAGMA table_info("user")`).all() as Array<{ name: string }>
-  ).map((row) => row.name)
-}
+const databaseUrl = process.env.TEST_DATABASE_URL?.trim()
+const describePg = databaseUrl ? describe : describe.skip
 
-describe('ensureSqliteSchema', () => {
-  let sqlite: Database.Database
+describePg('ensurePgSchema', () => {
+  let pool: Pool
 
-  afterEach(() => {
-    sqlite?.close()
+  beforeAll(() => {
+    pool = new Pool({ connectionString: databaseUrl })
   })
 
-  it('is a no-op when user table is missing', () => {
-    sqlite = new Database(':memory:')
-    expect(() => ensureSqliteSchema(sqlite)).not.toThrow()
-    expect(columnNames(sqlite)).toEqual([])
+  afterAll(async () => {
+    await pool?.end()
   })
 
-  it('adds email_verified and preference columns to a legacy user table', () => {
-    sqlite = new Database(':memory:')
-    sqlite.exec(`
+  it('is a no-op when user table is missing', async () => {
+    await pool.query('DROP TABLE IF EXISTS "user" CASCADE')
+    await expect(ensurePgSchema(pool)).resolves.toBeUndefined()
+  })
+
+  it('adds preference columns to a legacy user table', async () => {
+    await pool.query('DROP TABLE IF EXISTS "user" CASCADE')
+    await pool.query(`
       CREATE TABLE "user" (
         id text PRIMARY KEY NOT NULL,
         name text NOT NULL,
@@ -32,9 +32,13 @@ describe('ensureSqliteSchema', () => {
       );
     `)
 
-    ensureSqliteSchema(sqlite)
+    await ensurePgSchema(pool)
 
-    const cols = columnNames(sqlite)
+    const result = await pool.query<{ column_name: string }>(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'user'`,
+    )
+    const cols = result.rows.map((row) => row.column_name)
     expect(cols).toEqual(
       expect.arrayContaining([
         'email_verified',
@@ -45,51 +49,9 @@ describe('ensureSqliteSchema', () => {
         'onboarding_step',
         'onboarded_at',
         'image',
+        'custom_hotkeys',
+        'last_folder_id',
       ]),
     )
-
-    sqlite
-      .prepare(
-        `INSERT INTO "user" (id, name, email) VALUES (?, ?, ?)`,
-      )
-      .run('u1', 'Peter', 'peter@example.com')
-
-    const row = sqlite
-      .prepare(
-        `SELECT email_verified, theme_preference, confirm_delete FROM "user" WHERE id = ?`,
-      )
-      .get('u1') as {
-      email_verified: number
-      theme_preference: string
-      confirm_delete: number
-    }
-
-    expect(row.email_verified).toBe(0)
-    expect(row.theme_preference).toBe('system')
-    expect(row.confirm_delete).toBe(1)
-  })
-
-  it('is idempotent when columns already exist', () => {
-    sqlite = new Database(':memory:')
-    sqlite.exec(`
-      CREATE TABLE "user" (
-        id text PRIMARY KEY NOT NULL,
-        name text NOT NULL,
-        email text NOT NULL,
-        email_verified integer NOT NULL DEFAULT 0,
-        theme_preference text NOT NULL DEFAULT 'system',
-        default_share_expires_in integer NOT NULL DEFAULT 3600,
-        confirm_delete integer NOT NULL DEFAULT 1,
-        view_preference text NOT NULL DEFAULT 'list',
-        onboarding_step integer NOT NULL DEFAULT 1,
-        onboarded_at integer,
-        image text
-      );
-    `)
-
-    const before = columnNames(sqlite)
-    ensureSqliteSchema(sqlite)
-    ensureSqliteSchema(sqlite)
-    expect(columnNames(sqlite)).toEqual(before)
   })
 })

@@ -1,9 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { Copy, Trash2 } from 'lucide-react'
-import { toast } from '#/lib/toast'
-
+import { useEffect, useState } from 'react'
 import { Button } from '#/components/ui/button'
 import {
   Dialog,
@@ -13,11 +11,12 @@ import {
   DialogTitle,
 } from '#/components/ui/dialog'
 import { PreloadSpinner } from '#/components/ui/preload-spinner'
-import { formatFileSize } from '#/lib/format'
 import { getErrorMessage } from '#/lib/errors'
+import { formatFileSize } from '#/lib/format'
+import { toast } from '#/lib/toast'
 import {
-  listDuplicateGroups,
   type DuplicateGroup,
+  listDuplicateGroups,
 } from '#/server/functions/duplicates'
 import { deleteFile } from '#/server/functions/files'
 
@@ -110,7 +109,9 @@ export function DuplicatesDialog({ open, onOpenChange, onChanged }: Props) {
                       key={file.id}
                       className="flex items-center justify-between gap-2"
                     >
-                      <span className="min-w-0 truncate text-sm">{file.name}</span>
+                      <span className="min-w-0 truncate text-sm">
+                        {file.name}
+                      </span>
                       <Button
                         type="button"
                         size="icon"

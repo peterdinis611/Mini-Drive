@@ -34,7 +34,7 @@ function deriveKey(passphrase: string, salt: Buffer): Buffer {
   })
 }
 
-/** AES-256-GCM encrypt a SQLite dump (or any bytes). */
+/** AES-256-GCM encrypt a DB dump (or any bytes). */
 export function encryptDbBackup(
   plaintext: Buffer,
   passphrase: string,
@@ -85,5 +85,5 @@ export function defaultBackupFileName(now = new Date()): string {
     pad(now.getMinutes()),
     pad(now.getSeconds()),
   ].join('')
-  return `mini-drive-${stamp}.db.enc`
+  return `mini-drive-${stamp}.dump.enc`
 }

@@ -1,33 +1,56 @@
 import { config } from 'dotenv'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
-import { mkdirSync } from 'node:fs'
-import { createRequire } from 'node:module'
-import { dirname, resolve } from 'node:path'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
 
-import { ensureSqliteSchema } from './ensure-schema'
+import { ensurePgSchema } from './ensure-schema'
 import * as schema from './schema'
-
-// Load via Node require so Vite SSR eval does not break native bindings resolution.
-const require = createRequire(import.meta.url)
-const Database = require('better-sqlite3') as typeof import('better-sqlite3')
-const nativeBinding = require.resolve(
-  'better-sqlite3/build/Release/better_sqlite3.node',
-)
 
 config({ path: ['.env.local', '.env'] })
 
-const databaseUrl = (process.env.DATABASE_URL ?? 'dev.db').trim()
-const dbPath =
-  databaseUrl === ':memory:' ? ':memory:' : resolve(process.cwd(), databaseUrl)
+const isBundling =
+  process.env.npm_lifecycle_event === 'build' || process.env.VITEST === 'true'
 
-if (dbPath !== ':memory:') {
-  mkdirSync(dirname(dbPath), { recursive: true })
+const databaseUrl =
+  (process.env.DATABASE_URL ?? '').trim() ||
+  (isBundling ? 'postgresql://127.0.0.1:5432/vite_build_placeholder' : '')
+
+if (!databaseUrl) {
+  throw new Error(
+    '[mini-drive] DATABASE_URL is required (postgresql://user:pass@host:5432/db).',
+  )
 }
 
-const sqlite = new Database(dbPath, { nativeBinding })
-sqlite.pragma('journal_mode = WAL')
-sqlite.pragma('foreign_keys = ON')
-ensureSqliteSchema(sqlite)
+if (!/^postgres(ql)?:\/\//i.test(databaseUrl)) {
+  throw new Error(
+    `[mini-drive] DATABASE_URL must be a PostgreSQL URL (got ${databaseUrl}).`,
+  )
+}
 
-export const db = drizzle(sqlite, { schema })
-export { sqlite }
+export const pool = new Pool({
+  connectionString: databaseUrl,
+  max: Number(process.env.DATABASE_POOL_MAX ?? 10),
+})
+
+pool.on('error', (error) => {
+  console.error('[mini-drive] unexpected Postgres pool error', error)
+})
+
+/** Boot-time additive schema patches (dev / single-node). */
+let schemaBootError: unknown
+
+const schemaReady =
+  isBundling && !(process.env.DATABASE_URL ?? '').trim()
+    ? Promise.resolve()
+    : ensurePgSchema(pool).catch((error) => {
+        // Keep the process alive — health / waitForDb surface the failure.
+        // Rethrowing here caused unhandledRejection crashes under Node 22+.
+        console.error('[mini-drive] ensurePgSchema failed', error)
+        schemaBootError = error
+      })
+
+export async function waitForDb(): Promise<void> {
+  await schemaReady
+  if (schemaBootError) throw schemaBootError
+}
+
+export const db = drizzle(pool, { schema })

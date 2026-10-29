@@ -9,12 +9,36 @@ import { expect, test } from '@playwright/test'
  * @see https://clerk.com/docs/guides/development/testing/playwright/overview
  */
 test.describe('auth pages', () => {
-  test('sign-in route renders Clerk form', async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await setupClerkTestingToken({ page })
+  })
+
+  test('sign-in route renders Clerk form', async ({ page }) => {
     await page.goto('/sign-in')
-    await page.waitForSelector('[data-clerk-component], form, input[type="email"]', {
-      timeout: 15_000,
-    })
+    await page.waitForSelector(
+      '[data-clerk-component], form, input[name="identifier"], input[type="email"]',
+      { timeout: 15_000 },
+    )
     await expect(page.locator('body')).toBeVisible()
+    await expect(page).toHaveURL(/\/sign-in/)
+  })
+
+  test('sign-up route renders Clerk form', async ({ page }) => {
+    await page.goto('/sign-up')
+    await page.waitForSelector(
+      '[data-clerk-component], form, input[name="identifier"], input[type="email"], input[name="emailAddress"]',
+      { timeout: 15_000 },
+    )
+    await expect(page).toHaveURL(/\/sign-up/)
+  })
+
+  test('legacy /login redirects to sign-in', async ({ page }) => {
+    await page.goto('/login')
+    await expect(page).toHaveURL(/\/sign-in/)
+  })
+
+  test('legacy /register redirects to sign-up', async ({ page }) => {
+    await page.goto('/register')
+    await expect(page).toHaveURL(/\/sign-up/)
   })
 })

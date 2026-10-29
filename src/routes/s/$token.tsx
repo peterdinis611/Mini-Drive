@@ -1,7 +1,7 @@
-import { useState } from 'react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Clock3, Download, Link2Off, ShieldAlert } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
+import { useState } from 'react'
 
 import {
   SharePasswordGate,
@@ -11,8 +11,8 @@ import { AtmosphereShell } from '#/components/layout/atmosphere-shell'
 import { Button } from '#/components/ui/button'
 import { Image } from '#/components/ui/image'
 import { APP_NAME } from '#/lib/constants'
-import { isImageMimeType } from '#/lib/mime'
 import { formatFileSize } from '#/lib/format'
+import { isImageMimeType } from '#/lib/mime'
 import { riseTransition, scaleIn } from '#/lib/motion'
 import { buildSeoHead } from '#/lib/seo'
 import { resolvePublicShare } from '#/server/functions/shares'
@@ -44,9 +44,7 @@ export const Route = createFileRoute('/s/$token')({
   head: ({ loaderData, params }) => {
     const fileName =
       loaderData && 'fileName' in loaderData ? loaderData.fileName : undefined
-    const title = fileName
-      ? `Zdieľaný súbor: ${fileName}`
-      : 'Zdieľaný odkaz'
+    const title = fileName ? `Zdieľaný súbor: ${fileName}` : 'Zdieľaný odkaz'
     return buildSeoHead({
       title,
       description: fileName
@@ -74,7 +72,9 @@ function PublicSharePage() {
         <ShareShell>
           <SharePasswordGate
             token={token}
-            fileName={data.status === 'password_required' ? data.fileName : undefined}
+            fileName={
+              data.status === 'password_required' ? data.fileName : undefined
+            }
             onUnlocked={(result) => {
               const isImage = isImageMimeType(result.mimeType, result.fileName)
               if (!isImage || search.raw) {

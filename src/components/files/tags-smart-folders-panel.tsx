@@ -1,9 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
 import { FolderSearch, FolderX, Plus, Search, Tag, Trash2 } from 'lucide-react'
-import { toast } from '#/lib/toast'
-
+import { useCallback, useEffect, useState } from 'react'
 import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import {
@@ -13,6 +11,13 @@ import {
 } from '#/components/ui/collapsible'
 import { Input } from '#/components/ui/input'
 import { getErrorMessage } from '#/lib/errors'
+import { toast } from '#/lib/toast'
+import { cleanupEmptyFolders } from '#/server/functions/folders'
+import {
+  createSavedSearch,
+  deleteSavedSearch,
+  listSavedSearches,
+} from '#/server/functions/saved-searches'
 import {
   createSmartFolder,
   createTag,
@@ -21,12 +26,6 @@ import {
   listSmartFolders,
   listTags,
 } from '#/server/functions/tags'
-import {
-  createSavedSearch,
-  deleteSavedSearch,
-  listSavedSearches,
-} from '#/server/functions/saved-searches'
-import { cleanupEmptyFolders } from '#/server/functions/folders'
 
 type TagRow = { id: string; name: string; color: string }
 type SmartRow = {
@@ -137,79 +136,79 @@ export function TagsSmartFoldersPanel({ onOpenSmart }: Props) {
           <h2 className="font-display text-lg">Smart folders</h2>
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-3">
-        <form
-          className="flex flex-col gap-2 sm:flex-row"
-          onSubmit={(event) => {
-            event.preventDefault()
-            if (!smartName.trim()) return
-            void createSmartFolder({
-              data: {
-                name: smartName.trim(),
-                rules: {
-                  query: smartQuery.trim() || undefined,
+          <form
+            className="flex flex-col gap-2 sm:flex-row"
+            onSubmit={(event) => {
+              event.preventDefault()
+              if (!smartName.trim()) return
+              void createSmartFolder({
+                data: {
+                  name: smartName.trim(),
+                  rules: {
+                    query: smartQuery.trim() || undefined,
+                  },
                 },
-              },
-            })
-              .then(() => {
-                setSmartName('')
-                setSmartQuery('')
-                refresh()
-                toast.success('Smart folder uložený')
               })
-              .catch((error) => toast.error(getErrorMessage(error)))
-          }}
-        >
-          <Input
-            value={smartName}
-            onChange={(event) => setSmartName(event.target.value)}
-            placeholder="Názov…"
-            aria-label="Názov smart foldera"
-          />
-          <Input
-            value={smartQuery}
-            onChange={(event) => setSmartQuery(event.target.value)}
-            placeholder="Query / obsah…"
-            aria-label="Pravidlo query"
-          />
-          <Button type="submit" size="icon" aria-label="Pridať smart folder">
-            <Plus className="size-4" />
-          </Button>
-        </form>
-        <ul className="m-0 list-none space-y-2 p-0">
-          {smart.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-center justify-between gap-2 rounded-xl border border-border/70 px-3 py-2"
-            >
-              <button
-                type="button"
-                className="min-w-0 flex-1 text-left text-sm hover:underline"
-                onClick={() => onOpenSmart?.(item.rules)}
+                .then(() => {
+                  setSmartName('')
+                  setSmartQuery('')
+                  refresh()
+                  toast.success('Smart folder uložený')
+                })
+                .catch((error) => toast.error(getErrorMessage(error)))
+            }}
+          >
+            <Input
+              value={smartName}
+              onChange={(event) => setSmartName(event.target.value)}
+              placeholder="Názov…"
+              aria-label="Názov smart foldera"
+            />
+            <Input
+              value={smartQuery}
+              onChange={(event) => setSmartQuery(event.target.value)}
+              placeholder="Query / obsah…"
+              aria-label="Pravidlo query"
+            />
+            <Button type="submit" size="icon" aria-label="Pridať smart folder">
+              <Plus className="size-4" />
+            </Button>
+          </form>
+          <ul className="m-0 list-none space-y-2 p-0">
+            {smart.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-center justify-between gap-2 rounded-xl border border-border/70 px-3 py-2"
               >
-                <span className="font-medium">{item.name}</span>
-                {item.rules.query ? (
-                  <span className="ml-2 text-muted-foreground">
-                    „{item.rules.query}“
-                  </span>
-                ) : null}
-              </button>
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="size-8"
-                aria-label={`Zmazať ${item.name}`}
-                onClick={() => {
-                  void deleteSmartFolder({ data: { smartFolderId: item.id } })
-                    .then(refresh)
-                    .catch((error) => toast.error(getErrorMessage(error)))
-                }}
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
-            </li>
-          ))}
-        </ul>
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 text-left text-sm hover:underline"
+                  onClick={() => onOpenSmart?.(item.rules)}
+                >
+                  <span className="font-medium">{item.name}</span>
+                  {item.rules.query ? (
+                    <span className="ml-2 text-muted-foreground">
+                      „{item.rules.query}“
+                    </span>
+                  ) : null}
+                </button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8"
+                  aria-label={`Zmazať ${item.name}`}
+                  onClick={() => {
+                    void deleteSmartFolder({ data: { smartFolderId: item.id } })
+                      .then(refresh)
+                      .catch((error) => toast.error(getErrorMessage(error)))
+                  }}
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </li>
+            ))}
+          </ul>
         </CollapsibleContent>
       </Collapsible>
 

@@ -84,9 +84,10 @@ describe('LandingPage', () => {
       'href',
       '/sign-up/$',
     )
-    expect(
-      screen.getByRole('link', { name: 'Prihlásenie' }),
-    ).toHaveAttribute('href', '/sign-in/$')
+    expect(screen.getByRole('link', { name: 'Prihlásenie' })).toHaveAttribute(
+      'href',
+      '/sign-in/$',
+    )
   })
 
   it('swaps nav Začať for Drive when signed in', () => {
@@ -94,7 +95,9 @@ describe('LandingPage', () => {
 
     render(<LandingPage />)
 
-    expect(screen.queryByRole('link', { name: 'Začať' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Začať' }),
+    ).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Drive' })).toHaveAttribute(
       'href',
       '/files',

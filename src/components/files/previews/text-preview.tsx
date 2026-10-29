@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlignLeft, CaseSensitive, FileText, WrapText } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button } from '#/components/ui/button'
 import { PreviewLoading } from '#/components/ui/preload-spinner'
@@ -49,10 +49,7 @@ export function TextPreview({ url, fileName }: PreviewShellProps) {
 
   if (loading) {
     return (
-      <PreviewLoading
-        className="h-[min(70vh,640px)]"
-        label="Načítavam text…"
-      />
+      <PreviewLoading className="h-[min(70vh,640px)]" label="Načítavam text…" />
     )
   }
 
@@ -65,7 +62,8 @@ export function TextPreview({ url, fileName }: PreviewShellProps) {
             {fileName}
           </p>
           <p className="font-meta text-[10px] tracking-wide text-muted-foreground uppercase">
-            TXT · {stats.lines} riadkov · {stats.words} slov · {stats.chars} znakov
+            TXT · {stats.lines} riadkov · {stats.words} slov · {stats.chars}{' '}
+            znakov
           </p>
         </div>
         <div className="flex items-center gap-1">
@@ -115,7 +113,9 @@ export function TextPreview({ url, fileName }: PreviewShellProps) {
             <article
               className={cn(
                 'mx-auto max-w-2xl px-6 py-8 text-[15px] leading-7 text-foreground/90',
-                wrap ? 'whitespace-pre-wrap break-words' : 'overflow-x-auto whitespace-pre',
+                wrap
+                  ? 'whitespace-pre-wrap break-words'
+                  : 'overflow-x-auto whitespace-pre',
               )}
             >
               {content}
@@ -124,7 +124,9 @@ export function TextPreview({ url, fileName }: PreviewShellProps) {
             <pre
               className={cn(
                 'min-h-full p-5 font-mono text-[12px] leading-5 text-foreground/90',
-                wrap ? 'whitespace-pre-wrap break-words' : 'overflow-x-auto whitespace-pre',
+                wrap
+                  ? 'whitespace-pre-wrap break-words'
+                  : 'overflow-x-auto whitespace-pre',
               )}
             >
               {content}

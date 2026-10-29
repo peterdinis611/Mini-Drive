@@ -1,12 +1,9 @@
-import { useMemo, useState, useTransition } from 'react'
-import { Link, createFileRoute, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { Copy, Eye, Link2, Link2Off, Lock } from 'lucide-react'
-import { toast } from '#/lib/toast'
-
+import { useMemo, useState, useTransition } from 'react'
 import { ShareAccessLogDialog } from '#/components/files/share-access-log-dialog'
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
-import { AppShellPending } from '#/components/ui/preload-spinner'
 import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import {
@@ -14,10 +11,12 @@ import {
   DataTable,
 } from '#/components/ui/data-table'
 import { EmptyState } from '#/components/ui/empty-state'
+import { AppShellPending } from '#/components/ui/preload-spinner'
 import { getErrorMessage } from '#/lib/errors'
 import { formatFileSize } from '#/lib/format'
 import { requireOnboardedSession } from '#/lib/route-guards'
 import { privateAppHead } from '#/lib/seo'
+import { toast } from '#/lib/toast'
 import { getAppChrome } from '#/server/functions/drive'
 import { listShareLinks, revokeShareLink } from '#/server/functions/shares'
 
@@ -177,9 +176,7 @@ function SharesPage() {
                         toast.success('Odkaz zrušený')
                         refresh()
                       } catch (error) {
-                        toast.error(
-                          getErrorMessage(error, 'Revoke zlyhal'),
-                        )
+                        toast.error(getErrorMessage(error, 'Revoke zlyhal'))
                       }
                     })
                   }}
@@ -247,11 +244,7 @@ function SharesPage() {
   )
 }
 
-function StatusBadge({
-  status,
-}: {
-  status: 'active' | 'expired' | 'revoked'
-}) {
+function StatusBadge({ status }: { status: 'active' | 'expired' | 'revoked' }) {
   return (
     <Badge
       variant={

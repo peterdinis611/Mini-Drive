@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo, useState } from 'react'
 import {
   formatForDisplay,
   useAppHotkeyList,
@@ -8,6 +7,7 @@ import {
   useHotkey,
 } from '@tanstack/react-hotkeys'
 import { Keyboard } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 import {
   Dialog,

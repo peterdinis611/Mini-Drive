@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
 import { useThrottledCallback } from '@tanstack/react-pacer'
 import { useRouterState } from '@tanstack/react-router'
 import { ArrowUp } from 'lucide-react'
@@ -15,6 +14,7 @@ import {
   useSpring,
   useTransform,
 } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '#/components/ui/button'
 import { easeOutExpo, springSnappy } from '#/lib/motion'
@@ -123,7 +123,12 @@ export function ScrollToTopButton({ className }: { className?: string }) {
           exit={
             reduce
               ? undefined
-              : { opacity: 0, y: 10, scale: 0.9, transition: { duration: 0.18 } }
+              : {
+                  opacity: 0,
+                  y: 10,
+                  scale: 0.9,
+                  transition: { duration: 0.18 },
+                }
           }
           transition={springSnappy}
         >

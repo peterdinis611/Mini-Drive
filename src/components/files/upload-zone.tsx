@@ -1,4 +1,3 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import {
   CheckCircle2,
   CloudUpload,
@@ -7,6 +6,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useDrop } from 'react-dnd'
 import { NativeTypes } from 'react-dnd-html5-backend'
 
@@ -14,16 +14,13 @@ import { Button } from '#/components/ui/button'
 import { Label } from '#/components/ui/label'
 import { Progress } from '#/components/ui/progress'
 import { UPLOAD_LIMITS } from '#/lib/constants'
-import {
-  fileKindIcon,
-  fileKindLabel,
-} from '#/lib/file-kind'
-import { formatFileSize } from '#/lib/format'
+import { fileKindIcon, fileKindLabel } from '#/lib/file-kind'
 import { formatFolderPath } from '#/lib/folder-ops'
+import { formatFileSize } from '#/lib/format'
 import { riseTransition } from '#/lib/motion'
 import { cn } from '#/lib/utils'
-import type { UploadQueueItem } from './use-drive-upload'
 import type { FolderTreeNode } from './types'
+import type { UploadQueueItem } from './use-drive-upload'
 
 type Props = {
   folderId: string | null
@@ -252,8 +249,8 @@ export function UploadZone({
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-medium text-muted-foreground">
-                  {queue.length}{' '}
-                  {queue.length === 1 ? 'súbor' : 'súborov'} → {destinationLabel}
+                  {queue.length} {queue.length === 1 ? 'súbor' : 'súborov'} →{' '}
+                  {destinationLabel}
                 </p>
                 <p className="font-mono text-xs tabular-nums text-foreground">
                   {Math.round(percent)}%

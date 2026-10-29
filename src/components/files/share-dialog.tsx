@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react'
 import { Check, Copy, Loader2, Lock } from 'lucide-react'
-import { toast } from '#/lib/toast'
-
+import { useEffect, useState } from 'react'
 import { Button } from '#/components/ui/button'
 import { Checkbox } from '#/components/ui/checkbox'
 import {
@@ -29,6 +27,7 @@ import {
 } from '#/components/ui/select'
 import { SHARE_EXPIRY_PRESETS } from '#/lib/constants'
 import { getErrorMessage } from '#/lib/errors'
+import { toast } from '#/lib/toast'
 import { createShareLinkSchema } from '#/lib/validation'
 import { createShareLink } from '#/server/functions/shares'
 
@@ -164,9 +163,7 @@ export function ShareDialog({
                   variant="outline"
                   size="icon"
                   onClick={() =>
-                    void handleCopy(
-                      `${window.location.origin}${createdPath}`,
-                    )
+                    void handleCopy(`${window.location.origin}${createdPath}`)
                   }
                 >
                   {copied ? <Check /> : <Copy />}
@@ -219,10 +216,7 @@ export function ShareDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {SHARE_EXPIRY_PRESETS.map((preset) => (
-                    <SelectItem
-                      key={preset.value}
-                      value={String(preset.value)}
-                    >
+                    <SelectItem key={preset.value} value={String(preset.value)}>
                       {preset.label}
                     </SelectItem>
                   ))}

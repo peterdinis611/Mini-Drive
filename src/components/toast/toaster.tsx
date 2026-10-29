@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import {
   CheckCircle2,
   Info,
@@ -7,11 +6,12 @@ import {
   X,
 } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { useEffect, useState } from 'react'
 
 import { Button } from '#/components/ui/button'
 import { riseTransition } from '#/lib/motion'
-import { dismiss, subscribe } from '#/lib/toast'
 import type { ToastItem, ToastTone } from '#/lib/toast'
+import { dismiss, subscribe } from '#/lib/toast'
 import { cn } from '#/lib/utils'
 
 const toneMeta: Record<
@@ -83,7 +83,9 @@ export function Toaster() {
                   <Icon className="size-4" aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1 pt-0.5">
-                  <p className="text-sm font-medium leading-snug">{item.title}</p>
+                  <p className="text-sm font-medium leading-snug">
+                    {item.title}
+                  </p>
                   {item.description ? (
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       {item.description}

@@ -20,9 +20,7 @@ export function resolveShareStatus(link: {
 }): 'active' | 'expired' | 'revoked' {
   if (link.revokedAt != null) return 'revoked'
   const expiresAt =
-    link.expiresAt instanceof Date
-      ? link.expiresAt.getTime()
-      : link.expiresAt
+    link.expiresAt instanceof Date ? link.expiresAt.getTime() : link.expiresAt
   if (expiresAt <= Date.now()) return 'expired'
   return 'active'
 }

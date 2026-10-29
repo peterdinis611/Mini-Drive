@@ -13,10 +13,7 @@ export function prettyPrintXml(raw: string): string {
     if (!line) continue
     if (/^<\/.+>/.test(line)) indent = Math.max(indent - 1, 0)
     lines.push(`${'  '.repeat(indent)}${line}`)
-    if (
-      /^<[^!?][^>]*[^/]>/.test(line) &&
-      !/^<[^>]*>.*<\/[^>]+>$/.test(line)
-    ) {
+    if (/^<[^!?][^>]*[^/]>/.test(line) && !/^<[^>]*>.*<\/[^>]+>$/.test(line)) {
       indent += 1
     }
   }
@@ -39,8 +36,7 @@ export function tokenizeXmlLine(line: string): XmlToken[] {
   }
 
   const tokens: XmlToken[] = []
-  const tagRe =
-    /(<\/?[A-Za-z_][\w:.-]*|[=\s/>]+|"[^"]*"|'[^']*'|[^<\s="'/>]+)/g
+  const tagRe = /(<\/?[A-Za-z_][\w:.-]*|[=\s/>]+|"[^"]*"|'[^']*'|[^<\s="'/>]+)/g
   let last = 0
   let match: RegExpExecArray | null
   const working = line

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
-
-import { buildContentSecurityPolicy } from '#/lib/csp'
 import { AUTH_LIMITS } from '#/lib/constants'
+import { buildContentSecurityPolicy } from '#/lib/csp'
 
 describe('buildContentSecurityPolicy', () => {
   it('sets a strict production policy', () => {

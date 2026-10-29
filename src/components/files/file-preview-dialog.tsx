@@ -1,11 +1,10 @@
-import { Suspense, useEffect, useRef, useState } from 'react'
 import { Download } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { Suspense, useEffect, useRef, useState } from 'react'
 
 import { FilePreviewBody } from '#/components/files/previews'
 import { ShareDialog } from '#/components/files/share-dialog'
 import { Button } from '#/components/ui/button'
-import { PreviewLoading } from '#/components/ui/preload-spinner'
 import {
   Dialog,
   DialogContent,
@@ -13,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '#/components/ui/dialog'
+import { PreviewLoading } from '#/components/ui/preload-spinner'
 import { getErrorMessage } from '#/lib/errors'
 import { canInlinePreview, fileKindLabel, getFileKind } from '#/lib/file-kind'
 import { formatFileSize } from '#/lib/format'

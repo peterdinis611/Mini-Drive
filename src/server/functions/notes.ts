@@ -7,8 +7,8 @@ import {
   listFileCommentsSchema,
   updateFileNoteSchema,
 } from '#/lib/validation'
-import { firstOrThrow } from '#/server/db-helpers.server'
 import { recordActivity } from '#/server/activity.server'
+import { firstOrThrow } from '#/server/db-helpers.server'
 
 export const updateFileNote = createServerFn({ method: 'POST' })
   .validator(updateFileNoteSchema)

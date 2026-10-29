@@ -14,19 +14,16 @@ import {
   SHARE_RATE_LIMIT,
   SHARE_SIGNED_URL_TTL_SECONDS,
 } from '#/lib/constants'
+import { checkRateLimit } from '#/lib/rate-limit'
 import { truncateUserAgent } from '#/lib/share-audit'
 import { hashAuditIp } from '#/lib/share-audit-hash'
-import {
-  hashSharePassword,
-  verifySharePassword,
-} from '#/lib/share-password'
+import { hashSharePassword, verifySharePassword } from '#/lib/share-password'
 import {
   buildEmbedPath,
   buildSharePath,
   generateShareToken,
   resolveShareStatus,
 } from '#/lib/share-token'
-import { checkRateLimit } from '#/lib/rate-limit'
 import {
   createShareLinkSchema,
   listShareAccessLogsSchema,
@@ -158,10 +155,9 @@ export const createShareLink = createServerFn({ method: 'POST' })
       'Súbor neexistuje',
     )
 
-    const {
-      scanUploadThingFileForShare,
-      virusScanBlockMessage,
-    } = await import('#/server/virus-scan.server')
+    const { scanUploadThingFileForShare, virusScanBlockMessage } = await import(
+      '#/server/virus-scan.server'
+    )
     const scan = await scanUploadThingFileForShare({
       uploadthingKey: file.uploadthingKey,
       fileName: file.name,
@@ -174,9 +170,7 @@ export const createShareLink = createServerFn({ method: 'POST' })
 
     const token = generateShareToken()
     const expiresAt = new Date(Date.now() + data.expiresIn * 1000)
-    const passwordHash = data.password
-      ? hashSharePassword(data.password)
-      : null
+    const passwordHash = data.password ? hashSharePassword(data.password) : null
 
     const created = firstOrThrow(
       await db
@@ -333,7 +327,10 @@ export const revokeShareLink = createServerFn({ method: 'POST' })
         })
         .from(shareLinks)
         .where(
-          and(eq(shareLinks.id, data.shareId), eq(shareLinks.createdBy, userId)),
+          and(
+            eq(shareLinks.id, data.shareId),
+            eq(shareLinks.createdBy, userId),
+          ),
         )
         .limit(1),
       'Odkaz neexistuje',

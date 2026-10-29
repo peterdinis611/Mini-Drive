@@ -30,9 +30,9 @@ describe('filterDriveFolders', () => {
   })
 
   it('fuzzy-matches folder names via Fuse.js', () => {
-    expect(filterDriveFolders(folders, 'all', 'archiv').map((f) => f.id)).toEqual([
-      'f2',
-    ])
+    expect(
+      filterDriveFolders(folders, 'all', 'archiv').map((f) => f.id),
+    ).toEqual(['f2'])
   })
 })
 
@@ -56,9 +56,9 @@ describe('filterDriveFiles', () => {
   })
 
   it('combines kind + query', () => {
-    expect(
-      filterDriveFiles(files, 'image', 'photo').map((f) => f.id),
-    ).toEqual(['1'])
+    expect(filterDriveFiles(files, 'image', 'photo').map((f) => f.id)).toEqual([
+      '1',
+    ])
     expect(filterDriveFiles(files, 'image', 'doc')).toEqual([])
   })
 

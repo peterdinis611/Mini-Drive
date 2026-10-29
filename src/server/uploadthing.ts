@@ -1,6 +1,6 @@
-import { createUploadthing, UploadThingError } from 'uploadthing/server'
-import type { FileRouter } from 'uploadthing/server'
 import { and, eq, isNull } from 'drizzle-orm'
+import type { FileRouter } from 'uploadthing/server'
+import { createUploadthing, UploadThingError } from 'uploadthing/server'
 
 import { db } from '#/db'
 import { files, folders } from '#/db/schema'
@@ -183,10 +183,7 @@ export const uploadRouter = {
         )
       }
 
-      const mimeType = resolveStoredMimeType(
-        file.type || '',
-        parsedName.data,
-      )
+      const mimeType = resolveStoredMimeType(file.type || '', parsedName.data)
 
       if (metadata.replaceFileId) {
         try {
@@ -198,14 +195,15 @@ export const uploadRouter = {
             mimeType,
             name: parsedName.data,
           })
-          void import('#/server/file-index.server').then(({ indexUploadedFile }) =>
-            indexUploadedFile({
-              fileId: replaced.id,
-              uploadthingKey: file.key,
-              mimeType,
-              name: replaced.name,
-              size: replaced.size,
-            }),
+          void import('#/server/file-index.server').then(
+            ({ indexUploadedFile }) =>
+              indexUploadedFile({
+                fileId: replaced.id,
+                uploadthingKey: file.key,
+                mimeType,
+                name: replaced.name,
+                size: replaced.size,
+              }),
           )
           return {
             fileId: replaced.id,

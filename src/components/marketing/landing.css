@@ -21,8 +21,8 @@
   --lp-shadow: rgba(16, 24, 40, 0.1);
   --lp-border-soft: rgba(16, 24, 40, 0.12);
   --lp-plate: rgba(255, 255, 255, 0.94);
-  --lp-font: 'Sora', 'IBM Plex Sans', ui-sans-serif, sans-serif;
-  --lp-script: 'Great Vibes', cursive;
+  --lp-font: "Sora", "IBM Plex Sans", ui-sans-serif, sans-serif;
+  --lp-script: "Great Vibes", cursive;
   --lp-margin: clamp(0.85rem, 2vw, 1.35rem);
 
   min-height: 100svh;
@@ -240,11 +240,7 @@
   padding: 2rem 1.25rem 3.5rem;
   min-height: min(92svh, 52rem);
   background:
-    radial-gradient(
-      55% 50% at 50% 48%,
-      var(--lp-bg-deep) 0%,
-      transparent 70%
-    ),
+    radial-gradient(55% 50% at 50% 48%, var(--lp-bg-deep) 0%, transparent 70%),
     var(--lp-bg);
 }
 

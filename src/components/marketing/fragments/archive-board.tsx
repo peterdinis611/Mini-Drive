@@ -24,8 +24,7 @@ const ROWS = [
     size: '92 KB',
     updated: '27. 10.',
     status: 'private',
-    detail:
-      'V priečinku Financie/2026. Žiadny verejný odkaz. Audit zapnutý.',
+    detail: 'V priečinku Financie/2026. Žiadny verejný odkaz. Audit zapnutý.',
   },
   {
     name: 'produkt-hero.png',
@@ -47,8 +46,7 @@ const ROWS = [
     size: '34 MB',
     updated: '24. 10.',
     status: 'trash',
-    detail:
-      'V koši. Retenčná politika: ešte 11 dní do permanentného výmazu.',
+    detail: 'V koši. Retenčná politika: ešte 11 dní do permanentného výmazu.',
   },
   {
     name: 'logo-pack.svg',

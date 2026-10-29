@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  buildEmbedPath,
   buildSharePath,
   generateShareToken,
   resolveShareStatus,
@@ -16,9 +17,15 @@ describe('generateShareToken', () => {
   })
 })
 
-describe('buildSharePath', () => {
-  it('prefixes the public route', () => {
+describe('buildSharePath / buildEmbedPath', () => {
+  it('prefixes the public and embed routes', () => {
     expect(buildSharePath('abc')).toBe('/s/abc')
+    expect(buildEmbedPath('abc')).toBe('/e/abc')
+  })
+
+  it('keeps share and embed paths distinct', () => {
+    const token = generateShareToken(8)
+    expect(buildSharePath(token)).not.toBe(buildEmbedPath(token))
   })
 })
 
@@ -69,5 +76,15 @@ describe('resolveShareStatus', () => {
         revokedAt: Date.now(),
       }),
     ).toBe('revoked')
+  })
+
+  it('treats expiry at exactly now as expired', () => {
+    const now = Date.now()
+    expect(
+      resolveShareStatus({
+        expiresAt: now,
+        revokedAt: null,
+      }),
+    ).toBe('expired')
   })
 })

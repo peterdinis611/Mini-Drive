@@ -15,16 +15,13 @@ import {
 import { AppShellPending } from '#/components/ui/preload-spinner'
 import { requireOnboardedSession } from '#/lib/route-guards'
 import { privateAppHead } from '#/lib/seo'
-import { getAppChrome } from '#/server/functions/drive'
 import { listActivity } from '#/server/functions/activity'
+import { getAppChrome } from '#/server/functions/drive'
 
 export const Route = createFileRoute('/activity')({
   beforeLoad: requireOnboardedSession,
   loader: async () => {
-    const [chrome, events] = await Promise.all([
-      getAppChrome(),
-      listActivity(),
-    ])
+    const [chrome, events] = await Promise.all([getAppChrome(), listActivity()])
     return { chrome, events }
   },
   head: () => privateAppHead('Aktivita', '/activity'),

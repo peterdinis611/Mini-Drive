@@ -15,5 +15,10 @@ describe('formatFileSize', () => {
     expect(formatFileSize(1536)).toBe('1.5 KB')
     expect(formatFileSize(1048576)).toBe('1 MB')
     expect(formatFileSize(5 * 1024 ** 3)).toBe('5 GB')
+    expect(formatFileSize(1024 ** 4)).toBe('1 TB')
+  })
+
+  it('clamps infinity-like values to zero', () => {
+    expect(formatFileSize(Number.POSITIVE_INFINITY)).toBe('0 B')
   })
 })

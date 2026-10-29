@@ -10,7 +10,7 @@ import {
 const PASSPHRASE = 'test-backup-key-32chars!!!!'
 
 describe('encryptDbBackup / decryptDbBackup', () => {
-  it('round-trips sqlite-like bytes', () => {
+  it('round-trips dump-like bytes', () => {
     const plaintext = Buffer.from('SQLite format 3\0fake-db-bytes')
     const { blob } = encryptDbBackup(plaintext, PASSPHRASE)
     expect(blob.subarray(0, 5).equals(DB_BACKUP_MAGIC)).toBe(true)
@@ -28,16 +28,16 @@ describe('encryptDbBackup / decryptDbBackup', () => {
   })
 
   it('rejects bad magic', () => {
-    expect(() =>
-      decryptDbBackup(Buffer.alloc(64, 7), PASSPHRASE),
-    ).toThrow(/MDBK1/)
+    expect(() => decryptDbBackup(Buffer.alloc(64, 7), PASSPHRASE)).toThrow(
+      /MDBK1/,
+    )
   })
 })
 
 describe('defaultBackupFileName', () => {
-  it('includes stamp and .db.enc', () => {
+  it('includes stamp and .dump.enc', () => {
     const name = defaultBackupFileName(new Date('2026-10-24T15:30:45Z'))
     expect(name.startsWith('mini-drive-')).toBe(true)
-    expect(name.endsWith('.db.enc')).toBe(true)
+    expect(name.endsWith('.dump.enc')).toBe(true)
   })
 })
