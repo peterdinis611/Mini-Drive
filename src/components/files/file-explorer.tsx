@@ -5,13 +5,19 @@ import {
   Copy,
   Download,
   Eye,
+  FileText,
+  Film,
   Folder,
   FolderInput,
   FolderPlus,
   Grid2X2,
   History,
+  ImageIcon,
+  Layers,
   List,
+  type LucideIcon,
   MoreHorizontal,
+  Music,
   Pencil,
   Search,
   Share2,
@@ -131,13 +137,17 @@ import type {
   FolderTreeNode,
 } from './types'
 
-const KIND_CHIPS = [
-  { value: 'all' as const, label: 'Všetko' },
-  { value: 'image' as const, label: 'Obrázky' },
-  { value: 'pdf' as const, label: 'PDF' },
-  { value: 'video' as const, label: 'Video' },
-  { value: 'audio' as const, label: 'Audio' },
-  { value: 'text' as const, label: 'Text' },
+const KIND_CHIPS: Array<{
+  value: 'all' | 'image' | 'pdf' | 'video' | 'audio' | 'text'
+  label: string
+  icon: LucideIcon
+}> = [
+  { value: 'all', label: 'Všetko', icon: Layers },
+  { value: 'image', label: 'Obrázky', icon: ImageIcon },
+  { value: 'pdf', label: 'PDF', icon: FileText },
+  { value: 'video', label: 'Video', icon: Film },
+  { value: 'audio', label: 'Audio', icon: Music },
+  { value: 'text', label: 'Text', icon: Type },
 ]
 
 type Props = {
@@ -821,36 +831,47 @@ export function FileExplorer({
           </FadeIn>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <ToggleGroup
-              type="single"
-              value={kind}
-              onValueChange={(value) => {
-                if (
-                  value === 'all' ||
-                  value === 'image' ||
-                  value === 'pdf' ||
-                  value === 'video' ||
-                  value === 'audio' ||
-                  value === 'text'
-                ) {
-                  void setUrlState({ kind: value })
-                }
-              }}
-              variant="outline"
-              size="sm"
-              className="flex flex-wrap justify-start gap-1.5"
+            <div
+              role="group"
+              aria-label="Filter podľa typu"
+              className="inline-flex max-w-full overflow-x-auto rounded-full border border-border/80 bg-muted/55 p-1 shadow-[inset_0_1px_0_color-mix(in_oklab,white_55%,transparent)] dark:border-primary/25 dark:bg-muted/40 dark:shadow-none"
             >
-              {KIND_CHIPS.map((chip) => (
-                <ToggleGroupItem
-                  key={chip.value}
-                  value={chip.value}
-                  className="h-8 rounded-md px-2.5 text-xs data-[state=on]:bg-accent"
-                >
-                  {chip.label}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-            <InputGroup className="h-8 w-full sm:max-w-56">
+              <ToggleGroup
+                type="single"
+                value={kind}
+                onValueChange={(value) => {
+                  if (
+                    value === 'all' ||
+                    value === 'image' ||
+                    value === 'pdf' ||
+                    value === 'video' ||
+                    value === 'audio' ||
+                    value === 'text'
+                  ) {
+                    void setUrlState({ kind: value })
+                  }
+                }}
+                size="sm"
+                spacing={0}
+                className="gap-0.5"
+              >
+                {KIND_CHIPS.map((chip) => {
+                  const Icon = chip.icon
+                  return (
+                    <ToggleGroupItem
+                      key={chip.value}
+                      value={chip.value}
+                      aria-label={chip.label}
+                      className="h-8 gap-1.5 rounded-full border-0 px-2.5 text-xs font-medium text-muted-foreground shadow-none transition-[color,background-color,box-shadow,transform] hover:bg-background/70 hover:text-foreground data-[state=on]:bg-background data-[state=on]:text-primary data-[state=on]:shadow-sm data-[state=on]:ring-1 data-[state=on]:ring-border/70 dark:data-[state=on]:bg-card dark:data-[state=on]:text-primary dark:data-[state=on]:ring-primary/30 sm:px-3"
+                    >
+                      <Icon className="size-3.5 opacity-80" aria-hidden />
+                      <span>{chip.label}</span>
+                    </ToggleGroupItem>
+                  )
+                })}
+              </ToggleGroup>
+            </div>
+            <InputGroup className="h-9 w-full rounded-full sm:max-w-56">
               <InputGroupAddon>
                 <Search className="size-3.5" aria-hidden />
               </InputGroupAddon>
@@ -859,6 +880,7 @@ export function FileExplorer({
                 onChange={(event) => setFilterDraft(event.target.value)}
                 placeholder="Filtrovať…"
                 aria-label="Filtrovať súbory a priečinky"
+                className="rounded-full"
               />
             </InputGroup>
           </div>
