@@ -36,16 +36,21 @@ pool.on('error', (error) => {
 })
 
 /** Boot-time additive schema patches (dev / single-node). */
+let schemaBootError: unknown
+
 const schemaReady =
   isBundling && !(process.env.DATABASE_URL ?? '').trim()
     ? Promise.resolve()
     : ensurePgSchema(pool).catch((error) => {
+        // Keep the process alive — health / waitForDb surface the failure.
+        // Rethrowing here caused unhandledRejection crashes under Node 22+.
         console.error('[mini-drive] ensurePgSchema failed', error)
-        throw error
+        schemaBootError = error
       })
 
 export async function waitForDb(): Promise<void> {
   await schemaReady
+  if (schemaBootError) throw schemaBootError
 }
 
 export const db = drizzle(pool, { schema })

@@ -39,8 +39,8 @@ export default defineConfig({
     ? undefined
     : {
         command: `pnpm exec vite dev --port ${port} --strictPort`,
-        // Prefer health over `/` — landing SSR can be slow / flaky while Vite warms up.
-        url: `${baseURL}/api/health`,
+        // Static asset readiness — `/api/health` is 503 when Postgres is down (Docker off).
+        url: `${baseURL}/favicon.svg`,
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
       },
