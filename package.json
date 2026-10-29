@@ -28,7 +28,11 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:k6": "k6 run k6/load.js",
+    "test:k6:smoke": "k6 run k6/smoke.js",
+    "test:k6:spike": "k6 run k6/spike.js",
+    "test:k6:share-rate": "k6 run k6/share-rate.js"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.14",
