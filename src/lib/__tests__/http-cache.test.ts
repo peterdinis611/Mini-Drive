@@ -33,11 +33,12 @@ describe('cacheControlForPath', () => {
     )
   })
 
-  it('never caches API / share endpoints', async () => {
+  it('never caches API / share / embed endpoints', async () => {
     process.env.NODE_ENV = 'production'
     const { cacheControlForPath } = await import('#/lib/http-cache')
     expect(cacheControlForPath('/api/health')).toBe('private, no-store')
     expect(cacheControlForPath('/s/abc')).toBe('private, no-store')
+    expect(cacheControlForPath('/e/tok')).toBe('private, no-store')
   })
 
   it('keeps SSR documents short-lived', async () => {

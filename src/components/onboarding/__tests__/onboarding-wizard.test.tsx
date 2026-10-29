@@ -27,6 +27,10 @@ vi.mock('next-themes', () => ({
   useTheme: () => ({ resolvedTheme: 'dark', setTheme: vi.fn() }),
 }))
 
+vi.mock('@clerk/tanstack-react-start', () => ({
+  useAuth: () => ({ isSignedIn: true, userId: 'user_test' }),
+}))
+
 vi.mock('#/lib/toast', () => ({
   toast: {
     success: vi.fn(),

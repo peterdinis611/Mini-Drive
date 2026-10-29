@@ -24,13 +24,28 @@ describe('resolveStoredMimeType', () => {
     expect(resolveStoredMimeType('', 'track.flac')).toBe('audio/flac')
   })
 
-  it('resolves spreadsheet / archive / code / text', () => {
+  it('resolves spreadsheet / office / archive / code / text', () => {
     expect(resolveStoredMimeType('', 't.xlsx')).toBe(
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    expect(resolveStoredMimeType('', 'notes.docx')).toBe(
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    )
+    expect(resolveStoredMimeType('', 'deck.pptx')).toBe(
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     )
     expect(resolveStoredMimeType('', 'a.zip')).toBe('application/zip')
     expect(resolveStoredMimeType('', 'data.json')).toBe('application/json')
     expect(resolveStoredMimeType('', 'readme.md')).toBe('text/markdown')
+  })
+
+  it('canInlinePreview for office docs', () => {
+    expect(
+      canInlinePreview(
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'notes.docx',
+      ),
+    ).toBe(true)
   })
 
   it('falls back to octet-stream for unknown blobs', () => {
