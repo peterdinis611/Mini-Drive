@@ -17,8 +17,15 @@ const config = defineConfig({
   // same runtime. better-sqlite3 stays external (native Node addon).
   // https://tanstack.com/redact/latest/docs/start
   ssr: {
+    // Bundle app + most deps for Redact; keep native / ORM packages as Node requires
+    // so Drizzle symbols and better-sqlite3 bindings stay single-instance.
     noExternal: true,
-    external: ['better-sqlite3'],
+    external: [
+      'better-sqlite3',
+      'drizzle-orm',
+      'drizzle-orm/better-sqlite3',
+      'drizzle-orm/sqlite-core',
+    ],
   },
   optimizeDeps: {
     // better-sqlite3: native addon. radix-ui: "use client" tree — prebundling it

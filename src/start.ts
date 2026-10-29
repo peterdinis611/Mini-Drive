@@ -8,8 +8,11 @@ import { setResponseHeader } from '@tanstack/react-start/server'
 
 import { silenceClerkDevKeySpam } from '#/lib/clerk-dev-silence'
 import { buildContentSecurityPolicy } from '#/lib/csp'
+import { assertProductionEnv, warnOptionalProductionEnv } from '#/lib/env'
 
 silenceClerkDevKeySpam()
+assertProductionEnv()
+warnOptionalProductionEnv()
 
 const csrfMiddleware = createCsrfMiddleware({
   filter: (ctx) => ctx.handlerType === 'serverFn',
@@ -50,10 +53,21 @@ const securityHeadersMiddleware = createMiddleware().server(
   },
 )
 
+const clerk = clerkMiddleware()
+
+/** Skip Clerk on liveness probes so orchestrators don't need auth secrets. */
+const clerkUnlessHealth = createMiddleware().server(async (ctx) => {
+  const path = new URL(ctx.request.url).pathname
+  if (path === '/api/health') {
+    return ctx.next()
+  }
+  return clerk.options.server!(ctx)
+})
+
 export const startInstance = createStart(() => ({
   requestMiddleware: [
     csrfMiddleware,
     securityHeadersMiddleware,
-    clerkMiddleware(),
+    clerkUnlessHealth,
   ],
 }))

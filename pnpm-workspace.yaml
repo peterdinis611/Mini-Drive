@@ -6,5 +6,12 @@ allowBuilds:
   # marketing-only postinstall (star on GitHub) — not needed
   pompelmi: false
   msgpackr-extract: false
+# xmlbuilder ships a `.vscode/` folder; Cursor agent sandbox blocks creating that path.
+# Vendor copies are the same package without IDE files.
+overrides:
+  xmlbuilder@15: link:vendor/xmlbuilder
+  xmlbuilder@11: link:vendor/xmlbuilder11
+  # Clerk pulls query-core@5.105 while app pins 5.104 — unify for tsc.
+  "@tanstack/query-core": "5.104.4"
 patchedDependencies:
   "@uploadthing/shared@7.1.10": patches/@uploadthing__shared@7.1.10.patch

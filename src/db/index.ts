@@ -1,14 +1,15 @@
 import { mkdirSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { dirname, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { config } from 'dotenv'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 
 import { ensureSqliteSchema } from './ensure-schema'
 import * as schema from './schema'
 
-// Load via Node require so Vite SSR eval does not break native bindings resolution.
-const require = createRequire(import.meta.url)
+// Resolve from project root — after `vite build`, import.meta.url points at
+// dist/server/assets/* and cannot see node_modules/better-sqlite3.
+const require = createRequire(join(process.cwd(), 'package.json'))
 const Database = require('better-sqlite3') as typeof import('better-sqlite3')
 const nativeBinding = require.resolve(
   'better-sqlite3/build/Release/better_sqlite3.node',
