@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { FileSpreadsheet, Search } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   InputGroup,
@@ -76,10 +76,7 @@ function CsvPreview({ url, fileName }: PreviewShellProps) {
 
   if (loading) {
     return (
-      <PreviewLoading
-        className="h-[min(70vh,640px)]"
-        label="Načítavam CSV…"
-      />
+      <PreviewLoading className="h-[min(70vh,640px)]" label="Načítavam CSV…" />
     )
   }
 
@@ -110,7 +107,9 @@ function CsvPreview({ url, fileName }: PreviewShellProps) {
           </p>
           <p className="font-meta text-[10px] tracking-wide text-muted-foreground uppercase">
             CSV · delimiter{' '}
-            {parsed.delimiter === '\t' ? 'TAB' : JSON.stringify(parsed.delimiter)}{' '}
+            {parsed.delimiter === '\t'
+              ? 'TAB'
+              : JSON.stringify(parsed.delimiter)}{' '}
             · {body.length}
             {filter ? ` / ${parsed.rows.length - 1}` : ''} riadkov · {colCount}{' '}
             stĺpcov

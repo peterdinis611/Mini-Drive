@@ -1,4 +1,7 @@
-import { canInlinePreview as canPreviewKind, getFileKind } from '#/lib/file-kind'
+import {
+  canInlinePreview as canPreviewKind,
+  getFileKind,
+} from '#/lib/file-kind'
 
 /** Expand UploadThing shorthand / empty types into a real MIME string. */
 export function resolveStoredMimeType(type: string, name: string): string {

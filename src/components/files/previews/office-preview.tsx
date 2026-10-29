@@ -5,11 +5,7 @@ import { Button } from '#/components/ui/button'
 import type { PreviewShellProps } from './types'
 
 /** Microsoft Office Online embed for DOCX / XLSX / PPTX when URL is reachable. */
-export function OfficePreview({
-  url,
-  fileName,
-  mimeType,
-}: PreviewShellProps) {
+export function OfficePreview({ url, fileName, mimeType }: PreviewShellProps) {
   const isSheet =
     mimeType.includes('spreadsheet') ||
     mimeType.includes('excel') ||

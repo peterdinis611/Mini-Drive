@@ -1,9 +1,8 @@
 'use client'
 
 import { useAuth } from '@clerk/tanstack-react-start'
-import { useTheme } from 'next-themes'
-
 import { useDebouncedCallback } from '@tanstack/react-pacer'
+import { useTheme } from 'next-themes'
 
 import { markThemeSynced, type ThemePreference } from '#/lib/theme-preference'
 import { updateSettings } from '#/server/functions/settings'

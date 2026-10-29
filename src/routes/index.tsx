@@ -1,11 +1,11 @@
-import { Suspense } from 'react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { Suspense } from 'react'
 
 import { RoutePending } from '#/components/status/status-page'
 import { PreloadSpinner } from '#/components/ui/preload-spinner'
+import { APP_NAME } from '#/lib/constants'
 import { buildSeoHead, landingPageJsonLd } from '#/lib/seo'
 import { SITE } from '#/lib/site'
-import { APP_NAME } from '#/lib/constants'
 import { getLandingPageRsc } from '#/server/rsc/public-pages'
 import { getSession } from '#/server/session'
 

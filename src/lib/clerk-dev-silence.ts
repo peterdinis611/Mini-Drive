@@ -13,8 +13,7 @@ let patched = false
 function isClerkSpam(args: unknown[]) {
   return args.some(
     (arg) =>
-      typeof arg === 'string' &&
-      MARKERS.some((marker) => arg.includes(marker)),
+      typeof arg === 'string' && MARKERS.some((marker) => arg.includes(marker)),
   )
 }
 

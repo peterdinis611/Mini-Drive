@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  hashSharePassword,
-  verifySharePassword,
-} from '#/lib/share-password'
+import { hashSharePassword, verifySharePassword } from '#/lib/share-password'
 
 describe('share-password', () => {
   it('hashes and verifies', () => {

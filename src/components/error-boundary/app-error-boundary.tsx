@@ -29,9 +29,7 @@ type Props = {
 }
 
 function PageFallback({ error, resetErrorBoundary }: FallbackProps) {
-  return (
-    <ServerErrorPage error={toError(error)} reset={resetErrorBoundary} />
-  )
+  return <ServerErrorPage error={toError(error)} reset={resetErrorBoundary} />
 }
 
 /**

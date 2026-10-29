@@ -1,8 +1,4 @@
-import {
-  parseAsString,
-  parseAsStringLiteral,
-  parseAsBoolean,
-} from 'nuqs'
+import { parseAsBoolean, parseAsString, parseAsStringLiteral } from 'nuqs'
 
 export const viewParser = parseAsStringLiteral(['grid', 'list'] as const)
 

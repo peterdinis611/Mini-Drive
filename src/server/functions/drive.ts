@@ -77,7 +77,9 @@ export const getAppChrome = createServerFn({ method: 'GET' }).handler(
     const folderStats = folderStatsRows.at(0)
 
     const sortedFolders = [...folderTree].sort(
-      (a, b) => (b.priority ?? 0) - (a.priority ?? 0) || a.name.localeCompare(b.name, 'sk'),
+      (a, b) =>
+        (b.priority ?? 0) - (a.priority ?? 0) ||
+        a.name.localeCompare(b.name, 'sk'),
     )
 
     return {
@@ -131,9 +133,7 @@ export const listRecentFiles = createServerFn({ method: 'GET' }).handler(
         createdAt: files.createdAt,
       })
       .from(files)
-      .where(
-        and(eq(files.userId, session.user.id), isNull(files.deletedAt)),
-      )
+      .where(and(eq(files.userId, session.user.id), isNull(files.deletedAt)))
       .orderBy(desc(files.createdAt))
       .limit(40)
   },

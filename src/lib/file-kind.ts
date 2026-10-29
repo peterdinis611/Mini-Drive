@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react'
 import {
   FileArchive,
   FileAudio,
@@ -8,7 +9,6 @@ import {
   FileText,
   FileVideo,
 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 
 export type FileKind =
   | 'image'
@@ -32,13 +32,19 @@ const ARCHIVE_EXT = /\.(zip|rar|7z|tar|gz|tgz|bz2)$/i
 const TEXT_EXT = /\.(txt|md|markdown|log|rtf)$/i
 
 export function getFileKind(mimeType: string, name = ''): FileKind {
-  if (mimeType.startsWith('image/') || /\.(png|jpe?g|gif|webp|svg|avif|bmp)$/i.test(name)) {
+  if (
+    mimeType.startsWith('image/') ||
+    /\.(png|jpe?g|gif|webp|svg|avif|bmp)$/i.test(name)
+  ) {
     return 'image'
   }
   if (mimeType.startsWith('video/') || /\.(mp4|mov|webm|mkv)$/i.test(name)) {
     return 'video'
   }
-  if (mimeType.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(name)) {
+  if (
+    mimeType.startsWith('audio/') ||
+    /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(name)
+  ) {
     return 'audio'
   }
   if (mimeType === 'application/pdf' || /\.pdf$/i.test(name)) {
@@ -55,10 +61,7 @@ export function getFileKind(mimeType: string, name = ''): FileKind {
   ) {
     return 'office'
   }
-  if (
-    mimeType === 'text/csv' ||
-    SPREADSHEET_EXT.test(name)
-  ) {
+  if (mimeType === 'text/csv' || SPREADSHEET_EXT.test(name)) {
     return 'spreadsheet'
   }
   if (

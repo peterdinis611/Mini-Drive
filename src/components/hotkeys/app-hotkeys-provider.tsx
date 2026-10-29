@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import type { CustomHotkeys } from '@tanstack/react-hotkeys'
+import { HotkeysProvider } from '@tanstack/react-hotkeys'
+import { useEffect, useRef, useState } from 'react'
 
 import { appHotkeys } from '#/lib/app-hotkeys'
 import {
@@ -11,10 +11,7 @@ import {
   saveCustomHotkeys,
   serializeCustomHotkeys,
 } from '#/lib/hotkeys-storage'
-import {
-  getCustomHotkeys,
-  updateSettings,
-} from '#/server/functions/settings'
+import { getCustomHotkeys, updateSettings } from '#/server/functions/settings'
 
 type Props = {
   children: React.ReactNode

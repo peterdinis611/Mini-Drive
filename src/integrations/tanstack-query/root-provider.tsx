@@ -19,7 +19,10 @@ export function getContext() {
 
   queryClient.getQueryCache().subscribe((event) => {
     if (event.type === 'updated' && event.query.state.status === 'error') {
-      reportError(event.query.state.error, `query:${String(event.query.queryHash)}`)
+      reportError(
+        event.query.state.error,
+        `query:${String(event.query.queryHash)}`,
+      )
     }
   })
 

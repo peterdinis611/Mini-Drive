@@ -19,9 +19,9 @@ describe('formatStorageBytes', () => {
 
 describe('projectStorageUsage', () => {
   it('adds incoming bytes to used', () => {
-    expect(
-      projectStorageUsage({ usedBytes: 100, additionalBytes: 40 }),
-    ).toBe(140)
+    expect(projectStorageUsage({ usedBytes: 100, additionalBytes: 40 })).toBe(
+      140,
+    )
   })
 
   it('subtracts releasing bytes (replace flow)', () => {

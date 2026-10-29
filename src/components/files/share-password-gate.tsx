@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import { Loader2, Lock } from 'lucide-react'
+import { useState } from 'react'
 
 import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
@@ -81,7 +81,10 @@ export function SharePasswordGate({
     >
       <div className="flex flex-col items-center gap-2 text-center">
         <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-border bg-muted/60">
-          <Lock className="size-5 text-amber-600 dark:text-amber-400" aria-hidden />
+          <Lock
+            className="size-5 text-amber-600 dark:text-amber-400"
+            aria-hidden
+          />
         </span>
         <h1 className="font-display text-xl">Chránené heslom</h1>
         <p className="text-sm text-muted-foreground">

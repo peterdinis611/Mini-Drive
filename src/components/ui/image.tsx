@@ -1,12 +1,12 @@
 'use client'
 
 import {
-  useCallback,
-  useEffect,
-  useState,
   type CSSProperties,
   type ImgHTMLAttributes,
   type SyntheticEvent,
+  useCallback,
+  useEffect,
+  useState,
 } from 'react'
 
 import { cn } from '#/lib/utils'
@@ -139,7 +139,9 @@ export function Image({
   if (showBlur) {
     imgStyle.backgroundImage = `url("${blurDataURL}")`
     imgStyle.backgroundSize =
-      (objectFit ?? (fill ? 'cover' : 'cover')) === 'contain' ? 'contain' : 'cover'
+      (objectFit ?? (fill ? 'cover' : 'cover')) === 'contain'
+        ? 'contain'
+        : 'cover'
     imgStyle.backgroundPosition = objectPosition ?? 'center'
     imgStyle.backgroundRepeat = 'no-repeat'
   }
@@ -158,7 +160,8 @@ export function Image({
       fetchPriority={priority ? 'high' : fetchPriority}
       className={cn(
         sized && 'absolute inset-0 size-full max-w-none',
-        useBlur && 'transition-[filter,transform,opacity] duration-300 ease-out',
+        useBlur &&
+          'transition-[filter,transform,opacity] duration-300 ease-out',
         showBlur && 'scale-105 blur-sm',
         useBlur && loaded && 'scale-100 blur-0',
         failed && 'opacity-0',
@@ -172,7 +175,10 @@ export function Image({
 
   if (fill) {
     return (
-      <span data-slot="image-fill" className="absolute inset-0 block overflow-hidden">
+      <span
+        data-slot="image-fill"
+        className="absolute inset-0 block overflow-hidden"
+      >
         {img}
       </span>
     )

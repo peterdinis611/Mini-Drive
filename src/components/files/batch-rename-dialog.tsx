@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
 import { Type } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 import { Button } from '#/components/ui/button'
 import {
@@ -35,9 +35,11 @@ export function BatchRenameDialog({
 
   const preview = useMemo(
     () =>
-      fileNames.slice(0, 5).map((name, index) =>
-        applyRenamePattern(name, pattern, startAt + index),
-      ),
+      fileNames
+        .slice(0, 5)
+        .map((name, index) =>
+          applyRenamePattern(name, pattern, startAt + index),
+        ),
     [fileNames, pattern, startAt],
   )
 
@@ -50,8 +52,8 @@ export function BatchRenameDialog({
             Hromadné premenovanie
           </DialogTitle>
           <DialogDescription>
-            Tokeny: {'{n}'} index, {'{name}'} názov bez prípony, {'{ext}'} prípona
-            (s bodkou). {fileNames.length} súborov.
+            Tokeny: {'{n}'} index, {'{name}'} názov bez prípony, {'{ext}'}{' '}
+            prípona (s bodkou). {fileNames.length} súborov.
           </DialogDescription>
         </DialogHeader>
 
@@ -72,15 +74,15 @@ export function BatchRenameDialog({
               type="number"
               min={0}
               value={startAt}
-              onChange={(event) =>
-                setStartAt(Number(event.target.value) || 0)
-              }
+              onChange={(event) => setStartAt(Number(event.target.value) || 0)}
             />
           </div>
           <ul className="m-0 list-none space-y-1 rounded-xl border border-border/70 bg-muted/20 p-3 text-sm">
             {preview.map((name, index) => (
               <li key={`${fileNames[index]}-${name}`} className="truncate">
-                <span className="text-muted-foreground">{fileNames[index]}</span>
+                <span className="text-muted-foreground">
+                  {fileNames[index]}
+                </span>
                 {' → '}
                 <span className="font-medium">{name}</span>
               </li>

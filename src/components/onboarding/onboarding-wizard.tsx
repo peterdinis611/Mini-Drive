@@ -1,14 +1,12 @@
-import { useEffect, useId, useState, useTransition } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { CheckCircle2, HardDrive, Shield, Upload } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
-import { toast } from '#/lib/toast'
-
+import { useEffect, useId, useState, useTransition } from 'react'
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import { UploadZone } from '#/components/files/upload-zone'
 import { useDriveUpload } from '#/components/files/use-drive-upload'
 import { AtmosphereShell } from '#/components/layout/atmosphere-shell'
-import { DndProvider } from 'react-dnd'
-import { HTML5Backend } from 'react-dnd-html5-backend'
 import { SwapPresence } from '#/components/motion/animated-presence'
 import { FadeIn } from '#/components/motion/fade-in'
 import { Stagger, StaggerItem } from '#/components/motion/stagger'
@@ -19,6 +17,7 @@ import { Progress } from '#/components/ui/progress'
 import { APP_NAME, ONBOARDING_STEPS } from '#/lib/constants'
 import { getErrorMessage } from '#/lib/errors'
 import { riseTransition } from '#/lib/motion'
+import { toast } from '#/lib/toast'
 import { onboardingPreferencesSchema } from '#/lib/validation'
 import {
   completeOnboarding,
@@ -92,9 +91,7 @@ export function OnboardingWizard({ initial }: Props) {
       viewPreference,
     })
     if (!parsed.success) {
-      toast.error(
-        parsed.error.issues[0]?.message ?? 'Neplatné preferencie',
-      )
+      toast.error(parsed.error.issues[0]?.message ?? 'Neplatné preferencie')
       return
     }
 
@@ -156,12 +153,7 @@ export function OnboardingWizard({ initial }: Props) {
       wide
       intensity="soft"
       headerRight={
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={skip}
-          disabled={pending}
-        >
+        <Button type="button" variant="ghost" onClick={skip} disabled={pending}>
           Preskočiť
         </Button>
       }
@@ -360,7 +352,12 @@ function PreferencesStep({
         </fieldset>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" onClick={onBack} disabled={pending}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onBack}
+          disabled={pending}
+        >
           Späť
         </Button>
         <Button type="button" onClick={onContinue} disabled={pending}>
@@ -415,7 +412,12 @@ function UploadStep({
       <OnboardingUpload onUploaded={onUploaded} />
 
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" onClick={onBack} disabled={pending}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onBack}
+          disabled={pending}
+        >
           Späť
         </Button>
         <Button

@@ -1,12 +1,8 @@
 import { createServerFn } from '@tanstack/react-start'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import JSZip from 'jszip'
-
-import {
-  bulkDownloadUrlsSchema,
-  zipFolderSchema,
-} from '#/lib/validation'
 import { collectDescendantIds } from '#/lib/folder-ops'
+import { bulkDownloadUrlsSchema, zipFolderSchema } from '#/lib/validation'
 import { firstOrThrow } from '#/server/db-helpers.server'
 
 const MAX_ZIP_BYTES = 80 * 1024 * 1024
@@ -64,7 +60,9 @@ export const getBulkDownloadUrls = createServerFn({ method: 'POST' })
       }),
     )
 
-    return items.filter((item): item is NonNullable<typeof item> => item !== null)
+    return items.filter(
+      (item): item is NonNullable<typeof item> => item !== null,
+    )
   })
 
 /**
@@ -88,7 +86,11 @@ export const downloadFolderZip = createServerFn({ method: 'POST' })
 
     const root = firstOrThrow(
       await db
-        .select({ id: folders.id, name: folders.name, parentId: folders.parentId })
+        .select({
+          id: folders.id,
+          name: folders.name,
+          parentId: folders.parentId,
+        })
         .from(folders)
         .where(
           and(

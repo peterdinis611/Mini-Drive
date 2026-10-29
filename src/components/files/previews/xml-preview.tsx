@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { Braces, WrapText } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button } from '#/components/ui/button'
 import { PreviewLoading } from '#/components/ui/preload-spinner'
-import { prettyPrintXml, tokenizeXmlLine } from '#/lib/xml-format'
 import { cn } from '#/lib/utils'
+import { prettyPrintXml, tokenizeXmlLine } from '#/lib/xml-format'
 
 import type { PreviewShellProps } from './types'
 
@@ -50,10 +50,7 @@ export function XmlPreview({ url, fileName }: PreviewShellProps) {
 
   if (loading) {
     return (
-      <PreviewLoading
-        className="h-[min(70vh,640px)]"
-        label="Načítavam XML…"
-      />
+      <PreviewLoading className="h-[min(70vh,640px)]" label="Načítavam XML…" />
     )
   }
 
@@ -134,7 +131,9 @@ export function XmlPreview({ url, fileName }: PreviewShellProps) {
             </tbody>
           </table>
         ) : (
-          <p className="p-5 text-sm text-white/50">XML sa nepodarilo načítať.</p>
+          <p className="p-5 text-sm text-white/50">
+            XML sa nepodarilo načítať.
+          </p>
         )}
       </div>
     </div>

@@ -62,11 +62,7 @@ describe('FileThumbnail', () => {
 
   it('resets failure when previewUrl changes', () => {
     const { container, rerender } = render(
-      <FileThumbnail
-        name="a.png"
-        mimeType="image/png"
-        previewUrl="/a.png"
-      />,
+      <FileThumbnail name="a.png" mimeType="image/png" previewUrl="/a.png" />,
     )
     fireEvent.error(container.querySelector('img')!)
     expect(container.querySelector('img')).toBeNull()

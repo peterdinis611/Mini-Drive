@@ -1,18 +1,17 @@
-import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Download, FileText, Link2Off, ShieldAlert } from 'lucide-react'
-
+import { useState } from 'react'
+import { EmbedPdfViewer } from '#/components/files/previews/embed-pdf-viewer'
 import {
   SharePasswordGate,
   type UnlockedShare,
 } from '#/components/files/share-password-gate'
-import { EmbedPdfViewer } from '#/components/files/previews/embed-pdf-viewer'
 import { Button } from '#/components/ui/button'
 import { Image } from '#/components/ui/image'
 import { APP_NAME } from '#/lib/constants'
 import { getFileKind } from '#/lib/file-kind'
-import { isImageMimeType, isPdfMimeType } from '#/lib/mime'
 import { formatFileSize } from '#/lib/format'
+import { isImageMimeType, isPdfMimeType } from '#/lib/mime'
 import { buildSeoHead } from '#/lib/seo'
 import { resolvePublicShare } from '#/server/functions/shares'
 

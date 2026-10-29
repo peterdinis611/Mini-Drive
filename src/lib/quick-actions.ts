@@ -1,17 +1,12 @@
 export const QUICK_ACTION_EVENT = 'mini-drive:quick-action'
 export const QUICK_ACTION_PENDING_KEY = 'mini-drive:pending-quick-action'
 
-export type QuickAction =
-  | 'search'
-  | 'upload'
-  | 'create-folder'
+export type QuickAction = 'search' | 'upload' | 'create-folder'
 
 type QuickActionDetail = { action: QuickAction }
 
 export function isQuickAction(value: unknown): value is QuickAction {
-  return (
-    value === 'search' || value === 'upload' || value === 'create-folder'
-  )
+  return value === 'search' || value === 'upload' || value === 'create-folder'
 }
 
 /** Fire a quick action for any mounted listener (search host, file explorer…). */

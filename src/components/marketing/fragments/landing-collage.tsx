@@ -104,10 +104,26 @@ export function LandingCollage() {
         style={{ animationDelay: '0.7s' }}
         aria-hidden
       >
-        <FileToken className="landing-token landing-token--a" label="PDF" fill="#5b8fff" />
-        <FileToken className="landing-token landing-token--b" label="ZIP" fill="#9ad7ff" />
-        <FileToken className="landing-token landing-token--c" label="PNG" fill="#9ad7ff" />
-        <FileToken className="landing-token landing-token--d" label="DOC" fill="#ffd27a" />
+        <FileToken
+          className="landing-token landing-token--a"
+          label="PDF"
+          fill="#5b8fff"
+        />
+        <FileToken
+          className="landing-token landing-token--b"
+          label="ZIP"
+          fill="#9ad7ff"
+        />
+        <FileToken
+          className="landing-token landing-token--c"
+          label="PNG"
+          fill="#9ad7ff"
+        />
+        <FileToken
+          className="landing-token landing-token--d"
+          label="DOC"
+          fill="#ffd27a"
+        />
       </aside>
 
       <figure
@@ -122,7 +138,9 @@ export function LandingCollage() {
           height={800}
           loading="lazy"
         />
-        <figcaption className="sr-only">Fyzický archív ako metafora produktu</figcaption>
+        <figcaption className="sr-only">
+          Fyzický archív ako metafora produktu
+        </figcaption>
       </figure>
 
       <figure
@@ -137,7 +155,9 @@ export function LandingCollage() {
           height={1200}
           loading="lazy"
         />
-        <figcaption className="sr-only">Atmosféra súkromného archívu</figcaption>
+        <figcaption className="sr-only">
+          Atmosféra súkromného archívu
+        </figcaption>
       </figure>
 
       <aside

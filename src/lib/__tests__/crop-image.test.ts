@@ -46,9 +46,7 @@ describe('rotateSize', () => {
 describe('withEditedName', () => {
   it('inserts suffix before extension', () => {
     expect(withEditedName('photo.png')).toBe('photo-edited.png')
-    expect(withEditedName('photo.png', 'annotated')).toBe(
-      'photo-annotated.png',
-    )
+    expect(withEditedName('photo.png', 'annotated')).toBe('photo-annotated.png')
   })
 })
 

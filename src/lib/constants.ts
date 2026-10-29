@@ -10,14 +10,7 @@ export const UPLOAD_LIMITS = {
   maxFileSize: '32MB',
   maxFileSizeBytes: 32 * 1024 * 1024,
   maxFileCount: 10,
-  allowedTypes: [
-    'image',
-    'video',
-    'audio',
-    'pdf',
-    'text',
-    'blob',
-  ] as const,
+  allowedTypes: ['image', 'video', 'audio', 'pdf', 'text', 'blob'] as const,
 } as const
 
 export const AUTH_LIMITS = {

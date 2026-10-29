@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
 import { APP_NAME } from '#/lib/constants'
-import { SITE } from '#/lib/site'
 import {
   appJsonLd,
   authPageHead,
@@ -9,6 +8,7 @@ import {
   landingPageJsonLd,
   privateAppHead,
 } from '#/lib/seo'
+import { SITE } from '#/lib/site'
 
 describe('buildSeoHead', () => {
   it('adds brand suffix, robots, canonical and hreflang', () => {
@@ -29,9 +29,9 @@ describe('buildSeoHead', () => {
       true,
     )
     expect(head.links.some((l) => l.rel === 'canonical')).toBe(true)
-    expect(head.links.some((l) => l.rel === 'alternate' && l.hrefLang === 'sk')).toBe(
-      true,
-    )
+    expect(
+      head.links.some((l) => l.rel === 'alternate' && l.hrefLang === 'sk'),
+    ).toBe(true)
     expect(head.links[0]?.href).toMatch(/\/login$/)
   })
 
@@ -65,7 +65,11 @@ describe('appJsonLd', () => {
   it('emits Organization + WebSite + WebApplication graph', () => {
     const script = appJsonLd()
     const parsed = JSON.parse(script.children) as {
-      '@graph': Array<{ '@type': string; name?: string; featureList?: string[] }>
+      '@graph': Array<{
+        '@type': string
+        name?: string
+        featureList?: string[]
+      }>
     }
     const types = parsed['@graph'].map((node) => node['@type'])
     expect(types).toEqual(

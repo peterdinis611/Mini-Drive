@@ -4,9 +4,10 @@
  *   BACKUP_ENCRYPTION_KEY=... pnpm db:restore -- backups/foo.db.enc
  *   BACKUP_ENCRYPTION_KEY=... pnpm db:restore -- backups/foo.db.enc --out restored.db
  */
-import { config } from 'dotenv'
+
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
+import { config } from 'dotenv'
 
 import { decryptDbBackup } from '../src/lib/db-backup'
 import { getFileBytesSync } from '../src/lib/file-bytes'

@@ -4,12 +4,12 @@ Osobné úložisko súborov inšpirované S3 / Google Drive. TanStack Start + Up
 
 ## Rozhodnutia stacku
 
-| Oblasť | Voľba | Zdôvodnenie |
-| --- | --- | --- |
-| Auth | **Better Auth** | Oficiálna integrácia s TanStack Start (`tanstackStartCookies`), `onboardedAt` priamo v `user` schéme. |
-| DB | **SQLite + Drizzle** | Zero-ops lokálne a vo Vitest; schéma je portable na Postgres. |
-| Mazanie priečinka | Rekurzívne so súhrnom | Drive-like UX; UT súbory sa mažú cez `UTApi.deleteFiles`. |
-| Safe-url | Vlastný token `/s/$token` → krátky signed URL | Revoke/expirácia v DB; `uploadthingKey` nikdy na klienta. |
+| Oblasť            | Voľba                                         | Zdôvodnenie                                                                                           |
+| ----------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Auth              | **Better Auth**                               | Oficiálna integrácia s TanStack Start (`tanstackStartCookies`), `onboardedAt` priamo v `user` schéme. |
+| DB                | **SQLite + Drizzle**                          | Zero-ops lokálne a vo Vitest; schéma je portable na Postgres.                                         |
+| Mazanie priečinka | Rekurzívne so súhrnom                         | Drive-like UX; UT súbory sa mažú cez `UTApi.deleteFiles`.                                             |
+| Safe-url          | Vlastný token `/s/$token` → krátky signed URL | Revoke/expirácia v DB; `uploadthingKey` nikdy na klienta.                                             |
 
 ## Požiadavky
 
@@ -30,13 +30,13 @@ Otvor [http://localhost:3000](http://localhost:3000).
 
 ## Production
 
-| Premenná | Účel |
-| --- | --- |
-| `APP_URL` | Canonical URL, sitemap, robots, CSRF origin |
-| `BETTER_AUTH_URL` | Auth callbacks (mal by byť rovnaký ako `APP_URL`) |
-| `BETTER_AUTH_SECRET` | Session signing (min. 32 znakov) |
-| `UPLOADTHING_TOKEN` | Upload + signed URL |
-| `DATABASE_URL` | SQLite (alebo neskôr Postgres DSN) |
+| Premenná             | Účel                                              |
+| -------------------- | ------------------------------------------------- |
+| `APP_URL`            | Canonical URL, sitemap, robots, CSRF origin       |
+| `BETTER_AUTH_URL`    | Auth callbacks (mal by byť rovnaký ako `APP_URL`) |
+| `BETTER_AUTH_SECRET` | Session signing (min. 32 znakov)                  |
+| `UPLOADTHING_TOKEN`  | Upload + signed URL                               |
+| `DATABASE_URL`       | SQLite (alebo neskôr Postgres DSN)                |
 
 SEO endpointy: `/sitemap.xml`, `/robots.txt`, `/site.webmanifest`, `/og.svg`.
 Súkromné routy majú `noindex`; verejné sú `/login` a `/register`.
@@ -44,17 +44,17 @@ Security headers + CSRF middleware sú v `src/start.ts`.
 
 ## Skripty
 
-| Skript | Popis |
-| --- | --- |
-| `pnpm dev` | Vývojový server |
-| `pnpm build` | Produkčný build |
-| `pnpm typecheck` | TypeScript |
-| `pnpm lint` | ESLint |
-| `pnpm test` | Vitest raz |
-| `pnpm test:watch` | Vitest watch |
-| `pnpm test:coverage` | Coverage report |
-| `pnpm db:push` | Aplikuj schému do SQLite |
-| `pnpm db:studio` | Drizzle Studio |
+| Skript               | Popis                    |
+| -------------------- | ------------------------ |
+| `pnpm dev`           | Vývojový server          |
+| `pnpm build`         | Produkčný build          |
+| `pnpm typecheck`     | TypeScript               |
+| `pnpm lint`          | ESLint                   |
+| `pnpm test`          | Vitest raz               |
+| `pnpm test:watch`    | Vitest watch             |
+| `pnpm test:coverage` | Coverage report          |
+| `pnpm db:push`       | Aplikuj schému do SQLite |
+| `pnpm db:studio`     | Drizzle Studio           |
 
 ## Architektúra
 

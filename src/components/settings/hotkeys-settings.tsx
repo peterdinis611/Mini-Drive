@@ -1,14 +1,14 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import type { AppHotkeyId, Hotkey } from '@tanstack/react-hotkeys'
 import {
   formatForDisplay,
   useAppHotkeyList,
   useCustomHotkeys,
   useHotkeyRecorder,
 } from '@tanstack/react-hotkeys'
-import type { AppHotkeyId, Hotkey } from '@tanstack/react-hotkeys'
 import { Keyboard, RotateCcw } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 import { Button } from '#/components/ui/button'
 import { cn } from '#/lib/utils'
@@ -150,8 +150,9 @@ export function HotkeysSettings() {
           <div>
             <h2 className="font-display text-xl">Klávesové skratky</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              TanStack Hotkeys — zmeň väzby; sync na účet + localStorage.
-              Cheat sheet: <kbd className="rounded border px-1 font-mono text-[11px]">?</kbd>
+              TanStack Hotkeys — zmeň väzby; sync na účet + localStorage. Cheat
+              sheet:{' '}
+              <kbd className="rounded border px-1 font-mono text-[11px]">?</kbd>
             </p>
           </div>
         </div>

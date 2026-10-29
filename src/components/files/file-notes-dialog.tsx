@@ -1,9 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { MessageSquare, StickyNote, Trash2 } from 'lucide-react'
-import { toast } from '#/lib/toast'
-
+import { useEffect, useState } from 'react'
 import { NoteEditor } from '#/components/files/note-editor'
 import { Button } from '#/components/ui/button'
 import {
@@ -18,6 +16,7 @@ import { ScrollArea } from '#/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import { Textarea } from '#/components/ui/textarea'
 import { getErrorMessage } from '#/lib/errors'
+import { toast } from '#/lib/toast'
 import {
   addFileComment,
   deleteFileComment,

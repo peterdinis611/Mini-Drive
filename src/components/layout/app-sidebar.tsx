@@ -6,12 +6,13 @@ import {
   FileText,
   Link2,
   LogOut,
-  Settings2,
   PanelLeftClose,
+  Settings2,
   Trash2,
 } from 'lucide-react'
 
 import { BrandMark } from '#/components/brand-mark'
+import type { FolderTreeNode } from '#/components/files/types'
 import { FavoritesNav } from '#/components/layout/favorites-nav'
 import { FolderTree } from '#/components/layout/folder-tree'
 import { ThemeToggle } from '#/components/theme-toggle'
@@ -23,7 +24,6 @@ import {
   HoverCardTrigger,
 } from '#/components/ui/hover-card'
 import { Progress } from '#/components/ui/progress'
-import type { FolderTreeNode } from '#/components/files/types'
 import { formatFileSize } from '#/lib/format'
 import { cn } from '#/lib/utils'
 
@@ -174,9 +174,7 @@ export function AppSidebar({
         </header>
         <FolderTree
           folders={folders}
-          activeFolderId={
-            pathname.startsWith('/files') ? activeFolderId : null
-          }
+          activeFolderId={pathname.startsWith('/files') ? activeFolderId : null}
           onNavigate={onNavigate}
         />
       </section>

@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
 import { useTheme } from 'next-themes'
+import { lazy, Suspense } from 'react'
 
 import { AuthCardSkeleton } from '#/components/auth/auth-shell'
 import {

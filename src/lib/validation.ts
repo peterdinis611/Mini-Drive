@@ -339,9 +339,7 @@ export const setFolderTagsSchema = z.object({
 
 export const smartFolderRulesSchema = z.object({
   query: z.string().trim().max(200).optional(),
-  kind: z
-    .enum(['all', 'image', 'pdf', 'video', 'audio', 'text'])
-    .optional(),
+  kind: z.enum(['all', 'image', 'pdf', 'video', 'audio', 'text']).optional(),
   tagId: idSchema.optional(),
   duplicatesOnly: z.boolean().optional(),
 })
@@ -593,8 +591,6 @@ export function isShareLinkActive(link: {
 }): boolean {
   if (link.revokedAt != null) return false
   const expiresAt =
-    link.expiresAt instanceof Date
-      ? link.expiresAt.getTime()
-      : link.expiresAt
+    link.expiresAt instanceof Date ? link.expiresAt.getTime() : link.expiresAt
   return expiresAt > Date.now()
 }

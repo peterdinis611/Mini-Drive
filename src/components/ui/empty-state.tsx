@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
+import type { ReactNode } from 'react'
 
 import {
   Empty,
@@ -47,11 +47,18 @@ export function EmptyState({
 
       <Empty className="relative z-10 border-0 bg-transparent py-16 sm:py-20">
         <EmptyHeader>
-          <EmptyMedia variant="icon" className="size-14 rounded-2xl border-2 border-foreground/15 bg-primary/15 text-foreground dark:border-primary/40 dark:bg-primary/20 dark:text-primary">
+          <EmptyMedia
+            variant="icon"
+            className="size-14 rounded-2xl border-2 border-foreground/15 bg-primary/15 text-foreground dark:border-primary/40 dark:bg-primary/20 dark:text-primary"
+          >
             <motion.span
               className="inline-flex"
               animate={reduce ? undefined : { y: [0, -4, 0] }}
-              transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{
+                duration: 3.2,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
             >
               <Icon className="size-6" aria-hidden />
             </motion.span>

@@ -7,4 +7,4 @@ allowBuilds:
   pompelmi: false
   msgpackr-extract: false
 patchedDependencies:
-  '@uploadthing/shared@7.1.10': patches/@uploadthing__shared@7.1.10.patch
+  "@uploadthing/shared@7.1.10": patches/@uploadthing__shared@7.1.10.patch

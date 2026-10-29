@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
+import type { ReactNode } from 'react'
 
 import { BrandMark } from '#/components/brand-mark'
 import { AtmosphereBackdrop } from '#/components/layout/atmosphere-backdrop'

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import type { ColumnDef, RowData } from '@tanstack/react-table'
 import {
   columnFilteringFeature,
   columnVisibilityFeature,
@@ -19,9 +19,9 @@ import {
   tableFeatures,
   useTable,
 } from '@tanstack/react-table'
-import type { ColumnDef, RowData } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown, Search } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
+import { useMemo, useState } from 'react'
 
 import { Button } from '#/components/ui/button'
 import {
@@ -349,10 +349,7 @@ export function DataTable<TData extends RowData>({
                 }
 
                 return (
-                  <li
-                    key={row.id}
-                    className="flex items-start gap-3 px-3 py-3"
-                  >
+                  <li key={row.id} className="flex items-start gap-3 px-3 py-3">
                     {body}
                   </li>
                 )
@@ -367,8 +364,7 @@ export function DataTable<TData extends RowData>({
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
                       const meta = metaOf(header.column)
-                      const canSort =
-                        sortable && header.column.getCanSort()
+                      const canSort = sortable && header.column.getCanSort()
                       const sorted = header.column.getIsSorted()
                       return (
                         <TableHead

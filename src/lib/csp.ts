@@ -44,10 +44,7 @@ export function buildContentSecurityPolicy(
   const directives: Array<[string, string[]]> = [
     ['default-src', ["'self'"]],
     ['base-uri', ["'self'"]],
-    [
-      'form-action',
-      ["'self'", ...clerkHosts, 'https://accounts.google.com'],
-    ],
+    ['form-action', ["'self'", ...clerkHosts, 'https://accounts.google.com']],
     ['frame-ancestors', ["'none'"]],
     ['object-src', ["'none'"]],
     ['script-src', scriptSrc],
@@ -99,12 +96,7 @@ export function buildContentSecurityPolicy(
     ['worker-src', ["'self'", 'blob:']],
     [
       'frame-src',
-      [
-        "'self'",
-        'blob:',
-        ...clerkHosts,
-        'https://challenges.cloudflare.com',
-      ],
+      ["'self'", 'blob:', ...clerkHosts, 'https://challenges.cloudflare.com'],
     ],
     ['upgrade-insecure-requests', []],
   ]

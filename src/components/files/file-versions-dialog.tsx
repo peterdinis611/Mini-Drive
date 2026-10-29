@@ -1,9 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { History, RotateCcw } from 'lucide-react'
-import { toast } from '#/lib/toast'
-
+import { useEffect, useState } from 'react'
 import { Button } from '#/components/ui/button'
 import {
   Dialog,
@@ -13,12 +11,10 @@ import {
   DialogTitle,
 } from '#/components/ui/dialog'
 import { PreloadSpinner } from '#/components/ui/preload-spinner'
-import { formatFileSize } from '#/lib/format'
 import { getErrorMessage } from '#/lib/errors'
-import {
-  listFileVersions,
-  restoreFileVersion,
-} from '#/server/functions/files'
+import { formatFileSize } from '#/lib/format'
+import { toast } from '#/lib/toast'
+import { listFileVersions, restoreFileVersion } from '#/server/functions/files'
 
 type Props = {
   open: boolean

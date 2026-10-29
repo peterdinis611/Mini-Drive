@@ -73,11 +73,11 @@ describe('OnboardingWizard', () => {
       />,
     )
 
-    expect(screen.getByRole('heading', { name: /Mini Drive/i })).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Pokračovať' }))
     expect(
-      await screen.findByText(/Profil a preferencie/i),
+      screen.getByRole('heading', { name: /Mini Drive/i }),
     ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Pokračovať' }))
+    expect(await screen.findByText(/Profil a preferencie/i)).toBeInTheDocument()
   })
 
   it('exposes skip action', async () => {

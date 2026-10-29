@@ -18,7 +18,9 @@ export function rekeyUserId(
       sqlite
         .prepare(`UPDATE folders SET user_id = ? WHERE user_id = ?`)
         .run(newId, oldId)
-      sqlite.prepare(`UPDATE files SET user_id = ? WHERE user_id = ?`).run(newId, oldId)
+      sqlite
+        .prepare(`UPDATE files SET user_id = ? WHERE user_id = ?`)
+        .run(newId, oldId)
       sqlite
         .prepare(`UPDATE share_links SET created_by = ? WHERE created_by = ?`)
         .run(newId, oldId)

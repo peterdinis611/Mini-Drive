@@ -28,9 +28,9 @@ describe('encryptDbBackup / decryptDbBackup', () => {
   })
 
   it('rejects bad magic', () => {
-    expect(() =>
-      decryptDbBackup(Buffer.alloc(64, 7), PASSPHRASE),
-    ).toThrow(/MDBK1/)
+    expect(() => decryptDbBackup(Buffer.alloc(64, 7), PASSPHRASE)).toThrow(
+      /MDBK1/,
+    )
   })
 })
 

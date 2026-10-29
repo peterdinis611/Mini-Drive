@@ -21,7 +21,10 @@ function displayName(parts: {
   username: string | null
   email: string
 }) {
-  const full = [parts.firstName, parts.lastName].filter(Boolean).join(' ').trim()
+  const full = [parts.firstName, parts.lastName]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
   if (full) return full
   if (parts.username?.trim()) return parts.username.trim()
   return parts.email.split('@')[0] || 'User'
@@ -100,8 +103,7 @@ async function ensureLocalUser(clerkUserId: string): Promise<AppUser> {
     })
   } catch {
     const raced =
-      (await findUserById(clerkUserId)) ??
-      (await findUserByEmail(primaryEmail))
+      (await findUserById(clerkUserId)) ?? (await findUserByEmail(primaryEmail))
     if (raced) {
       if (raced.id !== clerkUserId) {
         rekeyUserId(sqlite, raced.id, clerkUserId)

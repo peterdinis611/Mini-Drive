@@ -22,7 +22,9 @@ export function saveCustomHotkeys(custom: CustomHotkeys) {
   }
 }
 
-export function parseCustomHotkeys(raw: string | null | undefined): CustomHotkeys {
+export function parseCustomHotkeys(
+  raw: string | null | undefined,
+): CustomHotkeys {
   if (!raw) return {}
   try {
     const parsed = JSON.parse(raw) as unknown

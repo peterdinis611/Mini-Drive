@@ -10,6 +10,6 @@ if (!token) {
 
 export const utapi = new UTApi({
   token,
-  logFormat: "json",
-  logLevel: "All",
+  logFormat: 'json',
+  logLevel: 'All',
 })

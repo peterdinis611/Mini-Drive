@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { formatForDisplay, useAppHotkeys } from '@tanstack/react-hotkeys'
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import {
@@ -14,6 +13,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { useState } from 'react'
 
 import { Button } from '#/components/ui/button'
 import { springSnappy } from '#/lib/motion'
@@ -35,8 +35,7 @@ export function QuickActionsFab() {
   const reduce = useReducedMotion()
   const [open, setOpen] = useState(false)
 
-  const onFiles =
-    pathname === '/files' || pathname.startsWith('/files/')
+  const onFiles = pathname === '/files' || pathname.startsWith('/files/')
 
   const actions: FabAction[] = [
     {
@@ -108,7 +107,12 @@ export function QuickActionsFab() {
             exit={
               reduce
                 ? undefined
-                : { opacity: 0, y: 8, scale: 0.96, transition: { duration: 0.16 } }
+                : {
+                    opacity: 0,
+                    y: 8,
+                    scale: 0.96,
+                    transition: { duration: 0.16 },
+                  }
             }
             transition={springSnappy}
           >
@@ -130,7 +134,9 @@ export function QuickActionsFab() {
                 <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-primary ring-1 ring-primary/25">
                   <action.icon className="size-4" aria-hidden />
                 </span>
-                <span className="min-w-0 flex-1 font-medium">{action.label}</span>
+                <span className="min-w-0 flex-1 font-medium">
+                  {action.label}
+                </span>
                 {action.shortcut ? (
                   <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
                     {action.shortcut}

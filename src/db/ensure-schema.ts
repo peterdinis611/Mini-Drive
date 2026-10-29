@@ -18,10 +18,7 @@ export function ensureSqliteSchema(sqlite: Database.Database) {
     userCols.add(name)
   }
 
-  addUserColumn(
-    'email_verified',
-    `"email_verified" integer NOT NULL DEFAULT 0`,
-  )
+  addUserColumn('email_verified', `"email_verified" integer NOT NULL DEFAULT 0`)
   addUserColumn(
     'theme_preference',
     `"theme_preference" text NOT NULL DEFAULT 'system'`,
@@ -30,10 +27,7 @@ export function ensureSqliteSchema(sqlite: Database.Database) {
     'default_share_expires_in',
     `"default_share_expires_in" integer NOT NULL DEFAULT 3600`,
   )
-  addUserColumn(
-    'confirm_delete',
-    `"confirm_delete" integer NOT NULL DEFAULT 1`,
-  )
+  addUserColumn('confirm_delete', `"confirm_delete" integer NOT NULL DEFAULT 1`)
   addUserColumn(
     'view_preference',
     `"view_preference" text NOT NULL DEFAULT 'list'`,

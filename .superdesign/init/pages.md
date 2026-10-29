@@ -1,6 +1,7 @@
 # Pages — dependency trees
 
 ## /files (File Explorer — primary redesign target)
+
 Entry: `src/routes/files/index.tsx` → `src/components/files/file-explorer.tsx`
 Dependencies:
 - src/components/files/file-explorer.tsx
@@ -11,9 +12,7 @@ Dependencies:
       - src/components/ui/progress.tsx
       - src/components/ui/scroll-area.tsx
       - src/components/ui/separator.tsx
-      - src/components/ui/avatar.tsx
-    - src/components/ui/sheet.tsx
-    - src/components/ui/tooltip.tsx
+      - src/components/ui/avatar.tsx - src/components/ui/sheet.tsx - src/components/ui/tooltip.tsx
   - src/components/files/upload-zone.tsx
   - src/components/files/folder-drop-target.tsx
   - src/components/files/file-thumbnail.tsx
@@ -30,6 +29,7 @@ Dependencies:
   - src/styles.css
 
 ## /recent
+
 Entry: `src/routes/recent.tsx`
 Dependencies:
 - src/routes/recent.tsx
@@ -39,6 +39,7 @@ Dependencies:
   - src/components/motion/fade-in.tsx
 
 ## /shares
+
 Entry: `src/routes/shares.tsx`
 Dependencies:
 - src/routes/shares.tsx
@@ -48,6 +49,7 @@ Dependencies:
   - src/components/ui/empty-state.tsx
 
 ## /settings
+
 Entry: `src/routes/settings.tsx`
 Dependencies:
 - src/routes/settings.tsx
@@ -55,6 +57,7 @@ Dependencies:
   - form controls (button, input, label, checkbox)
 
 ## /login
+
 Entry: `src/routes/login.tsx`
 Dependencies:
 - src/routes/login.tsx
@@ -63,6 +66,7 @@ Dependencies:
   - src/components/three/* (orbit-field / atmosphere backdrop)
 
 ## /onboarding
+
 Entry: `src/routes/onboarding.tsx`
 Dependencies:
 - src/components/onboarding/onboarding-wizard.tsx

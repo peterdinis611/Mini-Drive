@@ -14,12 +14,12 @@ vi.mock('pompelmi', () => ({
   Verdict,
 }))
 
+import { EICAR_SIGNATURE } from '#/lib/virus-scan'
 import {
   resolveClamavOptions,
   scanBytesForShare,
   virusScanBlockMessage,
 } from '#/server/virus-scan.server'
-import { EICAR_SIGNATURE } from '#/lib/virus-scan'
 
 const envKeys = [
   'VIRUS_SCAN',

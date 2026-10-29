@@ -1,11 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { FileIcon, Folder, Star } from 'lucide-react'
-
-import { listFavorites } from '#/server/functions/favorites'
+import { useEffect, useState } from 'react'
 import { cn } from '#/lib/utils'
+import { listFavorites } from '#/server/functions/favorites'
 
 type FavoriteItem =
   | {
@@ -70,7 +69,10 @@ export function FavoritesNav({ onNavigate, className }: Props) {
                   onClick={onNavigate}
                   className="flex items-center gap-2 rounded-full px-3 py-1 text-sm text-muted-foreground transition hover:bg-sidebar-accent/70 hover:text-foreground"
                 >
-                  <Folder className="size-3.5 shrink-0 opacity-70" aria-hidden />
+                  <Folder
+                    className="size-3.5 shrink-0 opacity-70"
+                    aria-hidden
+                  />
                   <span className="truncate">{item.name}</span>
                 </Link>
               </li>
@@ -86,7 +88,10 @@ export function FavoritesNav({ onNavigate, className }: Props) {
                   onClick={onNavigate}
                   className="flex items-center gap-2 rounded-full px-3 py-1 text-sm text-muted-foreground transition hover:bg-sidebar-accent/70 hover:text-foreground"
                 >
-                  <FileIcon className="size-3.5 shrink-0 opacity-70" aria-hidden />
+                  <FileIcon
+                    className="size-3.5 shrink-0 opacity-70"
+                    aria-hidden
+                  />
                   <span className="truncate">{item.name}</span>
                 </Link>
               </li>
@@ -100,7 +105,10 @@ export function FavoritesNav({ onNavigate, className }: Props) {
                 onClick={onNavigate}
                 className="flex items-center gap-2 rounded-full px-3 py-1 text-sm text-muted-foreground transition hover:bg-sidebar-accent/70 hover:text-foreground"
               >
-                <FileIcon className="size-3.5 shrink-0 opacity-70" aria-hidden />
+                <FileIcon
+                  className="size-3.5 shrink-0 opacity-70"
+                  aria-hidden
+                />
                 <span className="truncate">{item.name}</span>
               </Link>
             </li>

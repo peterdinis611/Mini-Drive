@@ -49,9 +49,7 @@ describe('ensureSqliteSchema', () => {
     )
 
     sqlite
-      .prepare(
-        `INSERT INTO "user" (id, name, email) VALUES (?, ?, ?)`,
-      )
+      .prepare(`INSERT INTO "user" (id, name, email) VALUES (?, ?, ?)`)
       .run('u1', 'Peter', 'peter@example.com')
 
     const row = sqlite

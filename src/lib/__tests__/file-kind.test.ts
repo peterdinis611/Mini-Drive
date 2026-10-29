@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest'
 import {
   canInlinePreview,
   codeLanguageFromName,
+  type FileKind,
   fileKindIcon,
   fileKindLabel,
   getFileKind,
-  type FileKind,
 } from '#/lib/file-kind'
 
 describe('getFileKind', () => {

@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { Palette } from 'lucide-react'
-
+import { useEffect, useState } from 'react'
+import type { DriveFolder } from '#/components/files/types'
 import { Button } from '#/components/ui/button'
 import {
   Dialog,
@@ -14,10 +14,16 @@ import {
 } from '#/components/ui/dialog'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
-import type { DriveFolder } from '#/components/files/types'
 import { cn } from '#/lib/utils'
 
-const SWATCHES = ['#2f6fed', '#0f766e', '#b45309', '#be123c', '#6d28d9', '#334155']
+const SWATCHES = [
+  '#2f6fed',
+  '#0f766e',
+  '#b45309',
+  '#be123c',
+  '#6d28d9',
+  '#334155',
+]
 
 type Props = {
   open: boolean
@@ -51,8 +57,8 @@ export function FolderStyleDialog({
             Farba / priorita
           </DialogTitle>
           <DialogDescription>
-            {folder ? `Priečinok „${folder.name}“` : 'Priečinok'} — priorita
-            0–3 (vyššia = vyššie v zozname).
+            {folder ? `Priečinok „${folder.name}“` : 'Priečinok'} — priorita 0–3
+            (vyššia = vyššie v zozname).
           </DialogDescription>
         </DialogHeader>
 

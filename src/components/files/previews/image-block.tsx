@@ -1,6 +1,3 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import Cropper from 'react-easy-crop'
-import type { Area } from 'react-easy-crop'
 import {
   Check,
   ClipboardCopy,
@@ -29,6 +26,9 @@ import {
   ZoomIn,
   ZoomOut,
 } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { Area } from 'react-easy-crop'
+import Cropper from 'react-easy-crop'
 
 import { ImageDrawLayer } from '#/components/files/previews/image-draw-layer'
 import { Button } from '#/components/ui/button'
@@ -42,14 +42,14 @@ import {
 import {
   buildCssFilter,
   clampViewZoom,
+  type DrawStroke,
   downloadBlob,
   filtersAreDefault,
   getCroppedImageBlob,
   getTransformedImageBlob,
+  type ImageFilterValues,
   withCroppedName,
   withEditedName,
-  type DrawStroke,
-  type ImageFilterValues,
 } from '#/lib/crop-image'
 import { formatFileSize } from '#/lib/format'
 import { loadImageMeta, saveImageMeta } from '#/lib/image-meta'
@@ -63,18 +63,27 @@ type AspectId = 'free' | '1:1' | '4:3' | '16:9' | '3:2' | '9:16' | 'A4'
 type ViewFit = 'contain' | 'actual'
 type ViewerMode = 'view' | 'crop' | 'draw'
 
-const ASPECTS: Array<{ id: AspectId; label: string; value: number | undefined }> =
-  [
-    { id: 'free', label: 'Voľný', value: undefined },
-    { id: '1:1', label: '1:1', value: 1 },
-    { id: '4:3', label: '4:3', value: 4 / 3 },
-    { id: '3:2', label: '3:2', value: 3 / 2 },
-    { id: '16:9', label: '16:9', value: 16 / 9 },
-    { id: '9:16', label: '9:16', value: 9 / 16 },
-    { id: 'A4', label: 'A4', value: 210 / 297 },
-  ]
+const ASPECTS: Array<{
+  id: AspectId
+  label: string
+  value: number | undefined
+}> = [
+  { id: 'free', label: 'Voľný', value: undefined },
+  { id: '1:1', label: '1:1', value: 1 },
+  { id: '4:3', label: '4:3', value: 4 / 3 },
+  { id: '3:2', label: '3:2', value: 3 / 2 },
+  { id: '16:9', label: '16:9', value: 16 / 9 },
+  { id: '9:16', label: '9:16', value: 9 / 16 },
+  { id: 'A4', label: 'A4', value: 210 / 297 },
+]
 
-const STROKE_COLORS = ['#ffffff', '#2f6fed', '#7eb8ff', '#f43f5e', '#fbbf24'] as const
+const STROKE_COLORS = [
+  '#ffffff',
+  '#2f6fed',
+  '#7eb8ff',
+  '#f43f5e',
+  '#fbbf24',
+] as const
 
 const STROKE_WIDTHS = [
   { id: 's', label: 'Tenké', value: 0.006 },
@@ -230,9 +239,10 @@ export function ImageBlock({
   const [sepia, setSepia] = useState(0)
   const [caption, setCaption] = useState('')
   const [altText, setAltText] = useState(fileName)
-  const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(
-    null,
-  )
+  const [naturalSize, setNaturalSize] = useState<{
+    w: number
+    h: number
+  } | null>(null)
   const [strokes, setStrokes] = useState<DrawStroke[]>([])
   const [redoStrokes, setRedoStrokes] = useState<DrawStroke[]>([])
   const [strokeColor, setStrokeColor] = useState<string>(STROKE_COLORS[1])
@@ -406,7 +416,7 @@ export function ImageBlock({
         case 'r':
           if (!event.shiftKey) {
             event.preventDefault()
-            setRotation((v) => ((v + 90) % 360 + 360) % 360)
+            setRotation((v) => (((v + 90) % 360) + 360) % 360)
           }
           break
         case 'c':
@@ -685,7 +695,7 @@ export function ImageBlock({
               <ToolButton
                 label="Otočiť doľava"
                 onClick={() =>
-                  setRotation((value) => ((value - 90) % 360 + 360) % 360)
+                  setRotation((value) => (((value - 90) % 360) + 360) % 360)
                 }
               >
                 <RotateCcw className="size-4" />
@@ -693,7 +703,7 @@ export function ImageBlock({
               <ToolButton
                 label="Otočiť doprava (R)"
                 onClick={() =>
-                  setRotation((value) => ((value + 90) % 360 + 360) % 360)
+                  setRotation((value) => (((value + 90) % 360) + 360) % 360)
                 }
               >
                 <RotateCw className="size-4" />
@@ -715,21 +725,29 @@ export function ImageBlock({
               <div className="mx-1 h-5 w-px bg-white/10" />
               <ToolButton
                 label="Oddialiť (−)"
-                onClick={() => setViewZoom((value) => clampViewZoom(value - 0.1))}
+                onClick={() =>
+                  setViewZoom((value) => clampViewZoom(value - 0.1))
+                }
               >
                 <ZoomOut className="size-4" />
               </ToolButton>
               <ToolButton
                 label="Priblížiť (+)"
-                onClick={() => setViewZoom((value) => clampViewZoom(value + 0.1))}
+                onClick={() =>
+                  setViewZoom((value) => clampViewZoom(value + 0.1))
+                }
               >
                 <ZoomIn className="size-4" />
               </ToolButton>
               <ToolButton
-                label={fit === 'contain' ? 'Skutočná veľkosť (0)' : 'Prispôsobiť (0)'}
+                label={
+                  fit === 'contain' ? 'Skutočná veľkosť (0)' : 'Prispôsobiť (0)'
+                }
                 active={fit === 'actual'}
                 onClick={() => {
-                  setFit((value) => (value === 'contain' ? 'actual' : 'contain'))
+                  setFit((value) =>
+                    value === 'contain' ? 'actual' : 'contain',
+                  )
                   setViewZoom(1)
                   setPan({ x: 0, y: 0 })
                 }}
@@ -768,7 +786,10 @@ export function ImageBlock({
               >
                 <Type className="size-4" />
               </ToolButton>
-              <ToolButton label="Kopírovať odkaz" onClick={() => void copyLink()}>
+              <ToolButton
+                label="Kopírovať odkaz"
+                onClick={() => void copyLink()}
+              >
                 <Copy className="size-4" />
               </ToolButton>
               <ToolButton
@@ -779,7 +800,9 @@ export function ImageBlock({
               </ToolButton>
               <ToolButton
                 label="Otvoriť na novej karte"
-                onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
+                onClick={() =>
+                  window.open(url, '_blank', 'noopener,noreferrer')
+                }
               >
                 <ExternalLink className="size-4" />
               </ToolButton>
@@ -1128,7 +1151,10 @@ export function ImageBlock({
           ref={stageRef}
           className={cn(
             'relative min-h-0 flex-1',
-            viewZoom > 1 && !cropping && !drawing && 'cursor-grab active:cursor-grabbing',
+            viewZoom > 1 &&
+              !cropping &&
+              !drawing &&
+              'cursor-grab active:cursor-grabbing',
           )}
           onWheel={onStageWheel}
           onPointerDown={onStagePointerDown}

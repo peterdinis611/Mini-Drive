@@ -6,7 +6,9 @@ export type FolderNode = {
   name: string
 }
 
-export function buildParentMap(nodes: FolderNode[]): Map<string, string | null> {
+export function buildParentMap(
+  nodes: FolderNode[],
+): Map<string, string | null> {
   return new Map(nodes.map((node) => [node.id, node.parentId]))
 }
 

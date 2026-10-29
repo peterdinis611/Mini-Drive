@@ -314,7 +314,10 @@ export const querySmartFolderFiles = createServerFn({ method: 'GET' })
       const hashCounts = new Map<string, number>()
       for (const row of rows) {
         if (!row.contentHash) continue
-        hashCounts.set(row.contentHash, (hashCounts.get(row.contentHash) ?? 0) + 1)
+        hashCounts.set(
+          row.contentHash,
+          (hashCounts.get(row.contentHash) ?? 0) + 1,
+        )
       }
       rows = rows.filter(
         (row) =>

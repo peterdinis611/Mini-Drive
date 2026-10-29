@@ -1,8 +1,8 @@
-import { config } from 'dotenv'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
 import { mkdirSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
+import { config } from 'dotenv'
+import { drizzle } from 'drizzle-orm/better-sqlite3'
 
 import { ensureSqliteSchema } from './ensure-schema'
 import * as schema from './schema'

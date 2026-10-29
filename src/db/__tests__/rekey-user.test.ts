@@ -79,15 +79,17 @@ describe('rekeyUserId', () => {
 
     expect(
       (
-        sqlite.prepare(`SELECT id FROM "user" WHERE email = ?`).get(
-          'peter@example.com',
-        ) as { id: string }
+        sqlite
+          .prepare(`SELECT id FROM "user" WHERE email = ?`)
+          .get('peter@example.com') as { id: string }
       ).id,
     ).toBe(clerkId)
 
     expect(
       (
-        sqlite.prepare(`SELECT user_id FROM folders WHERE id = ?`).get('f1') as {
+        sqlite
+          .prepare(`SELECT user_id FROM folders WHERE id = ?`)
+          .get('f1') as {
           user_id: string
         }
       ).user_id,
@@ -95,40 +97,40 @@ describe('rekeyUserId', () => {
 
     expect(
       (
-        sqlite.prepare(`SELECT user_id FROM files WHERE id = ?`).get(
-          'file1',
-        ) as { user_id: string }
+        sqlite
+          .prepare(`SELECT user_id FROM files WHERE id = ?`)
+          .get('file1') as { user_id: string }
       ).user_id,
     ).toBe(clerkId)
 
     expect(
       (
-        sqlite.prepare(`SELECT created_by FROM share_links WHERE id = ?`).get(
-          's1',
-        ) as { created_by: string }
+        sqlite
+          .prepare(`SELECT created_by FROM share_links WHERE id = ?`)
+          .get('s1') as { created_by: string }
       ).created_by,
     ).toBe(clerkId)
 
     expect(
       (
-        sqlite.prepare(`SELECT user_id FROM session WHERE id = ?`).get(
-          'sess1',
-        ) as { user_id: string }
+        sqlite
+          .prepare(`SELECT user_id FROM session WHERE id = ?`)
+          .get('sess1') as { user_id: string }
       ).user_id,
     ).toBe(clerkId)
 
     expect(
       (
-        sqlite.prepare(`SELECT user_id FROM account WHERE id = ?`).get(
-          'acc1',
-        ) as { user_id: string }
+        sqlite
+          .prepare(`SELECT user_id FROM account WHERE id = ?`)
+          .get('acc1') as { user_id: string }
       ).user_id,
     ).toBe(clerkId)
 
     expect(
-      sqlite.prepare(`SELECT COUNT(*) AS c FROM "user" WHERE id = ?`).get(
-        'legacy_id',
-      ) as { c: number },
+      sqlite
+        .prepare(`SELECT COUNT(*) AS c FROM "user" WHERE id = ?`)
+        .get('legacy_id') as { c: number },
     ).toEqual({ c: 0 })
   })
 })

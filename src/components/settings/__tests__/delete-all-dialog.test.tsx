@@ -29,9 +29,7 @@ describe('DeleteAllDialog', () => {
       />,
     )
 
-    expect(
-      screen.getByText(/Úložisko je prázdne/i),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Úložisko je prázdne/i)).toBeInTheDocument()
     expect(
       screen.queryByLabelText(/Na potvrdenie napíš/i),
     ).not.toBeInTheDocument()
@@ -77,10 +75,7 @@ describe('DeleteAllDialog', () => {
     })
     expect(confirm).toBeDisabled()
 
-    await user.type(
-      screen.getByLabelText(/Na potvrdenie napíš/i),
-      'zmazať',
-    )
+    await user.type(screen.getByLabelText(/Na potvrdenie napíš/i), 'zmazať')
     expect(confirm).toBeEnabled()
 
     await user.click(confirm)

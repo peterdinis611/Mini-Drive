@@ -1,15 +1,15 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { useDebouncedValue } from '@tanstack/react-pacer'
 import {
   formatForDisplay,
   useAppHotkeys,
   useHotkey,
 } from '@tanstack/react-hotkeys'
+import { useDebouncedValue } from '@tanstack/react-pacer'
 import { useNavigate } from '@tanstack/react-router'
 import { FileIcon, Folder, Search } from 'lucide-react'
-
+import { useEffect, useMemo, useState } from 'react'
+import { Button } from '#/components/ui/button'
 import {
   CommandDialog,
   CommandEmpty,
@@ -20,15 +20,14 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from '#/components/ui/command'
-import { Button } from '#/components/ui/button'
 import { PreloadSpinner } from '#/components/ui/preload-spinner'
-import { formatFileSize } from '#/lib/format'
+import type { DriveSearchItem } from '#/lib/drive-search'
 import {
   buildDriveSearchItems,
   createDriveFuse,
   searchDriveItems,
 } from '#/lib/drive-search'
-import type { DriveSearchItem } from '#/lib/drive-search'
+import { formatFileSize } from '#/lib/format'
 import { dispatchQuickAction, onQuickAction } from '#/lib/quick-actions'
 import { cn } from '#/lib/utils'
 import { getDriveSearchIndex } from '#/server/functions/drive'

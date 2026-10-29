@@ -4,7 +4,7 @@
  *   BACKUP_ENCRYPTION_KEY=... pnpm db:backup
  *   BACKUP_ENCRYPTION_KEY=... pnpm db:backup -- --out backups/manual.db.enc
  */
-import { config } from 'dotenv'
+
 import { randomUUID } from 'node:crypto'
 import {
   copyFileSync,
@@ -15,11 +15,9 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, resolve } from 'node:path'
+import { config } from 'dotenv'
 
-import {
-  defaultBackupFileName,
-  encryptDbBackup,
-} from '../src/lib/db-backup'
+import { defaultBackupFileName, encryptDbBackup } from '../src/lib/db-backup'
 import { getFileBytesSync } from '../src/lib/file-bytes'
 import { formatFileSize } from '../src/lib/format'
 

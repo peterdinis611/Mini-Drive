@@ -31,9 +31,7 @@ const files = [
 describe('drive-search', () => {
   it('builds path labels for nested folders and files', () => {
     const items = buildDriveSearchItems(folders, files)
-    const nested = items.find(
-      (item) => item.kind === 'file' && item.id === 'a',
-    )
+    const nested = items.find((item) => item.kind === 'file' && item.id === 'a')
     expect(nested?.pathLabel).toBe('Súbory / Fotky / Dovolenka')
   })
 

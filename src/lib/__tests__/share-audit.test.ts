@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
-
+import {
+  CREATE_SHARE_RATE_LIMIT,
+  SHARE_ACCESS_LOG_LIMIT,
+} from '#/lib/constants'
 import {
   formatIpFingerprint,
   normalizeAuditIp,
   truncateUserAgent,
 } from '#/lib/share-audit'
 import { hashAuditIp } from '#/lib/share-audit-hash'
-import { CREATE_SHARE_RATE_LIMIT, SHARE_ACCESS_LOG_LIMIT } from '#/lib/constants'
 
 describe('truncateUserAgent', () => {
   it('returns null for empty', () => {

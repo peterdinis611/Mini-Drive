@@ -1,22 +1,22 @@
-import { useMemo, useState } from 'react'
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { FolderOpen } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 import { FilePreviewDialog } from '#/components/files/file-preview-dialog'
 import { FileThumbnail } from '#/components/files/file-thumbnail'
-import { useImagePreviews } from '#/components/files/use-image-previews'
 import type { DriveFile } from '#/components/files/types'
+import { useImagePreviews } from '#/components/files/use-image-previews'
 import { AppShell } from '#/components/layout/app-shell'
 import { FadeIn } from '#/components/motion/fade-in'
-import { AppShellPending } from '#/components/ui/preload-spinner'
 import { Button } from '#/components/ui/button'
 import {
   createDataTableColumnHelper,
   DataTable,
 } from '#/components/ui/data-table'
 import { EmptyState } from '#/components/ui/empty-state'
-import { canInlinePreview } from '#/lib/mime'
+import { AppShellPending } from '#/components/ui/preload-spinner'
 import { formatFileSize } from '#/lib/format'
+import { canInlinePreview } from '#/lib/mime'
 import { requireOnboardedSession } from '#/lib/route-guards'
 import { privateAppHead } from '#/lib/seo'
 import { getAppChrome, listRecentFiles } from '#/server/functions/drive'
@@ -100,8 +100,7 @@ function RecentPage() {
         }),
         columnHelper.accessor('createdAt', {
           header: 'Dátum',
-          cell: ({ getValue }) =>
-            new Date(getValue()).toLocaleString('sk-SK'),
+          cell: ({ getValue }) => new Date(getValue()).toLocaleString('sk-SK'),
           meta: { hideBelow: 'md', mobileLabel: 'Dátum' },
         }),
         columnHelper.accessor('folderId', {

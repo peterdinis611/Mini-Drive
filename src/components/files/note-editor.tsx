@@ -1,10 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import Link from '@tiptap/extension-link'
+import Placeholder from '@tiptap/extension-placeholder'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import Placeholder from '@tiptap/extension-placeholder'
-import Link from '@tiptap/extension-link'
 import {
   Bold,
   Heading2,
@@ -16,6 +15,7 @@ import {
   Strikethrough,
   Undo2,
 } from 'lucide-react'
+import { useEffect } from 'react'
 
 import { Separator } from '#/components/ui/separator'
 import { Toggle } from '#/components/ui/toggle'

@@ -49,11 +49,7 @@ export function SafeUrlControl() {
         </span>
       </div>
 
-      <div
-        className="landing-ttl"
-        role="group"
-        aria-labelledby={labelId}
-      >
+      <div className="landing-ttl" role="group" aria-labelledby={labelId}>
         {TTL_OPTIONS.map((option) => (
           <button
             key={option.id}

@@ -117,7 +117,12 @@ export function AppShellPending({
   const reduce = useReducedMotion()
 
   return (
-    <div className="app-frame" role="status" aria-live="polite" aria-busy="true">
+    <div
+      className="app-frame"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
       <div className="app-frame-inner flex min-h-[inherit] bg-background">
         <aside className="hidden w-[248px] shrink-0 border-r border-sidebar-border bg-sidebar p-3 lg:block">
           <motion.div
@@ -146,7 +151,11 @@ export function AppShellPending({
             <motion.div
               className="h-8 w-40 rounded-full bg-muted"
               animate={reduce ? undefined : { opacity: [0.45, 0.85, 0.45] }}
-              transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{
+                duration: 1.4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
             />
           </div>
           <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-8">

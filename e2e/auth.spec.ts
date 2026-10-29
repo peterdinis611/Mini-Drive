@@ -12,9 +12,12 @@ test.describe('auth pages', () => {
   test('sign-in route renders Clerk form', async ({ page }) => {
     await setupClerkTestingToken({ page })
     await page.goto('/sign-in')
-    await page.waitForSelector('[data-clerk-component], form, input[type="email"]', {
-      timeout: 15_000,
-    })
+    await page.waitForSelector(
+      '[data-clerk-component], form, input[type="email"]',
+      {
+        timeout: 15_000,
+      },
+    )
     await expect(page.locator('body')).toBeVisible()
   })
 })

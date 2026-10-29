@@ -1,21 +1,20 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { useState, useTransition } from 'react'
 import { ArchiveRestore, Loader2, Trash2 } from 'lucide-react'
-import { toast } from '#/lib/toast'
-
+import { useState, useTransition } from 'react'
 import { AppShell } from '#/components/layout/app-shell'
-import { AppShellPending } from '#/components/ui/preload-spinner'
 import { Button } from '#/components/ui/button'
 import { ConfirmWordDialog } from '#/components/ui/confirm-word-dialog'
-import { EmptyState } from '#/components/ui/empty-state'
 import {
   createDataTableColumnHelper,
   DataTable,
 } from '#/components/ui/data-table'
+import { EmptyState } from '#/components/ui/empty-state'
+import { AppShellPending } from '#/components/ui/preload-spinner'
 import { getErrorMessage } from '#/lib/errors'
 import { formatFileSize } from '#/lib/format'
-import { privateAppHead } from '#/lib/seo'
 import { requireOnboardedSession } from '#/lib/route-guards'
+import { privateAppHead } from '#/lib/seo'
+import { toast } from '#/lib/toast'
 import { EMPTY_TRASH_CONFIRM_WORD } from '#/lib/validation'
 import { getAppChrome } from '#/server/functions/drive'
 import {
@@ -118,9 +117,7 @@ function TrashPage() {
       id: 'size',
       header: 'Veľkosť',
       cell: ({ row }) =>
-        row.original.kind === 'file'
-          ? formatFileSize(row.original.size)
-          : '—',
+        row.original.kind === 'file' ? formatFileSize(row.original.size) : '—',
       meta: { hideBelow: 'sm', mobileLabel: 'Veľkosť' },
     }),
     columnHelper.display({

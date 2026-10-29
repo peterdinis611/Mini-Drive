@@ -14,8 +14,8 @@ import {
   renameFileSchema,
   restoreFileVersionSchema,
 } from '#/lib/validation'
-import { firstOrNull, firstOrThrow } from '#/server/db-helpers.server'
 import { recordActivity } from '#/server/activity.server'
+import { firstOrNull, firstOrThrow } from '#/server/db-helpers.server'
 import { nextFileVersionNumber } from '#/server/storage.server'
 
 export const renameFile = createServerFn({ method: 'POST' })
@@ -494,9 +494,7 @@ export const restoreFileVersion = createServerFn({ method: 'POST' })
       })
       .where(and(eq(files.id, data.fileId), eq(files.userId, userId)))
 
-    await db
-      .delete(fileVersions)
-      .where(eq(fileVersions.id, data.versionId))
+    await db.delete(fileVersions).where(eq(fileVersions.id, data.versionId))
 
     return { ok: true as const }
   })

@@ -19,9 +19,7 @@ type Props = {
   onOpenChange: (open: boolean) => void
 }
 
-type LogRow = Awaited<
-  ReturnType<typeof listShareAccessLogs>
->['logs'][number]
+type LogRow = Awaited<ReturnType<typeof listShareAccessLogs>>['logs'][number]
 
 export function ShareAccessLogDialog({
   open,
@@ -70,8 +68,8 @@ export function ShareAccessLogDialog({
         <DialogHeader>
           <DialogTitle>Otvorenia odkazu</DialogTitle>
           <DialogDescription>
-            Audit log pre „{fileName}“ (posledných {limit}). IP je uložená
-            len ako otlačok (HMAC), nie v plaintexte.
+            Audit log pre „{fileName}“ (posledných {limit}). IP je uložená len
+            ako otlačok (HMAC), nie v plaintexte.
           </DialogDescription>
         </DialogHeader>
 

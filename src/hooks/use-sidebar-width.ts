@@ -1,12 +1,12 @@
 'use client'
 
 import {
+  type KeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
   useRef,
   useState,
-  type KeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
 } from 'react'
 
 export const SIDEBAR_WIDTH_DEFAULT = 248
@@ -16,7 +16,10 @@ export const SIDEBAR_WIDTH_MAX = 440
 const STORAGE_KEY = 'mini-drive:sidebar-width'
 
 function clampWidth(value: number) {
-  return Math.min(SIDEBAR_WIDTH_MAX, Math.max(SIDEBAR_WIDTH_MIN, Math.round(value)))
+  return Math.min(
+    SIDEBAR_WIDTH_MAX,
+    Math.max(SIDEBAR_WIDTH_MIN, Math.round(value)),
+  )
 }
 
 function readStoredWidth(): number {
