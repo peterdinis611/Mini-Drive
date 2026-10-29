@@ -99,6 +99,7 @@ Security headers + CSRF sú v `src/start.ts`.
 | `pnpm test`          | Vitest raz                    |
 | `pnpm test:watch`    | Vitest watch                  |
 | `pnpm test:coverage` | Coverage report               |
+| `pnpm test:e2e`      | Playwright e2e                |
 | `pnpm test:k6`       | k6 load (bežiaci server)      |
 | `pnpm test:k6:smoke` | k6 smoke                      |
 | `pnpm db:push`       | Aplikuj schému do Postgres    |

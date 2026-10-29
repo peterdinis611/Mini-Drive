@@ -4,7 +4,8 @@ import dotenv from 'dotenv'
 dotenv.config({ path: '.env.local' })
 dotenv.config()
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3000'
+// Prefer localhost over 127.0.0.1 — Vite binds IPv6 ::1 by default on macOS.
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
 const port = (() => {
   try {
     return new URL(baseURL).port || '3000'

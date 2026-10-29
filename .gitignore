@@ -17,6 +17,9 @@ todos.json
 *.db-shm
 *.db-wal
 coverage
+test-results/
+playwright-report/
+blob-report/
 .data
 .superdesign/tmp/
 backups/
