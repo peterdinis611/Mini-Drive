@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  MAX_ACTIVE_SHARES_PER_USER,
+  SHARE_DEFAULT_EXPIRES_IN,
   SHARE_EXPIRY_PRESETS,
+  SHARE_PASSWORD_TOKEN_LOCK,
   SHARE_SIGNED_URL_TTL_SECONDS,
   STORAGE_QUOTA_BYTES,
   TRASH_RETENTION_DAYS,
@@ -33,5 +36,8 @@ describe('share presets', () => {
       expect(preset.label.length).toBeGreaterThan(0)
     }
     expect(SHARE_SIGNED_URL_TTL_SECONDS).toBe(5 * 60)
+    expect(SHARE_DEFAULT_EXPIRES_IN).toBe(SHARE_EXPIRY_PRESETS[0].value)
+    expect(MAX_ACTIVE_SHARES_PER_USER).toBe(25)
+    expect(SHARE_PASSWORD_TOKEN_LOCK.limit).toBe(5)
   })
 })

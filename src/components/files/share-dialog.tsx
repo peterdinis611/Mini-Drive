@@ -1,7 +1,6 @@
 import { Check, Copy, Loader2, Lock } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '#/components/ui/button'
-import { Checkbox } from '#/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -25,7 +24,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '#/components/ui/select'
-import { SHARE_EXPIRY_PRESETS } from '#/lib/constants'
+import {
+  SHARE_DEFAULT_EXPIRES_IN,
+  SHARE_EXPIRY_PRESETS,
+} from '#/lib/constants'
 import { getErrorMessage } from '#/lib/errors'
 import { toast } from '#/lib/toast'
 import { createShareLinkSchema } from '#/lib/validation'
@@ -37,7 +39,7 @@ type Props = {
   fileName: string
   onOpenChange: (open: boolean) => void
   onCreated?: () => void
-  /** From user settings — falls back to 1 hour. */
+  /** From user settings — falls back to 15 minutes. */
   defaultExpiresIn?: number
 }
 
@@ -48,7 +50,7 @@ function resolveDefaultExpiresIn(value: number | undefined) {
   ) {
     return value
   }
-  return SHARE_EXPIRY_PRESETS[1].value
+  return SHARE_DEFAULT_EXPIRES_IN
 }
 
 export function ShareDialog({
@@ -66,7 +68,6 @@ export function ShareDialog({
   const [createdPath, setCreatedPath] = useState<string | null>(null)
   const [embedPath, setEmbedPath] = useState<string | null>(null)
   const [passwordProtected, setPasswordProtected] = useState(false)
-  const [usePassword, setUsePassword] = useState(false)
   const [password, setPassword] = useState('')
   const [copied, setCopied] = useState(false)
 
@@ -76,7 +77,6 @@ export function ShareDialog({
       setEmbedPath(null)
       setCopied(false)
       setPasswordProtected(false)
-      setUsePassword(false)
       setPassword('')
       setExpiresIn(resolveDefaultExpiresIn(defaultExpiresIn))
     }
@@ -88,20 +88,15 @@ export function ShareDialog({
       return
     }
 
-    const payload = {
+    const parsed = createShareLinkSchema.safeParse({
       fileId,
       expiresIn,
-      ...(usePassword && password ? { password } : {}),
-    }
-    const parsed = createShareLinkSchema.safeParse(payload)
+      password,
+    })
     if (!parsed.success) {
       toast.error(
         parsed.error.issues[0]?.message ?? 'Neplatné nastavenie zdieľania',
       )
-      return
-    }
-    if (usePassword && !password) {
-      toast.error('Zadaj heslo alebo vypni ochranu')
       return
     }
 
@@ -113,11 +108,7 @@ export function ShareDialog({
       setCreatedPath(result.path)
       setEmbedPath(result.embedPath)
       setPasswordProtected(result.passwordProtected)
-      toast.success(
-        result.passwordProtected
-          ? 'Odkaz s heslom vytvorený'
-          : 'Odkaz vytvorený',
-      )
+      toast.success('Odkaz s heslom vytvorený')
       onCreated?.()
     } catch (error) {
       toast.error(getErrorMessage(error, 'Vytvorenie zlyhalo'))
@@ -143,8 +134,8 @@ export function ShareDialog({
         <DialogHeader>
           <DialogTitle>Zdieľať súbor</DialogTitle>
           <DialogDescription>
-            Safe-url pre „{fileName}“. Pred vytvorením odkazu sa súbor skenuje
-            na malware. UploadThing kľúč nikdy nie je v odkaze.
+            Safe-url pre „{fileName}“. Heslo a krátka platnosť sú povinné. Pred
+            vytvorením sa súbor skenuje na malware.
           </DialogDescription>
         </DialogHeader>
 
@@ -222,44 +213,30 @@ export function ShareDialog({
                   ))}
                 </SelectContent>
               </Select>
+              <FieldDescription>
+                Predvolene 15 minút — kratšia platnosť je bezpečnejšia.
+              </FieldDescription>
             </Field>
 
-            <div className="space-y-3 rounded-lg border border-border/80 p-3">
-              <label className="flex cursor-pointer items-start gap-2.5">
-                <Checkbox
-                  checked={usePassword}
-                  onCheckedChange={(checked) => {
-                    setUsePassword(checked === true)
-                    if (checked !== true) setPassword('')
-                  }}
-                  className="mt-0.5"
-                />
-                <span className="min-w-0">
-                  <span className="flex items-center gap-1.5 text-sm font-medium">
-                    <Lock className="size-3.5 text-amber-600 dark:text-amber-400" />
-                    Chrániť heslom
-                  </span>
-                  <FieldDescription className="mt-0.5">
-                    Príjemca uvidí súbor až po zadaní hesla (min. 6 znakov).
-                  </FieldDescription>
+            <Field>
+              <FieldLabel htmlFor="share-link-password">
+                <span className="inline-flex items-center gap-1.5">
+                  <Lock className="size-3.5 text-amber-600 dark:text-amber-400" />
+                  Heslo odkazu
                 </span>
-              </label>
-              {usePassword ? (
-                <Field className="pl-7">
-                  <FieldLabel htmlFor="share-link-password">
-                    Heslo odkazu
-                  </FieldLabel>
-                  <Input
-                    id="share-link-password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    placeholder="aspoň 6 znakov"
-                  />
-                </Field>
-              ) : null}
-            </div>
+              </FieldLabel>
+              <Input
+                id="share-link-password"
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="aspoň 6 znakov"
+              />
+              <FieldDescription>
+                Povinné. Príjemca uvidí súbor až po zadaní hesla.
+              </FieldDescription>
+            </Field>
           </FieldGroup>
         )}
 
@@ -276,7 +253,7 @@ export function ShareDialog({
             <Button
               type="button"
               onClick={handleCreate}
-              disabled={pending || !fileId}
+              disabled={pending || !fileId || password.length === 0}
             >
               {pending ? <Loader2 className="animate-spin" /> : null}
               Vytvoriť odkaz

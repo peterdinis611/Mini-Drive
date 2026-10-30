@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const KEYS = [
   'NODE_ENV',
   'npm_lifecycle_event',
-  'AUDIT_IP_PEPPER',
   'BACKUP_ENCRYPTION_KEY',
+  'REDIS_URL',
 ] as const
 
 describe('warnOptionalProductionEnv', () => {
@@ -26,7 +26,7 @@ describe('warnOptionalProductionEnv', () => {
 
   it('is quiet outside production', async () => {
     process.env.NODE_ENV = 'development'
-    delete process.env.AUDIT_IP_PEPPER
+    delete process.env.BACKUP_ENCRYPTION_KEY
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { warnOptionalProductionEnv } = await import('#/lib/env')
     warnOptionalProductionEnv()
@@ -35,25 +35,25 @@ describe('warnOptionalProductionEnv', () => {
 
   it('warns when optional prod secrets are missing', async () => {
     process.env.NODE_ENV = 'production'
-    delete process.env.AUDIT_IP_PEPPER
     delete process.env.BACKUP_ENCRYPTION_KEY
+    delete process.env.REDIS_URL
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { warnOptionalProductionEnv } = await import('#/lib/env')
     warnOptionalProductionEnv()
-    expect(
-      warn.mock.calls.some((c) => String(c[0]).includes('AUDIT_IP_PEPPER')),
-    ).toBe(true)
     expect(
       warn.mock.calls.some((c) =>
         String(c[0]).includes('BACKUP_ENCRYPTION_KEY'),
       ),
     ).toBe(true)
+    expect(
+      warn.mock.calls.some((c) => String(c[0]).includes('REDIS_URL')),
+    ).toBe(true)
   })
 
   it('stays quiet when optional secrets are set', async () => {
     process.env.NODE_ENV = 'production'
-    process.env.AUDIT_IP_PEPPER = 'pepper'
     process.env.BACKUP_ENCRYPTION_KEY = 'at-least-16-chars'
+    process.env.REDIS_URL = 'redis://127.0.0.1:6379'
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { warnOptionalProductionEnv } = await import('#/lib/env')
     warnOptionalProductionEnv()

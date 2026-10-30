@@ -60,9 +60,7 @@ describe('hashAuditIp', () => {
   })
 
   it('requires a pepper when hashing a real IP', () => {
-    expect(() => hashAuditIp('1.2.3.4', '')).toThrow(
-      /CLERK_SECRET_KEY|AUDIT_IP_PEPPER/,
-    )
+    expect(() => hashAuditIp('1.2.3.4', '')).toThrow(/AUDIT_IP_PEPPER/)
   })
 })
 

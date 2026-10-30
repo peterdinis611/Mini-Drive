@@ -9,6 +9,7 @@ const KEYS = [
   'VITE_CLERK_PUBLISHABLE_KEY',
   'UPLOADTHING_TOKEN',
   'DATABASE_URL',
+  'AUDIT_IP_PEPPER',
 ] as const
 
 describe('assertProductionEnv', () => {
@@ -65,6 +66,7 @@ describe('assertProductionEnv', () => {
     process.env.UPLOADTHING_TOKEN = 'tok'
     process.env.DATABASE_URL =
       'postgresql://postgres:postgres@db:5432/mini_drive'
+    process.env.AUDIT_IP_PEPPER = 'pepper-secret'
     const { assertProductionEnv } = await import('#/lib/env')
     expect(() => assertProductionEnv()).toThrow(/localhost/)
   })
@@ -78,8 +80,24 @@ describe('assertProductionEnv', () => {
     process.env.VITE_CLERK_PUBLISHABLE_KEY = 'pk_live_x'
     process.env.UPLOADTHING_TOKEN = 'tok'
     process.env.DATABASE_URL = 'dev.db'
+    process.env.AUDIT_IP_PEPPER = 'pepper-secret'
     const { assertProductionEnv } = await import('#/lib/env')
     expect(() => assertProductionEnv()).toThrow(/postgresql/)
+  })
+
+  it('requires AUDIT_IP_PEPPER in production', async () => {
+    process.env.NODE_ENV = 'production'
+    process.env.npm_lifecycle_event = 'start'
+    process.env.APP_URL = 'https://drive.example.com'
+    process.env.CLERK_SECRET_KEY = 'sk_live_x'
+    process.env.CLERK_PUBLISHABLE_KEY = 'pk_live_x'
+    process.env.VITE_CLERK_PUBLISHABLE_KEY = 'pk_live_x'
+    process.env.UPLOADTHING_TOKEN = 'tok'
+    process.env.DATABASE_URL =
+      'postgresql://postgres:postgres@db:5432/mini_drive'
+    delete process.env.AUDIT_IP_PEPPER
+    const { assertProductionEnv } = await import('#/lib/env')
+    expect(() => assertProductionEnv()).toThrow(/AUDIT_IP_PEPPER/)
   })
 
   it('accepts a complete production env', async () => {
@@ -92,6 +110,7 @@ describe('assertProductionEnv', () => {
     process.env.UPLOADTHING_TOKEN = 'tok'
     process.env.DATABASE_URL =
       'postgresql://postgres:postgres@db:5432/mini_drive'
+    process.env.AUDIT_IP_PEPPER = 'pepper-secret'
     const { assertProductionEnv } = await import('#/lib/env')
     expect(() => assertProductionEnv()).not.toThrow()
   })

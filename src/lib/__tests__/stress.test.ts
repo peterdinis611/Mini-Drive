@@ -61,38 +61,38 @@ describe('stress: rate-limit', () => {
     vi.useRealTimers()
   })
 
-  it('survives a flood of distinct keys', () => {
+  it('survives a flood of distinct keys', async () => {
     const started = performance.now()
     let allowed = 0
     for (let i = 0; i < 5_000; i += 1) {
-      const result = checkRateLimit(`ip:${i}`, SHARE_RATE_LIMIT)
+      const result = await checkRateLimit(`ip:${i}`, SHARE_RATE_LIMIT)
       if (result.ok) allowed += 1
     }
     expect(allowed).toBe(5_000)
     expect(performance.now() - started).toBeLessThan(1_500)
   })
 
-  it('blocks share resolve bursts past SHARE_RATE_LIMIT', () => {
+  it('blocks share resolve bursts past SHARE_RATE_LIMIT', async () => {
     const key = 'ip:burst'
     let blocked = 0
     for (let i = 0; i < SHARE_RATE_LIMIT.limit + 40; i += 1) {
-      if (!checkRateLimit(key, SHARE_RATE_LIMIT).ok) blocked += 1
+      if (!(await checkRateLimit(key, SHARE_RATE_LIMIT)).ok) blocked += 1
     }
     expect(blocked).toBe(40)
   })
 
-  it('reopens the window after expiry (mocked clock)', () => {
+  it('reopens the window after expiry (mocked clock)', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
 
     const key = 'ip:window'
     for (let i = 0; i < SHARE_PASSWORD_RATE_LIMIT.limit; i += 1) {
-      expect(checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT).ok).toBe(true)
+      expect((await checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT)).ok).toBe(true)
     }
-    expect(checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT).ok).toBe(false)
+    expect((await checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT)).ok).toBe(false)
 
     vi.advanceTimersByTime(SHARE_PASSWORD_RATE_LIMIT.windowMs + 1)
-    expect(checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT).ok).toBe(true)
+    expect((await checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT)).ok).toBe(true)
     vi.useRealTimers()
   })
 })

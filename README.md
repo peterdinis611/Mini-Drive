@@ -24,14 +24,15 @@ Osobné úložisko súborov inšpirované S3 / Google Drive. TanStack Start + Cl
 - Node 22+
 - pnpm 11+
 - PostgreSQL 16+ (lokálne alebo Docker)
+- Redis 7+ (odporúčané pri viacerých inštanciách / Docker scale)
 
 ## Inštalácia
 
 ```bash
 pnpm install
 cp .env.example .env.local
-# nastav DATABASE_URL, Clerk kľúče, APP_URL a UPLOADTHING_TOKEN
-docker compose up -d db   # voliteľné — lokálny Postgres
+# nastav DATABASE_URL, Clerk kľúče, APP_URL, UPLOADTHING_TOKEN, AUDIT_IP_PEPPER
+docker compose up -d db redis   # voliteľné — lokálny Postgres + Redis
 pnpm db:push
 pnpm dev
 ```
@@ -42,15 +43,16 @@ Otvor [http://localhost:3000](http://localhost:3000).
 
 ### Premenné
 
-| Premenná                   | Účel                                               |
-| -------------------------- | -------------------------------------------------- |
-| `NODE_ENV=production`      | Prod režim (CSP, HSTS, env guards)                 |
-| `APP_URL`                  | Canonical URL, sitemap, robots, CSRF (`https://…`) |
-| `DATABASE_URL`             | `postgresql://…` connection string                 |
-| `CLERK_*` / `VITE_CLERK_*` | Live Clerk kľúče + dashboard origins               |
-| `UPLOADTHING_TOKEN`        | Upload + signed URL (ACL **private** v dashboarde) |
-| `AUDIT_IP_PEPPER`          | Hash IP pri share audite (odporúčané)              |
-| `BACKUP_ENCRYPTION_KEY`    | Šifrované `pnpm db:backup` / `db:restore`          |
+| Premenná                   | Účel                                                                 |
+| -------------------------- | -------------------------------------------------------------------- |
+| `NODE_ENV=production`      | Prod režim (CSP, HSTS, env guards)                                   |
+| `APP_URL`                  | Canonical URL, CSRF, Clerk `authorizedParties` (`https://…`)         |
+| `DATABASE_URL`             | `postgresql://…` connection string                                   |
+| `CLERK_*` / `VITE_CLERK_*` | Live Clerk kľúče + dashboard origins                                 |
+| `UPLOADTHING_TOKEN`        | Upload + signed URL (ACL **private** v dashboarde)                   |
+| `AUDIT_IP_PEPPER`          | **Povinné** — HMAC pepper pre share audit IP (nie `CLERK_SECRET_KEY`) |
+| `REDIS_URL`                | Zdieľané rate limity (Redis / Upstash); inak in-memory + warning     |
+| `BACKUP_ENCRYPTION_KEY`    | Šifrované `pnpm db:backup` / `db:restore`                            |
 
 Pri štarte procesu (`pnpm start`) chýbajúce povinné premenné spôsobia hard fail.
 
@@ -70,20 +72,22 @@ Healthcheck: `GET /api/health` → `{ status: "ok", checks: { database: "ok" } }
 docker compose up --build -d
 ```
 
-Compose spustí `postgres:16` + app. Pred deployom nastav v Clerk a UploadThing produkčný `APP_URL`, potom `pnpm db:push` (alebo migrate) voči produkčnej DB.
+Compose spustí `postgres:16` + `redis:7` + app. Pred deployom nastav v Clerk a UploadThing produkčný `APP_URL`, potom `pnpm db:push` (alebo migrate) voči produkčnej DB.
 
 ### Checklist pred go-live
 
-1. Clerk **live** kľúče + allowed origins / redirect URLs = `APP_URL`
-2. UploadThing token + **private** ACL + produkčná app URL
-3. Managed Postgres (alebo compose volume `mini-drive-pg`)
-4. `AUDIT_IP_PEPPER` + `BACKUP_ENCRYPTION_KEY`
-5. Cron / job: `pnpm db:backup` (vyžaduje `pg_dump`)
-6. Over `/api/health`, `/robots.txt`, `/sitemap.xml`
+1. Clerk **live** kľúče + allowed origins / redirect URLs = `APP_URL` (app už posiela `authorizedParties`)
+2. Clerk dashboard: **MFA (TOTP)**, silné heslá, bot protection / Captcha na sign-in; krátka session lifetime + revoke po zmene hesla
+3. UploadThing token + **private** ACL + produkčná app URL; signed URL TTL ostáva ~5 min
+4. Managed Postgres (alebo compose volume `mini-drive-pg`) + Redis / Upstash (`REDIS_URL`)
+5. `AUDIT_IP_PEPPER` (povinné) + `BACKUP_ENCRYPTION_KEY`
+6. Share surface: heslo povinné, predvolená expirácia 15 min (nie „Nikdy“), max 25 aktívnych share / user, lock tokenu po 5 zlých heslách
+7. Cron / job: `pnpm db:backup` (vyžaduje `pg_dump`)
+8. Over `/api/health`, `/robots.txt`, `/sitemap.xml`
 
 SEO: `/sitemap.xml`, `/robots.txt`, `/site.webmanifest`, `/og.svg`.
 Súkromné routy majú `noindex`; verejné sú `/`, `/sign-in`, `/sign-up`.
-Security headers + CSRF sú v `src/start.ts`.
+Security headers + CSRF + Clerk `authorizedParties` sú v `src/start.ts`.
 
 ## Skripty
 
@@ -139,7 +143,7 @@ Verejný safe-url: `/s/$token` → rate limit → aktívny odkaz? → krátky UT
 ### UploadThing
 
 Do `.env.local` doplň `UPLOADTHING_TOKEN` z [uploadthing.com](https://uploadthing.com/dashboard).
-V dashboarde nastav ACL **private** (alebo povoľ override ACL per-request).
+V dashboarde nastav ACL **private**. Verejný prístup ide len cez short-lived signed URL (`SHARE_SIGNED_URL_TTL_SECONDS` = 5 min).
 
 ## Dizajn
 

@@ -44,7 +44,7 @@ describe('stress: share password unlock (mocked crypto)', () => {
 
     const started = performance.now()
     for (let i = 0; i < 200; i += 1) {
-      const gate = checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT)
+      const gate = await checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT)
       if (!gate.ok) {
         blocked += 1
         continue

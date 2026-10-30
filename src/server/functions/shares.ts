@@ -5,16 +5,23 @@ import {
   setResponseHeader,
   setResponseStatus,
 } from '@tanstack/react-start/server'
-import { and, count, desc, eq, inArray, isNull } from 'drizzle-orm'
+import { and, count, desc, eq, gt, inArray, isNull } from 'drizzle-orm'
 
 import {
   CREATE_SHARE_RATE_LIMIT,
+  MAX_ACTIVE_SHARES_PER_USER,
   SHARE_ACCESS_LOG_LIMIT,
   SHARE_PASSWORD_RATE_LIMIT,
+  SHARE_PASSWORD_TOKEN_LOCK,
   SHARE_RATE_LIMIT,
   SHARE_SIGNED_URL_TTL_SECONDS,
 } from '#/lib/constants'
-import { checkRateLimit } from '#/lib/rate-limit'
+import {
+  checkRateLimit,
+  clearRateLimit,
+  peekRateLimit,
+  recordRateLimitHit,
+} from '#/lib/rate-limit'
 import { truncateUserAgent } from '#/lib/share-audit'
 import { hashAuditIp } from '#/lib/share-audit-hash'
 import { hashSharePassword, verifySharePassword } from '#/lib/share-password'
@@ -34,11 +41,13 @@ import {
 import { firstOrNull, firstOrThrow } from '#/server/db-helpers.server'
 
 function resolveAuditIpPepper(): string {
-  return (
-    process.env.AUDIT_IP_PEPPER?.trim() ||
-    process.env.CLERK_SECRET_KEY?.trim() ||
-    ''
-  )
+  const pepper = process.env.AUDIT_IP_PEPPER?.trim()
+  if (pepper) return pepper
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('AUDIT_IP_PEPPER is required in production')
+  }
+  // Dev-only fallback so local share audit still works without secrets.
+  return 'dev-insecure-audit-pepper'
 }
 
 type ShareFileRow = {
@@ -93,7 +102,7 @@ async function deliverPublicShare(row: ShareFileRow) {
   const userAgent = truncateUserAgent(headers.get('user-agent'))
 
   try {
-    const pepper = resolveAuditIpPepper() || 'dev-insecure-audit-pepper'
+    const pepper = resolveAuditIpPepper()
     await db.insert(shareAccessLogs).values({
       shareLinkId: row.shareLinkId,
       ipAddress: hashAuditIp(ip, pepper),
@@ -124,13 +133,31 @@ export const createShareLink = createServerFn({ method: 'POST' })
     const session = await requireSession()
     const userId = session.user.id
 
-    const rate = checkRateLimit(
+    const rate = await checkRateLimit(
       `share-create:${userId}`,
       CREATE_SHARE_RATE_LIMIT,
     )
     if (!rate.ok) {
       throw new Error(
         `Príliš veľa zdieľaní. Skús o ${Math.max(1, Math.ceil(rate.retryAfterMs / 1000))} s.`,
+      )
+    }
+
+    const activeCountRow = firstOrNull(
+      await db
+        .select({ value: count() })
+        .from(shareLinks)
+        .where(
+          and(
+            eq(shareLinks.createdBy, userId),
+            isNull(shareLinks.revokedAt),
+            gt(shareLinks.expiresAt, new Date()),
+          ),
+        ),
+    )
+    if ((activeCountRow?.value ?? 0) >= MAX_ACTIVE_SHARES_PER_USER) {
+      throw new Error(
+        `Dosiahol si limit ${MAX_ACTIVE_SHARES_PER_USER} aktívnych zdieľaní. Zruš staršie odkazy.`,
       )
     }
 
@@ -170,7 +197,7 @@ export const createShareLink = createServerFn({ method: 'POST' })
 
     const token = generateShareToken()
     const expiresAt = new Date(Date.now() + data.expiresIn * 1000)
-    const passwordHash = data.password ? hashSharePassword(data.password) : null
+    const passwordHash = hashSharePassword(data.password)
 
     const created = firstOrThrow(
       await db
@@ -365,7 +392,7 @@ export const resolvePublicShare = createServerFn({ method: 'GET' })
     setResponseHeader('Cache-Control', 'no-store')
 
     const ip = getRequestIP() ?? 'unknown'
-    const rate = checkRateLimit(`share:${ip}`, SHARE_RATE_LIMIT)
+    const rate = await checkRateLimit(`share:${ip}`, SHARE_RATE_LIMIT)
     if (!rate.ok) {
       setResponseStatus(429)
       setResponseHeader(
@@ -413,7 +440,25 @@ export const unlockPublicShare = createServerFn({ method: 'POST' })
     setResponseHeader('Cache-Control', 'no-store')
 
     const ip = getRequestIP() ?? 'unknown'
-    const rate = checkRateLimit(
+    const tokenLockKey = `share-pw-fail:${data.token}`
+
+    const tokenLock = await peekRateLimit(
+      tokenLockKey,
+      SHARE_PASSWORD_TOKEN_LOCK,
+    )
+    if (!tokenLock.ok) {
+      setResponseStatus(429)
+      setResponseHeader(
+        'Retry-After',
+        String(Math.max(1, Math.ceil(tokenLock.retryAfterMs / 1000))),
+      )
+      return {
+        status: 'rate_limited' as const,
+        retryAfterMs: tokenLock.retryAfterMs,
+      }
+    }
+
+    const rate = await checkRateLimit(
       `share-pw:${ip}:${data.token.slice(0, 12)}`,
       SHARE_PASSWORD_RATE_LIMIT,
     )
@@ -452,6 +497,21 @@ export const unlockPublicShare = createServerFn({ method: 'POST' })
     }
 
     if (!verifySharePassword(data.password, row.passwordHash)) {
+      const fail = await recordRateLimitHit(
+        tokenLockKey,
+        SHARE_PASSWORD_TOKEN_LOCK,
+      )
+      if (!fail.ok) {
+        setResponseStatus(429)
+        setResponseHeader(
+          'Retry-After',
+          String(Math.max(1, Math.ceil(fail.retryAfterMs / 1000))),
+        )
+        return {
+          status: 'rate_limited' as const,
+          retryAfterMs: fail.retryAfterMs,
+        }
+      }
       setResponseStatus(401)
       return {
         status: 'password_invalid' as const,
@@ -459,5 +519,6 @@ export const unlockPublicShare = createServerFn({ method: 'POST' })
       }
     }
 
+    await clearRateLimit(tokenLockKey)
     return deliverPublicShare(row)
   })

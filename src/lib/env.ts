@@ -10,6 +10,7 @@ const PROD_REQUIRED = [
   'VITE_CLERK_PUBLISHABLE_KEY',
   'UPLOADTHING_TOKEN',
   'DATABASE_URL',
+  'AUDIT_IP_PEPPER',
 ] as const
 
 function isProduction(): boolean {
@@ -61,15 +62,15 @@ export function assertProductionEnv(): void {
 export function warnOptionalProductionEnv(): void {
   if (!isProduction()) return
 
-  if (!process.env.AUDIT_IP_PEPPER?.trim()) {
-    console.warn(
-      '[mini-drive] AUDIT_IP_PEPPER unset — share IP hashes fall back to CLERK_SECRET_KEY.',
-    )
-  }
-
   if (!process.env.BACKUP_ENCRYPTION_KEY?.trim()) {
     console.warn(
       '[mini-drive] BACKUP_ENCRYPTION_KEY unset — `pnpm db:backup` will fail until set.',
+    )
+  }
+
+  if (!process.env.REDIS_URL?.trim()) {
+    console.warn(
+      '[mini-drive] REDIS_URL unset — rate limits are in-memory (not shared across instances).',
     )
   }
 }

@@ -87,6 +87,7 @@
     "react-easy-crop": "^6.2.4",
     "react-error-boundary": "^6.1.6",
     "react-resizable-panels": "^4.15.0",
+    "redis": "^6.3.1",
     "sonner": "^2.0.8",
     "srvx": "^1.0.8",
     "tailwind-merge": "^3.7.0",

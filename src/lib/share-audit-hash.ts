@@ -14,7 +14,7 @@ export function hashAuditIp(
   const normalized = normalizeAuditIp(ip)
   if (normalized === 'unknown') return 'unknown'
   if (!pepper) {
-    throw new Error('AUDIT_IP_PEPPER / CLERK_SECRET_KEY chýba pre hash IP')
+    throw new Error('AUDIT_IP_PEPPER chýba pre hash IP')
   }
   return createHmac('sha256', pepper)
     .update(normalized)

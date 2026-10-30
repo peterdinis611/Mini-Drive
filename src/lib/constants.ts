@@ -27,8 +27,14 @@ export const SHARE_EXPIRY_PRESETS = [
   { label: '7 dní', value: 7 * 24 * 60 * 60 },
 ] as const
 
+/** Secure default share TTL (shortest preset). */
+export const SHARE_DEFAULT_EXPIRES_IN = SHARE_EXPIRY_PRESETS[0].value
+
 /** Short-lived UploadThing signed URL issued on each public share hit. */
 export const SHARE_SIGNED_URL_TTL_SECONDS = 5 * 60
+
+/** Max concurrent active (unexpired, unrevoked) share links per user. */
+export const MAX_ACTIVE_SHARES_PER_USER = 25
 
 /** Public /s/$token rate limit (per IP, sliding window). */
 export const SHARE_RATE_LIMIT = {
@@ -46,6 +52,15 @@ export const CREATE_SHARE_RATE_LIMIT = {
 export const SHARE_PASSWORD_RATE_LIMIT = {
   limit: 10,
   windowMs: 60_000,
+} as const
+
+/**
+ * Failed password attempts on a single token (any IP).
+ * After maxFails the token is locked for the window.
+ */
+export const SHARE_PASSWORD_TOKEN_LOCK = {
+  limit: 5,
+  windowMs: 15 * 60_000,
 } as const
 
 /** Max stored audit rows returned per share in the UI. */

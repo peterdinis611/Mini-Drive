@@ -41,18 +41,27 @@ describe('bulkMoveFilesSchema', () => {
 })
 
 describe('bulkShareFilesSchema', () => {
-  it('caps at 20 files and requires preset expiry', () => {
+  it('caps at 20 files and requires password + preset expiry', () => {
     expect(
       bulkShareFilesSchema.parse({
         fileIds: [uuid],
         expiresIn: SHARE_EXPIRY_PRESETS[0].value,
+        password: 'secret1',
       }),
-    ).toMatchObject({ fileIds: [uuid] })
+    ).toMatchObject({ fileIds: [uuid], password: 'secret1' })
+
+    expect(() =>
+      bulkShareFilesSchema.parse({
+        fileIds: [uuid],
+        expiresIn: SHARE_EXPIRY_PRESETS[0].value,
+      }),
+    ).toThrow()
 
     expect(() =>
       bulkShareFilesSchema.parse({
         fileIds: [uuid],
         expiresIn: 999,
+        password: 'secret1',
       }),
     ).toThrow()
 
@@ -60,6 +69,7 @@ describe('bulkShareFilesSchema', () => {
       bulkShareFilesSchema.parse({
         fileIds: Array.from({ length: 21 }, () => uuid),
         expiresIn: SHARE_EXPIRY_PRESETS[0].value,
+        password: 'secret1',
       }),
     ).toThrow()
   })

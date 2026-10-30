@@ -61,10 +61,6 @@ describe('changePasswordSchema', () => {
 describe('share schemas', () => {
   it('validates create/revoke share payloads', () => {
     expect(
-      createShareLinkSchema.parse({ fileId: UUID, expiresIn: 3600 }),
-    ).toEqual({ fileId: UUID, expiresIn: 3600 })
-
-    expect(
       createShareLinkSchema.parse({
         fileId: UUID,
         expiresIn: 3600,
@@ -76,12 +72,23 @@ describe('share schemas', () => {
       createShareLinkSchema.parse({
         fileId: UUID,
         expiresIn: 3600,
+      }),
+    ).toThrow()
+
+    expect(() =>
+      createShareLinkSchema.parse({
+        fileId: UUID,
+        expiresIn: 3600,
         password: 'short',
       }),
     ).toThrow()
 
     expect(() =>
-      createShareLinkSchema.parse({ fileId: 'not-uuid', expiresIn: 3600 }),
+      createShareLinkSchema.parse({
+        fileId: 'not-uuid',
+        expiresIn: 3600,
+        password: 'secret1',
+      }),
     ).toThrow()
 
     expect(revokeShareLinkSchema.parse({ shareId: UUID })).toEqual({

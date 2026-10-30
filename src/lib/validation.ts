@@ -157,7 +157,7 @@ export const changePasswordSchema = z
     path: ['confirmPassword'],
   })
 
-/** Optional share-link password (not account password rules). */
+/** Share-link password (required — not account password rules). */
 export const shareLinkPasswordSchema = z
   .string()
   .min(6, 'Heslo musí mať aspoň 6 znakov')
@@ -166,8 +166,8 @@ export const shareLinkPasswordSchema = z
 export const createShareLinkSchema = z.object({
   fileId: z.string().uuid('Neplatné ID súboru'),
   expiresIn: expiresInSchema,
-  /** When set, public open requires this password. */
-  password: shareLinkPasswordSchema.optional(),
+  /** Required — public open always needs a password. */
+  password: shareLinkPasswordSchema,
 })
 
 export const revokeShareLinkSchema = z.object({
@@ -273,6 +273,7 @@ export const bulkShareFilesSchema = z.object({
     max: 'Naraz môžeš zdieľať najviac 20 súborov',
   }),
   expiresIn: expiresInSchema,
+  password: shareLinkPasswordSchema,
 })
 
 export const restoreFileSchema = z.object({

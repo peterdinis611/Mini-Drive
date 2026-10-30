@@ -46,6 +46,7 @@ import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { usePersistTheme } from '#/hooks/use-persist-theme'
 import {
   AUTH_LIMITS,
+  SHARE_DEFAULT_EXPIRES_IN,
   SHARE_EXPIRY_PRESETS,
   STORAGE_QUOTA_BYTES,
   TRASH_RETENTION_DAYS,
@@ -96,7 +97,7 @@ function SettingsPage() {
     chrome.user.themePreference ?? 'system',
   )
   const [defaultShareExpiresIn, setDefaultShareExpiresIn] = useState(
-    chrome.user.defaultShareExpiresIn ?? SHARE_EXPIRY_PRESETS[1].value,
+    chrome.user.defaultShareExpiresIn ?? SHARE_DEFAULT_EXPIRES_IN,
   )
   const [confirmDelete, setConfirmDelete] = useState(
     chrome.user.confirmDelete ?? true,
