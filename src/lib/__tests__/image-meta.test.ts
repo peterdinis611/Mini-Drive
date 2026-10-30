@@ -39,4 +39,18 @@ describe('image-meta localStorage', () => {
       altText: 'z',
     })
   })
+
+  it('falls back on corrupt JSON and blank alt', () => {
+    window.localStorage.setItem('mini-drive:image-meta:bad', '{broken')
+    expect(loadImageMeta('bad', 'photo.png')).toEqual({
+      caption: '',
+      altText: 'photo.png',
+    })
+
+    saveImageMeta('id-2', { caption: 'cap', altText: '   ' })
+    expect(loadImageMeta('id-2', 'fallback.png')).toEqual({
+      caption: 'cap',
+      altText: 'fallback.png',
+    })
+  })
 })

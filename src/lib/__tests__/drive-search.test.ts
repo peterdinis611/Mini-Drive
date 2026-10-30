@@ -48,4 +48,25 @@ describe('drive-search', () => {
     const results = searchDriveItems(fuse, items, '', 2)
     expect(results).toHaveLength(2)
   })
+
+  it('labels root files as Súbory and searches contentText', () => {
+    const withContent = [
+      ...files,
+      {
+        id: 'c',
+        name: 'notes.txt',
+        size: 10,
+        mimeType: 'text/plain',
+        folderId: null,
+        contentText: 'faktúra dodávateľ Q4',
+      },
+    ]
+    const items = buildDriveSearchItems(folders, withContent)
+    const rootFile = items.find((item) => item.kind === 'file' && item.id === 'b')
+    expect(rootFile?.pathLabel).toBe('Súbory')
+
+    const fuse = createDriveFuse(items)
+    const hits = searchDriveItems(fuse, items, 'faktura')
+    expect(hits.some((item) => item.id === 'c')).toBe(true)
+  })
 })

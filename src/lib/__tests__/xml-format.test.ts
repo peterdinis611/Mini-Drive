@@ -9,6 +9,10 @@ describe('prettyPrintXml', () => {
     expect(pretty).toContain('  <item>1</item>')
     expect(pretty).toContain('</root>')
   })
+
+  it('returns empty for blank input', () => {
+    expect(prettyPrintXml('   ')).toBe('')
+  })
 })
 
 describe('tokenizeXmlLine', () => {
@@ -17,5 +21,14 @@ describe('tokenizeXmlLine', () => {
     expect(tokens.some((token) => token.type === 'tag')).toBe(true)
     expect(tokens.some((token) => token.type === 'attr-name')).toBe(true)
     expect(tokens.some((token) => token.type === 'attr-value')).toBe(true)
+  })
+
+  it('treats comments and plain text specially', () => {
+    expect(tokenizeXmlLine('<!-- hi -->')).toEqual([
+      { type: 'comment', value: '<!-- hi -->' },
+    ])
+    expect(tokenizeXmlLine('plain text')).toEqual([
+      { type: 'text', value: 'plain text' },
+    ])
   })
 })

@@ -22,6 +22,13 @@ describe('buildContentSecurityPolicy', () => {
     expect(csp).toContain('ws://localhost:*')
     expect(csp).not.toContain('upgrade-insecure-requests')
   })
+
+  it('keeps production-like rules for test env', () => {
+    const csp = buildContentSecurityPolicy('test')
+    expect(csp).toContain("frame-ancestors 'none'")
+    expect(csp).not.toContain("'unsafe-eval'")
+    expect(csp).not.toContain('ws://localhost:*')
+  })
 })
 
 describe('AUTH_LIMITS password floor', () => {
