@@ -13,12 +13,22 @@ const config = defineConfig({
     port: 3000,
     strictPort: true,
     warmup: {
+      // Transform critical graphs at boot so the first hard reload is not a ~5s cold SSR.
       clientFiles: [
         './src/router.tsx',
         './src/routes/__root.tsx',
         './src/routes/index.tsx',
         './src/components/marketing/landing-page.tsx',
         './src/components/clerk-provider.tsx',
+      ],
+      ssrFiles: [
+        './src/start.ts',
+        './src/router.tsx',
+        './src/routes/__root.tsx',
+        './src/routes/index.tsx',
+        './src/server/session.ts',
+        './src/server/rsc/public-pages.tsx',
+        './src/components/marketing/landing-page.tsx',
       ],
     },
   },

@@ -11,6 +11,11 @@ import { getSession } from '#/server/session'
 
 export const Route = createFileRoute('/')({
   beforeLoad: async () => {
+    // Guest fast-path: avoid loading the local DB user sync module on public landing.
+    const { auth } = await import('@clerk/tanstack-react-start/server')
+    const { isAuthenticated } = await auth()
+    if (!isAuthenticated) return
+
     const session = await getSession()
     if (!session) return
     if (!session.user.onboardedAt) {

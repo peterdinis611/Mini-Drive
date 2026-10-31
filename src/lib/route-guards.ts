@@ -16,6 +16,11 @@ export async function requireOnboardedSession() {
 
 /** Shared beforeLoad guard for guest-only auth pages. */
 export async function requireGuestSession() {
+  // Cheap Clerk check first — skip DB user sync when already anonymous.
+  const { auth } = await import('@clerk/tanstack-react-start/server')
+  const { isAuthenticated } = await auth()
+  if (!isAuthenticated) return
+
   const session = await getSession()
   if (session) {
     throw redirect({ to: '/' })

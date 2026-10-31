@@ -1,9 +1,12 @@
 import { auth, clerkClient } from '@clerk/tanstack-react-start/server'
 import { eq } from 'drizzle-orm'
 
-import { db, pool } from '#/db'
-import { rekeyUserId } from '#/db/rekey-user'
 import { user } from '#/db/schema'
+
+/** Lazy DB import — keeps guest SSR from eagerly booting the Postgres pool graph. */
+async function dbMod() {
+  return import('#/db')
+}
 
 export type AppUser = typeof user.$inferSelect
 
@@ -31,6 +34,7 @@ function displayName(parts: {
 }
 
 async function findUserById(id: string): Promise<AppUser | undefined> {
+  const { db } = await dbMod()
   return db
     .select()
     .from(user)
@@ -40,6 +44,7 @@ async function findUserById(id: string): Promise<AppUser | undefined> {
 }
 
 async function findUserByEmail(email: string): Promise<AppUser | undefined> {
+  const { db } = await dbMod()
   return db
     .select()
     .from(user)
@@ -74,6 +79,9 @@ async function ensureLocalUser(clerkUserId: string): Promise<AppUser> {
     email: primaryEmail,
   })
   const image = clerkUser.imageUrl ?? null
+
+  const { db, pool } = await dbMod()
+  const { rekeyUserId } = await import('#/db/rekey-user')
 
   // Legacy better-auth row with same email but different id → re-key to Clerk.
   const byEmail = await findUserByEmail(primaryEmail)
