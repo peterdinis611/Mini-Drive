@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="280" viewBox="0 0 960 280" role="img" aria-label="Mini Drive — WIP archive">
   <title>Mini Drive — active development</title>
   <desc>Animated banner: archive drawers, safe-url pulse, WIP badge</desc>
@@ -82,7 +83,7 @@
       </g>
       <g>
         <rect x="270" y="172" width="156" height="34" rx="10" fill="#1a2030" stroke="#2f6fed" stroke-opacity="0.45"/>
-        <text x="286" y="194">safe-url · 15m</text>
+        <text x="286" y="194">safe-url &#183; 15m</text>
         <animateTransform attributeName="transform" type="translate" values="0 0; 0 -6; 0 0" dur="3.8s" begin="0.8s" repeatCount="indefinite"/>
       </g>
     </g>
@@ -92,7 +93,7 @@
         Mini Drive
       </text>
       <text x="0" y="42" font-size="20" fill="#8b97a8">
-        súkromný archív so safe-url
+        s&#250;kromn&#253; arch&#237;v so safe-url
       </text>
 
       <rect x="318" y="26" width="3" height="22" fill="#7eb8ff">
@@ -108,7 +109,7 @@
           <animate attributeName="opacity" values="0.7;1;0.7" dur="2.2s" repeatCount="indefinite"/>
         </circle>
         <text x="38" y="23" font-size="14" font-weight="600" fill="#7eb8ff" letter-spacing="0.06em">
-          WIP · STÁLE SA VYVÍJA
+          WIP &#183; ST&#193;LE SA VYV&#205;JA
         </text>
       </g>
 

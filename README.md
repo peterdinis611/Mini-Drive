@@ -1,7 +1,7 @@
 # Mini Drive
 
 <p align="center">
-  <img src="docs/readme-banner.gif" alt="Mini Drive — WIP animovaný banner" width="960" />
+  <img src="docs/banner.gif" alt="Mini Drive — WIP animovaný banner" width="960" />
 </p>
 
 <p align="center">
