@@ -1,6 +1,21 @@
 # Mini Drive
 
+<p align="center">
+  <img src="docs/readme-banner.svg" alt="Mini Drive — WIP animovaný banner" width="960" />
+</p>
+
+<p align="center">
+  <a href="#stav"><img src="https://img.shields.io/badge/stav-WIP%20·%20vývoj-2f6fed?style=for-the-badge&labelColor=12161f" alt="WIP" /></a>
+  <img src="https://img.shields.io/badge/stack-TanStack%20Start-7eb8ff?style=for-the-badge&labelColor=12161f" alt="TanStack Start" />
+  <img src="https://img.shields.io/badge/auth-Clerk-2f6fed?style=for-the-badge&labelColor=12161f" alt="Clerk" />
+  <img src="https://img.shields.io/badge/db-PostgreSQL-0f7a4a?style=for-the-badge&labelColor=12161f" alt="PostgreSQL" />
+</p>
+
 Osobné úložisko súborov inšpirované S3 / Google Drive. TanStack Start + Clerk + UploadThing + Drizzle (PostgreSQL) + shadcn/ui.
+
+<a id="stav"></a>
+
+> **Stav:** aplikácia **nie je dokončená** — ide o aktívny vývoj (WIP). API, UX aj infra sa môžu meniť bez varovania; neočakávaj produkčnú stabilitu.
 
 <p align="center">
   <img src="docs/screenshots/landing.jpg" alt="Mini Drive — landing" width="900" />
