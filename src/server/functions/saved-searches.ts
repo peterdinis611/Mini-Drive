@@ -19,7 +19,7 @@ export const listSavedSearches = createServerFn({ method: 'GET' }).handler(
       .select({
         id: savedSearches.id,
         name: savedSearches.name,
-        query: savedSearches.query,
+        query: savedSearches.query, 
         kind: savedSearches.kind,
         createdAt: savedSearches.createdAt,
       })
