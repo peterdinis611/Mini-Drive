@@ -41,4 +41,17 @@ test.describe('auth pages', () => {
     await page.goto('/register')
     await expect(page).toHaveURL(/\/sign-up/)
   })
+
+  test('sign-in page has Mini Drive branding in document', async ({ page }) => {
+    await page.goto('/sign-in')
+    await expect(page).toHaveTitle(/Mini Drive|Prihlás/i)
+    await expect(page.locator('body')).toContainText(/Mini Drive|Prihlás/i)
+  })
+
+  test('sign-up page stays on /sign-up after load', async ({ page }) => {
+    await page.goto('/sign-up')
+    await page.waitForLoadState('domcontentloaded')
+    await expect(page).toHaveURL(/\/sign-up/)
+    await expect(page.locator('body')).not.toContainText(/Application error/i)
+  })
 })

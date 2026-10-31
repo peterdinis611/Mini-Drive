@@ -33,4 +33,22 @@ test.describe('seo endpoints', () => {
     const body = await res.text()
     expect(body).toMatch(/<svg/i)
   })
+
+  test('og.svg is served for social previews', async ({ request }) => {
+    const res = await request.get('/og.svg')
+    expect(res.ok()).toBeTruthy()
+    const body = await res.text()
+    expect(body).toMatch(/<svg/i)
+  })
+
+  test('landing HTML includes canonical / Open Graph hints', async ({
+    request,
+  }) => {
+    const res = await request.get('/')
+    expect(res.ok()).toBeTruthy()
+    const html = await res.text()
+    expect(html).toMatch(/rel=["']canonical["']/i)
+    expect(html).toMatch(/property=["']og:title["']/i)
+    expect(html).toMatch(/Mini Drive/i)
+  })
 })

@@ -39,4 +39,19 @@ test.describe('public share surfaces', () => {
       ),
     ).toBeVisible({ timeout: 15_000 })
   })
+
+  test('missing share returns non-5xx over HTTP API', async ({ request }) => {
+    const res = await request.get('/s/e2e-api-missing-share-token')
+    expect(res.status()).toBeLessThan(500)
+    expect([200, 410, 429]).toContain(res.status())
+  })
+
+  test('malformed short token still resolves without crashing', async ({
+    page,
+  }) => {
+    await page.goto('/s/short')
+    await expect(page.locator('body')).toBeVisible()
+    // Validation / gone / rate-limit — never an uncaught blank crash.
+    await expect(page.locator('body')).toContainText(/.+/)
+  })
 })
