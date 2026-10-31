@@ -20,6 +20,7 @@ import {
   RotateCw,
   Save,
   SlidersHorizontal,
+  Info,
   Type,
   Undo2,
   X,
@@ -52,6 +53,12 @@ import {
   withEditedName,
 } from '#/lib/crop-image'
 import { formatFileSize } from '#/lib/format'
+import {
+  formatImageFileMetaRows,
+  type ImageFileMeta,
+  imageFileMetaMapsUrl,
+  readImageFileMeta,
+} from '#/lib/image-file-meta'
 import { loadImageMeta, saveImageMeta } from '#/lib/image-meta'
 import { toast } from '#/lib/toast'
 import { uploadFiles } from '#/lib/uploadthing'
@@ -239,6 +246,8 @@ export function ImageBlock({
   const [sepia, setSepia] = useState(0)
   const [caption, setCaption] = useState('')
   const [altText, setAltText] = useState(fileName)
+  const [fileMeta, setFileMeta] = useState<ImageFileMeta | null>(null)
+  const [fileMetaLoading, setFileMetaLoading] = useState(false)
   const [naturalSize, setNaturalSize] = useState<{
     w: number
     h: number
@@ -345,6 +354,7 @@ export function ImageBlock({
     setMode('view')
     setCaption(meta.caption)
     setAltText(meta.altText)
+    setFileMeta(null)
     setNaturalSize(null)
     setViewZoom(1)
     setPan({ x: 0, y: 0 })
@@ -368,8 +378,23 @@ export function ImageBlock({
   }, [url, fileName, fileId])
 
   useEffect(() => {
+    let cancelled = false
+    setFileMetaLoading(true)
+    void readImageFileMeta(url).then((meta) => {
+      if (cancelled) return
+      setFileMeta(meta)
+      setFileMetaLoading(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [url])
+
+  useEffect(() => {
     saveImageMeta(fileId, { caption, altText })
   }, [fileId, caption, altText])
+
+  const fileMetaRows = fileMeta ? formatImageFileMetaRows(fileMeta) : []
 
   useEffect(() => {
     function onFsChange() {
@@ -780,11 +805,15 @@ export function ImageBlock({
                 <SlidersHorizontal className="size-4" />
               </ToolButton>
               <ToolButton
-                label="Popis / alt text"
+                label="Metadata / popis"
                 active={showMeta}
                 onClick={() => setShowMeta((value) => !value)}
               >
-                <Type className="size-4" />
+                {fileMetaRows.length > 0 ? (
+                  <Info className="size-4" />
+                ) : (
+                  <Type className="size-4" />
+                )}
               </ToolButton>
               <ToolButton
                 label="Kopírovať odkaz"
@@ -1239,29 +1268,66 @@ export function ImageBlock({
 
         <div className="space-y-2 border-t border-white/10 bg-[#12151b]/95 px-4 py-3 backdrop-blur-md">
           {showMeta ? (
-            <div className="grid gap-2 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-[10px] tracking-wide text-white/40 uppercase">
-                  Popis
-                </label>
-                <Input
-                  value={caption}
-                  onChange={(event) => setCaption(event.target.value)}
-                  placeholder="Pridať popis…"
-                  className="h-8 border-white/10 bg-white/5 text-sm text-white placeholder:text-white/35"
-                />
+            <div className="space-y-3">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] tracking-wide text-white/40 uppercase">
+                    Popis
+                  </label>
+                  <Input
+                    value={caption}
+                    onChange={(event) => setCaption(event.target.value)}
+                    placeholder="Pridať popis…"
+                    className="h-8 border-white/10 bg-white/5 text-sm text-white placeholder:text-white/35"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] tracking-wide text-white/40 uppercase">
+                    Alt text
+                  </label>
+                  <Input
+                    value={altText}
+                    onChange={(event) => setAltText(event.target.value)}
+                    placeholder="Popis pre prístupnosť…"
+                    className="h-8 border-white/10 bg-white/5 text-sm text-white placeholder:text-white/35"
+                  />
+                </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] tracking-wide text-white/40 uppercase">
-                  Alt text
-                </label>
-                <Input
-                  value={altText}
-                  onChange={(event) => setAltText(event.target.value)}
-                  placeholder="Popis pre prístupnosť…"
-                  className="h-8 border-white/10 bg-white/5 text-sm text-white placeholder:text-white/35"
-                />
-              </div>
+
+              {fileMetaLoading ? (
+                <p className="text-[11px] text-white/35">Čítam EXIF…</p>
+              ) : fileMetaRows.length > 0 ? (
+                <dl className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
+                  {fileMetaRows.map((row) => (
+                    <div
+                      key={row.label}
+                      className="flex min-w-0 items-baseline justify-between gap-3 border-b border-white/5 pb-1 last:border-0 sm:last:border-b"
+                    >
+                      <dt className="shrink-0 text-[10px] tracking-wide text-white/40 uppercase">
+                        {row.label}
+                      </dt>
+                      <dd className="truncate text-right text-[11px] text-white/75">
+                        {row.label === 'GPS' && fileMeta?.gps ? (
+                          <a
+                            href={imageFileMetaMapsUrl(fileMeta.gps)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline decoration-white/25 underline-offset-2 transition hover:text-white"
+                          >
+                            {row.value}
+                          </a>
+                        ) : (
+                          row.value
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <p className="text-[11px] text-white/35">
+                  Súbor neobsahuje EXIF / kamerové metadata.
+                </p>
+              )}
             </div>
           ) : (
             <button
@@ -1269,7 +1335,10 @@ export function ImageBlock({
               className="w-full text-center text-sm text-white/45 transition hover:text-white/70"
               onClick={() => setShowMeta(true)}
             >
-              {caption || 'Pridať popis…'}
+              {caption ||
+                (fileMetaRows.length > 0
+                  ? 'Zobraziť metadata…'
+                  : 'Pridať popis…')}
             </button>
           )}
           <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-white/35">
@@ -1279,6 +1348,12 @@ export function ImageBlock({
                 {' '}
                 · {formatFileSize(fileSize)}
               </span>
+              {fileMeta?.make || fileMeta?.model ? (
+                <span className="text-white/25">
+                  {' '}
+                  · {[fileMeta.make, fileMeta.model].filter(Boolean).join(' ')}
+                </span>
+              ) : null}
             </span>
             <span>
               {naturalSize
