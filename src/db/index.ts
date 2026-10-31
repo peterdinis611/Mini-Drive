@@ -29,6 +29,11 @@ if (!/^postgres(ql)?:\/\//i.test(databaseUrl)) {
 export const pool = new Pool({
   connectionString: databaseUrl,
   max: Number(process.env.DATABASE_POOL_MAX ?? 10),
+  // Fail fast when Postgres is down / wrong password — do not hang SSR reloads.
+  connectionTimeoutMillis: Number(
+    process.env.DATABASE_CONNECT_TIMEOUT_MS ?? 3_000,
+  ),
+  idleTimeoutMillis: Number(process.env.DATABASE_IDLE_TIMEOUT_MS ?? 30_000),
 })
 
 pool.on('error', (error) => {

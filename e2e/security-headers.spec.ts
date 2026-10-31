@@ -26,8 +26,11 @@ test.describe('security headers', () => {
   })
 
   test('share gone response is not publicly cacheable', async ({ request }) => {
+    const health = await request.get('/api/health')
+    test.skip(health.status() !== 200, 'Postgres required for share resolve')
+
     const res = await request.get('/s/e2e-security-missing-token')
-    expect([200, 410, 429, 503]).toContain(res.status())
+    expect([200, 410, 429]).toContain(res.status())
     const cache = res.headers()['cache-control'] ?? ''
     // Dev may omit Cache-Control (http-cache only in production); when present it must not be public.
     if (cache) {

@@ -50,23 +50,9 @@ export function buildContentSecurityPolicy(
     ['script-src', scriptSrc],
     [
       'style-src',
-      [
-        "'self'",
-        "'unsafe-inline'",
-        'https://fonts.googleapis.com',
-        'https://api.fontshare.com',
-        'https://cdn.fontshare.com',
-      ],
+      ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
     ],
-    [
-      'font-src',
-      [
-        "'self'",
-        'https://fonts.gstatic.com',
-        'https://cdn.fontshare.com',
-        'data:',
-      ],
-    ],
+    ['font-src', ["'self'", 'https://fonts.gstatic.com', 'data:']],
     [
       'img-src',
       [

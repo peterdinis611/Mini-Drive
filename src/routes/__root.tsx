@@ -2,7 +2,6 @@ import { silenceClerkDevKeySpam } from '#/lib/clerk-dev-silence'
 
 silenceClerkDevKeySpam()
 
-import { TanStackDevtools } from '@tanstack/react-devtools'
 import type { QueryClient } from '@tanstack/react-query'
 import {
   createRootRouteWithContext,
@@ -11,9 +10,8 @@ import {
   Scripts,
   useRouterState,
 } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { NuqsAdapter } from 'nuqs/adapters/react'
-import { Suspense } from 'react'
+import { lazy, Suspense } from 'react'
 import { ThemedClerkProvider } from '#/components/clerk-provider'
 import { AppErrorBoundary } from '#/components/error-boundary/app-error-boundary'
 import { RouteError } from '#/components/error-boundary/route-error'
@@ -29,8 +27,12 @@ import { Toaster } from '#/components/toast/toaster'
 import { APP_NAME } from '#/lib/constants'
 import { appJsonLd } from '#/lib/seo'
 import { SITE } from '#/lib/site'
-import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import appCss from '../styles.css?url'
+
+/** Devtools are optional chrome — keep them off the critical reload path. */
+const DevTools = import.meta.env.DEV
+  ? lazy(() => import('#/components/devtools/app-devtools'))
+  : null
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -88,12 +90,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         {
           rel: 'preconnect',
           href: 'https://fonts.gstatic.com',
-          crossOrigin: 'anonymous',
-        },
-        { rel: 'preconnect', href: 'https://api.fontshare.com' },
-        {
-          rel: 'preconnect',
-          href: 'https://cdn.fontshare.com',
           crossOrigin: 'anonymous',
         },
         { rel: 'dns-prefetch', href: 'https://uploadthing.com' },
@@ -168,19 +164,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               <ScrollToTopOnNavigate />
               <ScrollToTopButton />
               <Toaster />
-              {import.meta.env.DEV ? (
-                <TanStackDevtools
-                  config={{
-                    position: 'bottom-right',
-                  }}
-                  plugins={[
-                    {
-                      name: 'Tanstack Router',
-                      render: <TanStackRouterDevtoolsPanel />,
-                    },
-                    TanStackQueryDevtools,
-                  ]}
-                />
+              {DevTools ? (
+                <Suspense fallback={null}>
+                  <DevTools />
+                </Suspense>
               ) : null}
               <Scripts />
             </AppHotkeysProvider>

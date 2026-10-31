@@ -134,9 +134,10 @@ export function LandingCollage() {
         <img
           src="/marketing/filing-cabinet.jpg"
           alt="Archívna skriňa so šanónmi v kancelárii"
-          width={640}
-          height={800}
+          width={910}
+          height={960}
           loading="lazy"
+          decoding="async"
         />
         <figcaption className="sr-only">
           Fyzický archív ako metafora produktu

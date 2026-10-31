@@ -85,4 +85,46 @@ describe('SharePasswordGate', () => {
 
     expect(await screen.findByText(/Príliš veľa pokusov/i)).toBeInTheDocument()
   })
+
+  it('shows gone messaging when the link is no longer valid', async () => {
+    unlockPublicShare.mockResolvedValue({
+      status: 'gone',
+      reason: 'revoked',
+      fileName: 'secret.pdf',
+    })
+
+    const user = userEvent.setup()
+    render(
+      <SharePasswordGate
+        token="tok_abcdefghijklmn"
+        fileName="secret.pdf"
+        onUnlocked={vi.fn()}
+      />,
+    )
+
+    await user.type(screen.getByLabelText(/heslo/i), 'whatever')
+    await user.click(screen.getByRole('button', { name: /odomknúť|odoslať/i }))
+
+    expect(
+      await screen.findByText(/Odkaz už nie je platný/i),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps submit disabled until a password is entered', () => {
+    render(
+      <SharePasswordGate token="tok_abcdefghijklmn" onUnlocked={vi.fn()} />,
+    )
+    expect(screen.getByRole('button', { name: /odomknúť/i })).toBeDisabled()
+  })
+
+  it('surfaces thrown unlock errors', async () => {
+    unlockPublicShare.mockRejectedValue(new Error('sieť padla'))
+    const user = userEvent.setup()
+    render(
+      <SharePasswordGate token="tok_abcdefghijklmn" onUnlocked={vi.fn()} />,
+    )
+    await user.type(screen.getByLabelText(/heslo/i), 'x')
+    await user.click(screen.getByRole('button', { name: /odomknúť/i }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/sieť padla/i)
+  })
 })

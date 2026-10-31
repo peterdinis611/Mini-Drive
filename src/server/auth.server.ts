@@ -127,14 +127,19 @@ export async function getSessionFromRequest(): Promise<AppSession | null> {
   const { isAuthenticated, userId, sessionId } = await auth()
   if (!isAuthenticated || !userId) return null
 
-  const localUser = await ensureLocalUser(userId)
-
-  return {
-    user: localUser,
-    session: {
-      id: sessionId ?? userId,
-      userId,
-    },
+  try {
+    const localUser = await ensureLocalUser(userId)
+    return {
+      user: localUser,
+      session: {
+        id: sessionId ?? userId,
+        userId,
+      },
+    }
+  } catch (error) {
+    // Bad DATABASE_URL / down Postgres used to blow up every SSR reload.
+    console.error('[mini-drive] local user sync failed', error)
+    return null
   }
 }
 

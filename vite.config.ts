@@ -12,6 +12,15 @@ const config = defineConfig({
   server: {
     port: 3000,
     strictPort: true,
+    warmup: {
+      clientFiles: [
+        './src/router.tsx',
+        './src/routes/__root.tsx',
+        './src/routes/index.tsx',
+        './src/components/marketing/landing-page.tsx',
+        './src/components/clerk-provider.tsx',
+      ],
+    },
   },
   // Redact needs server deps bundled so their `react` imports resolve to the
   // same runtime. `pg` stays external (Node driver).
@@ -32,7 +41,22 @@ const config = defineConfig({
     // pg: Node driver. radix-ui: "use client" tree — prebundling it
     // triggers RSC "inconsistently optimized" spam for every @radix-ui/* package.
     exclude: ['pg', 'pg-native', 'radix-ui', '@tanstack/redact'],
-    include: ['@clerk/tanstack-react-start'],
+    // Prebundle stable client libs. Avoid @tanstack/react-router here — RSC
+    // "use client" + optimizeDeps.include fights and can crash the Vite server.
+    include: [
+      '@clerk/tanstack-react-start',
+      'motion',
+      'motion/react',
+      'next-themes',
+      'nuqs',
+      'sonner',
+      'lucide-react',
+      'clsx',
+      'tailwind-merge',
+      'class-variance-authority',
+      'date-fns',
+      'zod',
+    ],
   },
   build: {
     target: 'es2022',

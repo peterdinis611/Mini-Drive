@@ -23,4 +23,20 @@ test.describe('health API', () => {
       checks: { database: 'ok' },
     })
   })
+
+  test('responds with JSON content-type', async ({ request }) => {
+    const res = await request.get('/api/health')
+    expect(res.headers()['content-type'] ?? '').toMatch(/application\/json/)
+  })
+
+  test('degraded payload still has checks.database when DB is down', async ({
+    request,
+  }) => {
+    const res = await request.get('/api/health')
+    test.skip(res.status() === 200, 'DB is healthy in this environment')
+    expect(res.status()).toBe(503)
+    const body = await res.json()
+    expect(body.status).toBe('degraded')
+    expect(body.checks.database).not.toBe('ok')
+  })
 })

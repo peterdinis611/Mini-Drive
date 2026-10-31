@@ -17,4 +17,21 @@ test.describe('static marketing assets', () => {
     const body = await res.text()
     expect(body).toMatch(/Mini Drive|name/i)
   })
+
+  test('webmanifest parses as JSON with icons when present', async ({
+    request,
+  }) => {
+    const res = await request.get('/site.webmanifest')
+    test.skip(res.status() === 404, 'webmanifest not present in this build')
+    expect(res.ok()).toBeTruthy()
+    const json = (await res.json()) as {
+      name?: string
+      short_name?: string
+      icons?: unknown[]
+    }
+    expect(json.name ?? json.short_name).toMatch(/Mini Drive/i)
+    if (Array.isArray(json.icons)) {
+      expect(json.icons.length).toBeGreaterThan(0)
+    }
+  })
 })

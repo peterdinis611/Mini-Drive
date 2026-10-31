@@ -39,6 +39,9 @@ describe('cacheControlForPath', () => {
     expect(cacheControlForPath('/api/health')).toBe('private, no-store')
     expect(cacheControlForPath('/s/abc')).toBe('private, no-store')
     expect(cacheControlForPath('/e/tok')).toBe('private, no-store')
+    expect(cacheControlForPath('/_serverFn/createShareLink')).toBe(
+      'private, no-store',
+    )
   })
 
   it('keeps SSR documents short-lived', async () => {
@@ -46,5 +49,12 @@ describe('cacheControlForPath', () => {
     const { cacheControlForPath } = await import('#/lib/http-cache')
     expect(cacheControlForPath('/files')).toBe('private, no-cache')
     expect(cacheControlForPath('/')).toBe('private, no-cache')
+    expect(cacheControlForPath('/activity')).toBe('private, no-cache')
+  })
+
+  it('long-caches og.svg like other public icons', async () => {
+    process.env.NODE_ENV = 'production'
+    const { cacheControlForPath } = await import('#/lib/http-cache')
+    expect(cacheControlForPath('/og.svg')).toContain('max-age=86400')
   })
 })
