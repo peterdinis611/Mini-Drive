@@ -232,6 +232,9 @@ importers:
       '@types/jszip':
         specifier: ^3.4.1
         version: 3.4.1
+      '@types/k6':
+        specifier: ^2.3.1
+        version: 2.3.1
       '@types/node':
         specifier: ^22.20.5
         version: 22.20.5
@@ -3370,6 +3373,9 @@ packages:
   '@types/jszip@3.4.1':
     resolution: {integrity: sha512-TezXjmf3lj+zQ651r6hPqvSScqBLvyPI9FxdXBqpEwBijNGQ2NXpaFW/7joGzveYkKQUil7iiDHLo6LV71Pc0A==}
     deprecated: This is a stub types definition. jszip provides its own type definitions, so you do not need this installed.
+
+  '@types/k6@2.3.1':
+    resolution: {integrity: sha512-3zbIAfQXvSDsA3ZaKC7+eczsvx1hGtL8o68iYEssOmTEmg0MuoCwZ45aAI3jDm0JtlhJZaQAszrie+M1xaqK7g==}
 
   '@types/node@16.9.1':
     resolution: {integrity: sha512-QpLcX9ZSsq3YYUUnD3nFDY8H7wctAhQj/TFKL8Ya8v5fMm3CFXxo8zStsLAl780ltoYoo1WvKUVGBQK+1ifr7g==}
@@ -8463,6 +8469,8 @@ snapshots:
   '@types/jszip@3.4.1':
     dependencies:
       jszip: 3.10.2
+
+  '@types/k6@2.3.1': {}
 
   '@types/node@16.9.1': {}
 

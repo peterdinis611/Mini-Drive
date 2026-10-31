@@ -6,11 +6,12 @@
 
 import { sleep } from 'k6'
 import http from 'k6/http'
+import type { Options } from 'k6/options'
 
-import { jsonHealthOk, okStatus } from './lib/checks.js'
-import { url } from './lib/env.js'
+import { jsonHealthOk, okStatus } from './lib/checks.ts'
+import { url } from './lib/env.ts'
 
-export const options = {
+export const options: Options = {
   scenarios: {
     spike: {
       executor: 'ramping-vus',
@@ -32,7 +33,7 @@ export const options = {
   },
 }
 
-export default function spike() {
+export default function spike(): void {
   if (Math.random() < 0.5) {
     jsonHealthOk(http.get(url('/api/health'), { tags: { name: 'health' } }))
   } else {

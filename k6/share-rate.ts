@@ -8,14 +8,15 @@
 import { check, sleep } from 'k6'
 import http from 'k6/http'
 import { Counter } from 'k6/metrics'
+import type { Options } from 'k6/options'
 
-import { url } from './lib/env.js'
-import { randomToken } from './lib/random.js'
+import { url } from './lib/env.ts'
+import { randomToken } from './lib/random.ts'
 
 const limited = new Counter('share_rate_limited')
 const gone = new Counter('share_gone')
 
-export const options = {
+export const options: Options = {
   vus: 1,
   iterations: 80,
   thresholds: {
@@ -25,7 +26,7 @@ export const options = {
   },
 }
 
-export default function shareRate() {
+export default function shareRate(): void {
   const token = `k6-${randomToken(16)}`
   const res = http.get(url(`/s/${token}`), {
     tags: { name: 'share_rate_probe' },

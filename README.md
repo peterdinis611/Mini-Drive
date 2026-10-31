@@ -103,10 +103,11 @@ Security headers + CSRF + Clerk `authorizedParties` sú v `src/start.ts`.
 | `pnpm test`          | Vitest raz                 |
 | `pnpm test:watch`    | Vitest watch               |
 | `pnpm test:coverage` | Coverage report            |
-| `pnpm test:e2e`      | Playwright e2e             |
-| `pnpm test:k6`       | k6 load (bežiaci server)   |
-| `pnpm test:k6:smoke` | k6 smoke                   |
-| `pnpm screenshots`   | README JPEG z bežiacej app |
+| `pnpm test:e2e`          | Playwright e2e                 |
+| `pnpm test:k6`           | k6 load (bežiaci server)       |
+| `pnpm test:k6:smoke`     | k6 smoke                       |
+| `pnpm test:k6:typecheck` | TypeScript check k6 skriptov   |
+| `pnpm screenshots`       | README JPEG z bežiacej app     |
 | `pnpm db:push`       | Aplikuj schému do Postgres |
 | `pnpm db:backup`     | Šifrovaný `pg_dump` backup |
 | `pnpm db:restore`    | Obnova cez `pg_restore`    |
@@ -117,6 +118,7 @@ Security headers + CSRF + Clerk `authorizedParties` sú v `src/start.ts`.
 Vyžaduje [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) (`brew install k6`) a bežiacu app (`pnpm dev` alebo `pnpm start`).
 
 ```bash
+pnpm test:k6:typecheck          # tsc -p k6/tsconfig.json
 pnpm test:k6:smoke              # health + landing + robots + missing share
 BASE_URL=http://127.0.0.1:3000 pnpm test:k6
 pnpm test:k6:spike              # krátky spike

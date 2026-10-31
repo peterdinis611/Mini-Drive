@@ -1,10 +1,21 @@
 import { check } from 'k6'
+import type { RefinedResponse, ResponseType } from 'k6/http'
 import { Rate, Trend } from 'k6/metrics'
 
 export const errorRate = new Rate('mini_drive_errors')
 export const healthDuration = new Trend('mini_drive_health_ms', true)
 
-export function okStatus(res, allowed = [200]) {
+type HealthBody = {
+  status?: string
+  checks?: {
+    database?: string
+  }
+}
+
+export function okStatus(
+  res: RefinedResponse<ResponseType | undefined>,
+  allowed: number[] = [200],
+): boolean {
   const pass = check(res, {
     [`status in [${allowed.join(',')}]`]: (r) => allowed.includes(r.status),
   })
@@ -12,10 +23,12 @@ export function okStatus(res, allowed = [200]) {
   return pass
 }
 
-export function jsonHealthOk(res) {
-  let body = null
+export function jsonHealthOk(
+  res: RefinedResponse<ResponseType | undefined>,
+): boolean {
+  let body: HealthBody | null = null
   try {
-    body = res.json()
+    body = res.json() as HealthBody
   } catch {
     body = null
   }

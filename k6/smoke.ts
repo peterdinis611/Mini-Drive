@@ -2,16 +2,17 @@
  * Lightweight smoke — few VUs, public surfaces only.
  *
  *   pnpm test:k6:smoke
- *   BASE_URL=http://127.0.0.1:3000 k6 run k6/smoke.js
+ *   BASE_URL=http://127.0.0.1:3000 k6 run k6/smoke.ts
  */
 
 import { sleep } from 'k6'
 import http from 'k6/http'
+import type { Options } from 'k6/options'
 
-import { jsonHealthOk, okStatus } from './lib/checks.js'
-import { url } from './lib/env.js'
+import { jsonHealthOk, okStatus } from './lib/checks.ts'
+import { url } from './lib/env.ts'
 
-export const options = {
+export const options: Options = {
   vus: 2,
   duration: '20s',
   thresholds: {
@@ -21,7 +22,7 @@ export const options = {
   },
 }
 
-export default function smoke() {
+export default function smoke(): void {
   jsonHealthOk(http.get(url('/api/health'), { tags: { name: 'health' } }))
   okStatus(http.get(url('/'), { tags: { name: 'landing' } }))
   okStatus(http.get(url('/robots.txt'), { tags: { name: 'robots' } }))

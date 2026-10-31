@@ -7,12 +7,13 @@
 
 import { sleep } from 'k6'
 import http from 'k6/http'
+import type { Options } from 'k6/options'
 
-import { jsonHealthOk, okStatus } from './lib/checks.js'
-import { url } from './lib/env.js'
-import { randomToken } from './lib/random.js'
+import { jsonHealthOk, okStatus } from './lib/checks.ts'
+import { url } from './lib/env.ts'
+import { randomToken } from './lib/random.ts'
 
-export const options = {
+export const options: Options = {
   scenarios: {
     public_mix: {
       executor: 'ramping-vus',
@@ -33,7 +34,7 @@ export const options = {
   },
 }
 
-export default function load() {
+export default function load(): void {
   const roll = Math.random()
 
   if (roll < 0.35) {
