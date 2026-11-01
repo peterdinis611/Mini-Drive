@@ -111,6 +111,7 @@ import { canInlinePreview } from '#/lib/mime'
 import { riseTransition } from '#/lib/motion'
 import { consumeQueuedQuickAction, onQuickAction } from '#/lib/quick-actions'
 import { toast } from '#/lib/toast'
+import { cn } from '#/lib/utils'
 import { toggleFavorite } from '#/server/functions/favorites'
 import {
   bulkDeleteFiles,
@@ -200,11 +201,14 @@ export function FileExplorer({
   const router = useRouter()
   const navigate = useNavigate()
   const reduce = useReducedMotion()
-  const [{ view, kind, preview, q, upload: showUpload }, setUrlState] =
-    useQueryStates({
-      ...driveSearchParams,
-      view: viewParser.withDefault(initial.viewPreference),
-    })
+  const [
+    { view, kind, preview, q, upload: showUpload, re: regexMode },
+    setUrlState,
+  ] = useQueryStates({
+    ...driveSearchParams,
+    view: viewParser.withDefault(initial.viewPreference),
+  })
+  const searchMode = regexMode ? 'regex' : 'fuzzy'
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
   const [dialog, setDialog] = useState<DialogState>(null)
   const [uploadConflicts, setUploadConflicts] = useState<UploadConflict[]>([])
@@ -247,13 +251,13 @@ export function FileExplorer({
   }, [setUrlState])
 
   const filteredFolders = useMemo(
-    () => filterDriveFolders(folders, kind, debouncedFilter),
-    [folders, kind, debouncedFilter],
+    () => filterDriveFolders(folders, kind, debouncedFilter, searchMode),
+    [folders, kind, debouncedFilter, searchMode],
   )
 
   const filteredFiles = useMemo(
-    () => filterDriveFiles(files, kind, debouncedFilter),
-    [files, kind, debouncedFilter],
+    () => filterDriveFiles(files, kind, debouncedFilter, searchMode),
+    [files, kind, debouncedFilter, searchMode],
   )
 
   const empty = filteredFolders.length === 0 && filteredFiles.length === 0
@@ -872,17 +876,35 @@ export function FileExplorer({
                 })}
               </ToggleGroup>
             </div>
-            <InputGroup className="h-9 w-full rounded-full sm:max-w-56">
+            <InputGroup className="h-9 w-full rounded-full sm:max-w-64">
               <InputGroupAddon>
                 <Search className="size-3.5" aria-hidden />
               </InputGroupAddon>
               <InputGroupInput
                 value={filterDraft}
                 onChange={(event) => setFilterDraft(event.target.value)}
-                placeholder="Filtrovať…"
+                placeholder={regexMode ? 'RegExp filter…' : 'Filtrovať…'}
                 aria-label="Filtrovať súbory a priečinky"
                 className="rounded-full"
               />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  size="xs"
+                  variant={regexMode ? 'secondary' : 'ghost'}
+                  aria-pressed={regexMode}
+                  aria-label={
+                    regexMode ? 'Vypnúť RegExp filter' : 'Zapnúť RegExp filter'
+                  }
+                  title="RegExp (Fuse fuzzy vypnutý)"
+                  className={cn(
+                    'font-mono text-[10px]',
+                    regexMode && 'text-primary',
+                  )}
+                  onClick={() => void setUrlState({ re: !regexMode })}
+                >
+                  /re/
+                </InputGroupButton>
+              </InputGroupAddon>
             </InputGroup>
           </div>
 

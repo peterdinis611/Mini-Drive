@@ -67,4 +67,12 @@ describe('filterDriveFiles', () => {
       '1',
     ])
   })
+
+  it('filters with RegExp mode', () => {
+    expect(
+      filterDriveFiles(files, 'all', '/\\.(png|pdf)$/i', 'regex').map(
+        (f) => f.id,
+      ),
+    ).toEqual(['1', '2'])
+  })
 })

@@ -41,10 +41,12 @@ export function FolderTree({ folders, activeFolderId, onNavigate }: Props) {
   const filterId = useId()
   const [open, setOpen] = useState<Record<string, boolean>>({})
   const [filterInput, setFilterInput] = useState('')
+  const [regexMode, setRegexMode] = useState(false)
   const [debouncedFilter] = useDebouncedValue(filterInput, { wait: 180 })
 
   const tree = useMemo(() => buildFolderTree(folders), [folders])
   const hasFilter = Boolean(debouncedFilter.trim())
+  const searchMode = regexMode ? 'regex' : 'fuzzy'
 
   useEffect(() => {
     if (!activeFolderId) return
@@ -69,8 +71,9 @@ export function FolderTree({ folders, activeFolderId, onNavigate }: Props) {
         open,
         activeFolderId,
         filter: debouncedFilter,
+        searchMode,
       }),
-    [tree, open, activeFolderId, debouncedFilter],
+    [tree, open, activeFolderId, debouncedFilter, searchMode],
   )
 
   /** Index 0 = root “Všetky súbory”, then flattened folders. */
@@ -123,20 +126,39 @@ export function FolderTree({ folders, activeFolderId, onNavigate }: Props) {
               name="folder-filter"
               value={filterInput}
               onChange={(event) => setFilterInput(event.target.value)}
-              placeholder="Filtrovať…"
+              placeholder={regexMode ? 'RegExp…' : 'Filtrovať…'}
               autoComplete="off"
-              className="h-8 w-full rounded-xl border-0 bg-transparent pr-8 pl-8 text-[12px] text-sidebar-foreground outline-none placeholder:text-muted-foreground/65 focus-visible:bg-sidebar-accent/50 focus-visible:ring-1 focus-visible:ring-sidebar-ring/50"
+              className="h-8 w-full rounded-xl border-0 bg-transparent pr-14 pl-8 text-[12px] text-sidebar-foreground outline-none placeholder:text-muted-foreground/65 focus-visible:bg-sidebar-accent/50 focus-visible:ring-1 focus-visible:ring-sidebar-ring/50"
             />
-            {filterInput ? (
+            <div className="absolute top-1/2 right-1.5 flex -translate-y-1/2 items-center gap-0.5">
               <button
-                type="reset"
-                className="absolute top-1/2 right-1.5 inline-flex size-5 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition hover:bg-sidebar-accent hover:text-foreground"
-                aria-label="Vymazať filter"
-                onClick={() => setFilterInput('')}
+                type="button"
+                className={cn(
+                  'inline-flex h-5 items-center justify-center rounded-md px-1 font-mono text-[10px] transition',
+                  regexMode
+                    ? 'bg-sidebar-accent text-primary'
+                    : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground',
+                )}
+                aria-pressed={regexMode}
+                aria-label={
+                  regexMode ? 'Vypnúť RegExp filter' : 'Zapnúť RegExp filter'
+                }
+                title="RegExp"
+                onClick={() => setRegexMode((value) => !value)}
               >
-                <X className="size-3" aria-hidden />
+                /re/
               </button>
-            ) : null}
+              {filterInput ? (
+                <button
+                  type="reset"
+                  className="inline-flex size-5 items-center justify-center rounded-md text-muted-foreground transition hover:bg-sidebar-accent hover:text-foreground"
+                  aria-label="Vymazať filter"
+                  onClick={() => setFilterInput('')}
+                >
+                  <X className="size-3" aria-hidden />
+                </button>
+              ) : null}
+            </div>
           </div>
           <menu
             className="m-0 flex shrink-0 list-none items-center gap-0.5 border-l border-sidebar-border/70 p-0 pl-0.5"

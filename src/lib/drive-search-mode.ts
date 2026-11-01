@@ -2,11 +2,11 @@
 export type DriveSearchMode = 'fuzzy' | 'regex'
 
 /** `/pattern/flags` — last slash starts flags; `\` escapes `/` inside pattern. */
-const WRAPPED_REGEX = /^\/((?:\\.|[^\\/])+)\/([gimsuy]*)$/
+const WRAPPED_REGEX = /^\/((?:\\.|[^\\/])*)\/([gimsuy]*)$/
 
 /**
  * Compile a drive search RegExp.
- * Accepts `/pattern/flags` or a raw pattern (default flags: `iu`).
+ * Accepts `/pattern/flags` (flags as written) or a raw pattern (default `iu`).
  * Returns `null` for empty / invalid patterns.
  */
 export function compileDriveRegex(query: string): RegExp | null {
@@ -16,8 +16,12 @@ export function compileDriveRegex(query: string): RegExp | null {
   const wrapped = WRAPPED_REGEX.exec(trimmed)
   try {
     if (wrapped) {
-      return new RegExp(wrapped[1], wrapped[2] || 'iu')
+      const pattern = wrapped[1]
+      if (!pattern) return null
+      return new RegExp(pattern, wrapped[2])
     }
+    // Looks like `/…` form but incomplete → don't treat as raw text
+    if (trimmed.startsWith('/') && trimmed.length > 1) return null
     return new RegExp(trimmed, 'iu')
   } catch {
     return null

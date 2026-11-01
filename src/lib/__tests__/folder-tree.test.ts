@@ -65,6 +65,17 @@ describe('flattenFolderRows', () => {
     })
     expect(rows.map((r) => r.id)).toEqual(['a', 'b', 'c'])
   })
+
+  it('filters folder tree with RegExp mode', () => {
+    const tree = buildFolderTree(folders)
+    const rows = flattenFolderRows(tree, {
+      open: {},
+      activeFolderId: null,
+      filter: '/^charlie$/i',
+      searchMode: 'regex',
+    })
+    expect(rows.map((r) => r.id)).toEqual(['a', 'b', 'c'])
+  })
 })
 
 describe('collectExpandableFolderIds', () => {

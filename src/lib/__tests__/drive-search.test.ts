@@ -42,6 +42,22 @@ describe('drive-search', () => {
     expect(results.some((item) => item.name === 'zmluva.pdf')).toBe(true)
   })
 
+  it('matches RegExp patterns when mode=regex', () => {
+    const items = buildDriveSearchItems(folders, files)
+    const fuse = createDriveFuse(items)
+    const byExt = searchDriveItems(fuse, items, '/\\.png$/i', 24, 'regex')
+    expect(byExt.map((item) => item.name)).toEqual(['more.png'])
+
+    const wrapped = searchDriveItems(fuse, items, 'zmluva\\.', 24, 'regex')
+    expect(wrapped.some((item) => item.name === 'zmluva.pdf')).toBe(true)
+  })
+
+  it('returns no hits for invalid RegExp', () => {
+    const items = buildDriveSearchItems(folders, files)
+    const fuse = createDriveFuse(items)
+    expect(searchDriveItems(fuse, items, '(', 24, 'regex')).toEqual([])
+  })
+
   it('returns recent items when query is empty', () => {
     const items = buildDriveSearchItems(folders, files)
     const fuse = createDriveFuse(items)
@@ -62,7 +78,9 @@ describe('drive-search', () => {
       },
     ]
     const items = buildDriveSearchItems(folders, withContent)
-    const rootFile = items.find((item) => item.kind === 'file' && item.id === 'b')
+    const rootFile = items.find(
+      (item) => item.kind === 'file' && item.id === 'b',
+    )
     expect(rootFile?.pathLabel).toBe('Súbory')
 
     const fuse = createDriveFuse(items)
