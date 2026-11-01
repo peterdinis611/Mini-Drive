@@ -1,6 +1,13 @@
 import Fuse from 'fuse.js'
 
+import {
+  compileDriveRegex,
+  type DriveSearchMode,
+  fieldsMatchRegex,
+} from '#/lib/drive-search-mode'
 import { DRIVE_FUSE_OPTIONS } from '#/lib/fuse-options'
+
+export type { DriveSearchMode } from '#/lib/drive-search-mode'
 
 export type DriveSearchFolder = {
   id: string
@@ -102,10 +109,30 @@ export function searchDriveItems(
   items: DriveSearchItem[],
   query: string,
   limit = 24,
+  mode: DriveSearchMode = 'fuzzy',
 ): DriveSearchItem[] {
   const q = query.trim()
   if (!q) {
     return items.slice(0, limit)
   }
+
+  if (mode === 'regex') {
+    const re = compileDriveRegex(q)
+    if (!re) return []
+    return items
+      .filter((item) =>
+        fieldsMatchRegex(
+          [
+            item.name,
+            item.pathLabel,
+            item.kind === 'file' ? item.mimeType : undefined,
+            item.kind === 'file' ? item.contentText : undefined,
+          ],
+          re,
+        ),
+      )
+      .slice(0, limit)
+  }
+
   return fuse.search(q, { limit }).map((result) => result.item)
 }

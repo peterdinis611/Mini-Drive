@@ -1,5 +1,10 @@
 import Fuse from 'fuse.js'
 
+import {
+  compileDriveRegex,
+  type DriveSearchMode,
+  fieldsMatchRegex,
+} from '#/lib/drive-search-mode'
 import { type FileKind, getFileKind } from '#/lib/file-kind'
 import { DRIVE_FUSE_OPTIONS } from '#/lib/fuse-options'
 
@@ -27,10 +32,17 @@ export function filterDriveFolders<T extends FilterableFolder>(
   folders: T[],
   kind: DriveKindFilter,
   query: string,
+  mode: DriveSearchMode = 'fuzzy',
 ): T[] {
   if (kind !== 'all') return []
   const q = query.trim()
   if (!q) return folders
+
+  if (mode === 'regex') {
+    const re = compileDriveRegex(q)
+    if (!re) return []
+    return folders.filter((folder) => fieldsMatchRegex([folder.name], re))
+  }
 
   const fuse = new Fuse(folders, {
     ...DRIVE_FUSE_OPTIONS,
@@ -43,6 +55,7 @@ export function filterDriveFiles<T extends FilterableFile>(
   files: T[],
   kind: DriveKindFilter,
   query: string,
+  mode: DriveSearchMode = 'fuzzy',
 ): T[] {
   const kindFiltered =
     kind === 'all'
@@ -53,6 +66,14 @@ export function filterDriveFiles<T extends FilterableFile>(
 
   const q = query.trim()
   if (!q) return kindFiltered
+
+  if (mode === 'regex') {
+    const re = compileDriveRegex(q)
+    if (!re) return []
+    return kindFiltered.filter((file) =>
+      fieldsMatchRegex([file.name, file.mimeType], re),
+    )
+  }
 
   const fuse = new Fuse(kindFiltered, {
     ...DRIVE_FUSE_OPTIONS,
