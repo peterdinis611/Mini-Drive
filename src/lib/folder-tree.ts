@@ -1,6 +1,11 @@
 import Fuse from 'fuse.js'
 
 import type { FolderTreeNode } from '#/components/files/types'
+import {
+  compileDriveRegex,
+  type DriveSearchMode,
+  fieldsMatchRegex,
+} from '#/lib/drive-search-mode'
 import { DRIVE_FUSE_OPTIONS } from '#/lib/fuse-options'
 
 export type FolderTreeItem = FolderTreeNode & {
@@ -91,12 +96,15 @@ export function flattenFolderRows(
     open: Record<string, boolean>
     activeFolderId: string | null
     filter?: string
+    searchMode?: DriveSearchMode
     /** Default expand depth when open[id] is undefined */
     defaultOpenDepth?: number
   },
 ): FlatFolderRow[] {
   const filter = options.filter?.trim() ?? ''
-  const matchedIds = filter ? matchFolderIdsWithFuse(tree, filter) : null
+  const matchedIds = filter
+    ? matchFolderIdsWithFuse(tree, filter, options.searchMode ?? 'fuzzy')
+    : null
   const defaultOpenDepth = options.defaultOpenDepth ?? 1
   const activeAncestors = new Set(
     options.activeFolderId
@@ -147,10 +155,11 @@ export function flattenFolderRows(
   return rows
 }
 
-/** Fuzzy-match folder ids (name + path) via Fuse.js. */
+/** Match folder ids (name + path) via Fuse.js or RegExp. */
 export function matchFolderIdsWithFuse(
   tree: FolderTreeItem[],
   query: string,
+  mode: DriveSearchMode = 'fuzzy',
 ): Set<string> {
   const flat: FolderTreeItem[] = []
   const walk = (nodes: FolderTreeItem[]) => {
@@ -161,6 +170,19 @@ export function matchFolderIdsWithFuse(
   }
   walk(tree)
 
+  const q = query.trim()
+  if (!q) return new Set()
+
+  if (mode === 'regex') {
+    const re = compileDriveRegex(q)
+    if (!re) return new Set()
+    return new Set(
+      flat
+        .filter((node) => fieldsMatchRegex([node.name, node.pathLabel], re))
+        .map((node) => node.id),
+    )
+  }
+
   const fuse = new Fuse(flat, {
     ...DRIVE_FUSE_OPTIONS,
     keys: [
@@ -169,7 +191,7 @@ export function matchFolderIdsWithFuse(
     ],
   })
 
-  return new Set(fuse.search(query.trim()).map((result) => result.item.id))
+  return new Set(fuse.search(q).map((result) => result.item.id))
 }
 
 function hasMatchedDescendant(

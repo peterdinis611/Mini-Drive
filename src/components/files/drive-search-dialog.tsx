@@ -21,12 +21,14 @@ import {
   CommandShortcut,
 } from '#/components/ui/command'
 import { PreloadSpinner } from '#/components/ui/preload-spinner'
-import type { DriveSearchItem } from '#/lib/drive-search'
+import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
+import type { DriveSearchItem, DriveSearchMode } from '#/lib/drive-search'
 import {
   buildDriveSearchItems,
   createDriveFuse,
   searchDriveItems,
 } from '#/lib/drive-search'
+import { compileDriveRegex } from '#/lib/drive-search-mode'
 import { formatFileSize } from '#/lib/format'
 import { dispatchQuickAction, onQuickAction } from '#/lib/quick-actions'
 import { cn } from '#/lib/utils'
@@ -78,6 +80,7 @@ export function DriveSearchHost() {
   const keys = useAppHotkeys()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [mode, setMode] = useState<DriveSearchMode>('fuzzy')
   const [loading, setLoading] = useState(false)
   const [items, setItems] = useState<DriveSearchItem[]>([])
 
@@ -115,16 +118,24 @@ export function DriveSearchHost() {
   }, [open])
 
   useEffect(() => {
-    if (!open) setQuery('')
+    if (!open) {
+      setQuery('')
+      setMode('fuzzy')
+    }
   }, [open])
 
   const [debouncedQuery] = useDebouncedValue(query, { wait: 200 })
 
   const fuse = useMemo(() => createDriveFuse(items), [items])
 
+  const regexInvalid =
+    mode === 'regex' &&
+    Boolean(debouncedQuery.trim()) &&
+    compileDriveRegex(debouncedQuery) === null
+
   const results = useMemo(
-    () => searchDriveItems(fuse, items, debouncedQuery),
-    [fuse, items, debouncedQuery],
+    () => searchDriveItems(fuse, items, debouncedQuery, 24, mode),
+    [fuse, items, debouncedQuery, mode],
   )
 
   const folders = results.filter((item) => item.kind === 'folder')
@@ -152,7 +163,11 @@ export function DriveSearchHost() {
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
-        placeholder="Hľadať súbory a priečinky…"
+        placeholder={
+          mode === 'regex'
+            ? 'RegExp — napr. /\\.pdf$/i alebo zmluva.*'
+            : 'Hľadať súbory a priečinky…'
+        }
         value={query}
         onValueChange={setQuery}
       />
@@ -166,7 +181,9 @@ export function DriveSearchHost() {
         ) : (
           <>
             <CommandEmpty>
-              Nič sa nenašlo pre „{query.trim() || '…'}“.
+              {regexInvalid
+                ? 'Neplatný regulárny výraz.'
+                : `Nič sa nenašlo pre „${query.trim() || '…'}“.`}
             </CommandEmpty>
 
             {folders.length > 0 ? (
@@ -217,10 +234,36 @@ export function DriveSearchHost() {
           </>
         )}
       </CommandList>
-      <div className="flex items-center justify-between border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
-        <span>Fuzzy search · Fuse.js</span>
-        <span className="hidden sm:inline">
-          ↑↓ navigácia · ↵ výber · esc zatvoriť
+      <div className="flex items-center justify-between gap-3 border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
+        <ToggleGroup
+          type="single"
+          value={mode}
+          onValueChange={(value) => {
+            if (value === 'fuzzy' || value === 'regex') setMode(value)
+          }}
+          size="sm"
+          spacing={0}
+          className="gap-0.5"
+          aria-label="Režim vyhľadávania"
+        >
+          <ToggleGroupItem
+            value="fuzzy"
+            className="h-7 rounded-md px-2 text-[11px] data-[state=on]:bg-muted data-[state=on]:text-foreground"
+          >
+            Fuzzy
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="regex"
+            className="h-7 rounded-md px-2 font-mono text-[11px] data-[state=on]:bg-muted data-[state=on]:text-foreground"
+          >
+            /re/
+          </ToggleGroupItem>
+        </ToggleGroup>
+        <span className="hidden truncate sm:inline">
+          {mode === 'regex'
+            ? 'RegExp · name / path / mime / obsah'
+            : 'Fuzzy · Fuse.js'}{' '}
+          · ↑↓ · ↵ · esc
         </span>
       </div>
     </CommandDialog>
