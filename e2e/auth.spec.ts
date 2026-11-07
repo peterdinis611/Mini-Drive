@@ -54,4 +54,21 @@ test.describe('auth pages', () => {
     await expect(page).toHaveURL(/\/sign-up/)
     await expect(page.locator('body')).not.toContainText(/Application error/i)
   })
+
+  test('auth shell exposes main landmark and theme toggle', async ({
+    page,
+  }) => {
+    await page.goto('/sign-in')
+    await expect(page.getByRole('main')).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: /Zapnúť (tmavý|svetlý) režim/ }),
+    ).toBeVisible()
+  })
+
+  test('sign-in catch-all path stays under /sign-in', async ({ page }) => {
+    await page.goto('/sign-in/continue')
+    await page.waitForLoadState('domcontentloaded')
+    await expect(page).toHaveURL(/\/sign-in/)
+    await expect(page.locator('body')).not.toContainText(/Application error/i)
+  })
 })

@@ -84,4 +84,21 @@ test.describe('public landing', () => {
     await skip.first().focus()
     await expect(skip.first()).toBeFocused()
   })
+
+  test('archive and everything sections are present', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('#archiv')).toBeVisible()
+    await expect(page.locator('#vsetko')).toBeAttached()
+    await page
+      .getByRole('navigation', { name: 'Sekcie stránky' })
+      .getByRole('link', { name: 'Archív' })
+      .click()
+    await expect(page).toHaveURL(/\/#archiv/)
+  })
+
+  test('footer auth links are present for guests', async ({ page }) => {
+    await page.goto('/')
+    const footerSignIn = page.getByRole('link', { name: /Prihlás/i })
+    await expect(footerSignIn.first()).toBeVisible()
+  })
 })

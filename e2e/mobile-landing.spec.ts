@@ -27,4 +27,25 @@ test.describe('mobile landing', () => {
       page.getByRole('heading', { name: /Súkromné, kým ty nerozhodneš/i }),
     ).toBeVisible()
   })
+
+  test('theme toggle works on phone viewport', async ({ page }) => {
+    await page.goto('/')
+    const toggle = page.getByRole('button', {
+      name: /Zapnúť (tmavý|svetlý) režim/,
+    })
+    await expect(toggle).toBeVisible()
+    await toggle.click()
+    await expect(toggle).toBeEnabled()
+  })
+
+  test('hash sections remain reachable when pill nav is hidden', async ({
+    page,
+  }) => {
+    // Pill nav is desktop-only (min-width: 900px); phones use hash URLs.
+    await page.goto('/#vsetko')
+    await expect(page).toHaveURL(/\/#vsetko/)
+    await expect(page.locator('#vsetko')).toBeAttached()
+    await page.goto('/#ako')
+    await expect(page.locator('#ako')).toBeVisible()
+  })
 })

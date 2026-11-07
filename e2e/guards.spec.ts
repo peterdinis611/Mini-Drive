@@ -29,4 +29,19 @@ test.describe('guest route guards', () => {
     await page.goto('/files/11111111-1111-4111-8111-111111111111')
     await expect(page).toHaveURL(/\/sign-in/, { timeout: 15_000 })
   })
+
+  test('query-string on private route still redirects guests', async ({
+    page,
+  }) => {
+    await page.goto('/files?view=list&q=secret')
+    await expect(page).toHaveURL(/\/sign-in/, { timeout: 15_000 })
+  })
+
+  test('guest hitting /files after soft navigation from home is blocked', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    await page.goto('/files')
+    await expect(page).toHaveURL(/\/sign-in/, { timeout: 15_000 })
+  })
 })

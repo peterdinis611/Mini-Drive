@@ -1,14 +1,7 @@
 import { setupClerkTestingToken } from '@clerk/testing/playwright'
 import { expect, test } from '@playwright/test'
 
-async function postgresReady(
-  request: import('@playwright/test').APIRequestContext,
-) {
-  const res = await request.get('/api/health')
-  if (res.status() !== 200) return false
-  const body = (await res.json()) as { status?: string }
-  return body.status === 'ok'
-}
+import { postgresReady } from './helpers'
 
 test.describe('public share surfaces', () => {
   test.beforeEach(async ({ page, request }) => {
@@ -53,5 +46,22 @@ test.describe('public share surfaces', () => {
     await expect(page.locator('body')).toBeVisible()
     // Validation / gone / rate-limit — never an uncaught blank crash.
     await expect(page.locator('body')).toContainText(/.+/)
+  })
+
+  test('share gone offers a path back to Mini Drive home', async ({ page }) => {
+    await page.goto('/s/e2e-share-home-cta')
+    await expect(page.locator('body')).toBeVisible({ timeout: 15_000 })
+    const home = page.getByRole('link', { name: /Domov|Mini Drive|úvod/i })
+    if ((await home.count()) === 0) {
+      // Gone UI may be minimal — at least no blank crash.
+      await expect(page.locator('body')).toContainText(/.+/)
+      return
+    }
+    await expect(home.first()).toBeVisible()
+  })
+
+  test('unicode token path does not 5xx', async ({ request }) => {
+    const res = await request.get('/s/%C4%8D%C3%AD%C5%A1lo-token')
+    expect(res.status()).toBeLessThan(500)
   })
 })

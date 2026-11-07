@@ -121,6 +121,8 @@ Security headers + CSRF + Clerk `authorizedParties` sú v `src/start.ts`.
 | `pnpm test:e2e`          | Playwright e2e                 |
 | `pnpm test:k6`           | k6 load (bežiaci server)       |
 | `pnpm test:k6:smoke`     | k6 smoke                       |
+| `pnpm test:k6:soak`      | k6 soak (sustained)            |
+| `pnpm test:k6:stress`    | k6 stress                      |
 | `pnpm test:k6:typecheck` | TypeScript check k6 skriptov   |
 | `pnpm screenshots`       | README JPEG z bežiacej app     |
 | `pnpm db:push`       | Aplikuj schému do Postgres |
@@ -134,10 +136,17 @@ Vyžaduje [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) (`brew ins
 
 ```bash
 pnpm test:k6:typecheck          # tsc -p k6/tsconfig.json
-pnpm test:k6:smoke              # health + landing + robots + missing share
+pnpm test:k6:smoke              # public surfaces + gone share/embed
 BASE_URL=http://127.0.0.1:3000 pnpm test:k6
 pnpm test:k6:spike              # krátky spike
+pnpm test:k6:soak               # sustained (SOAK_VUS / SOAK_DURATION)
+pnpm test:k6:stress             # past-capacity ramp
+pnpm test:k6:arrival            # constant arrival rate
+pnpm test:k6:static             # SEO + static assets
+pnpm test:k6:health             # /api/health DB pool
+pnpm test:k6:guest-guard        # private routes as guest
 pnpm test:k6:share-rate         # burst na /s/* → očakáva 429
+pnpm test:k6:embed-rate         # burst na /e/* → očakáva 429
 ```
 
 Detaily: [`k6/README.md`](k6/README.md). Unit „stress“ mocky zostávajú vo Vitest (`src/lib/__tests__/stress*.test.ts`).

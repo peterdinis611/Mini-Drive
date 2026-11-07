@@ -38,4 +38,21 @@ test.describe('security headers', () => {
       expect(cache).toMatch(/no-store|private|no-cache/i)
     }
   })
+
+  test('sign-in also carries CSP + nosniff', async ({ request }) => {
+    const res = await request.get('/sign-in')
+    expect(res.ok()).toBeTruthy()
+    const headers = res.headers()
+    expect(headers['x-content-type-options']).toBe('nosniff')
+    expect(headers['content-security-policy'] ?? '').toMatch(/default-src/)
+    expect(headers['x-frame-options']).toBe('DENY')
+  })
+
+  test('embed gone is not framed (DENY)', async ({ request }) => {
+    const health = await request.get('/api/health')
+    test.skip(health.status() !== 200, 'Postgres required for embed resolve')
+    const res = await request.get('/e/e2e-security-embed-missing')
+    expect([200, 404, 410, 429]).toContain(res.status())
+    expect(res.headers()['x-frame-options']).toBe('DENY')
+  })
 })

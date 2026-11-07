@@ -51,4 +51,33 @@ test.describe('seo endpoints', () => {
     expect(html).toMatch(/property=["']og:title["']/i)
     expect(html).toMatch(/Mini Drive/i)
   })
+
+  test('robots.txt also blocks trash, shares, and settings', async ({
+    request,
+  }) => {
+    const res = await request.get('/robots.txt')
+    expect(res.ok()).toBeTruthy()
+    const body = await res.text()
+    expect(body).toContain('Disallow: /trash')
+    expect(body).toContain('Disallow: /shares')
+    expect(body).toContain('Disallow: /settings')
+    expect(body).toContain('Disallow: /recent')
+  })
+
+  test('sitemap.xml entries include loc and changefreq or priority', async ({
+    request,
+  }) => {
+    const res = await request.get('/sitemap.xml')
+    expect(res.ok()).toBeTruthy()
+    const body = await res.text()
+    expect(body).toMatch(/<loc>https?:\/\/.+<\/loc>/)
+    expect(body).toMatch(/<(?:changefreq|priority)>/)
+  })
+
+  test('hreflang alternates are present on landing', async ({ request }) => {
+    const res = await request.get('/')
+    const html = await res.text()
+    expect(html).toMatch(/hreflang=["']sk["']/i)
+    expect(html).toMatch(/hreflang=["']x-default["']/i)
+  })
 })

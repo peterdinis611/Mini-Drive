@@ -28,10 +28,29 @@ test.describe('static marketing assets', () => {
       name?: string
       short_name?: string
       icons?: unknown[]
+      start_url?: string
+      display?: string
+      lang?: string
     }
     expect(json.name ?? json.short_name).toMatch(/Mini Drive/i)
+    expect(json.start_url).toBe('/files')
+    expect(json.display).toBe('standalone')
+    expect(json.lang).toBe('sk')
     if (Array.isArray(json.icons)) {
       expect(json.icons.length).toBeGreaterThan(0)
     }
+  })
+
+  test('twilight ridge marketing image is available', async ({ request }) => {
+    const res = await request.get('/marketing/twilight-ridge.jpg')
+    expect(res.ok()).toBeTruthy()
+    expect(res.headers()['content-type'] ?? '').toMatch(/image\//)
+  })
+
+  test('drizzle.svg is available', async ({ request }) => {
+    const res = await request.get('/drizzle.svg')
+    expect(res.ok()).toBeTruthy()
+    const body = await res.text()
+    expect(body).toMatch(/<svg/i)
   })
 })

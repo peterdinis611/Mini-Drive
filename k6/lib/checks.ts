@@ -2,6 +2,8 @@ import { check } from 'k6'
 import type { RefinedResponse, ResponseType } from 'k6/http'
 import { Rate, Trend } from 'k6/metrics'
 
+import type { Probe } from './paths.ts'
+
 export const errorRate = new Rate('mini_drive_errors')
 export const healthDuration = new Trend('mini_drive_health_ms', true)
 
@@ -21,6 +23,13 @@ export function okStatus(
   })
   errorRate.add(!pass)
   return pass
+}
+
+export function probeOk(
+  res: RefinedResponse<ResponseType | undefined>,
+  probe: Probe,
+): boolean {
+  return okStatus(res, probe.allowed)
 }
 
 export function jsonHealthOk(
