@@ -1,9 +1,11 @@
 import { UTApi } from 'uploadthing/server'
 
+import { logger } from '#/lib/logger'
+
 const token = process.env.UPLOADTHING_TOKEN
 
 if (!token) {
-  console.warn(
+  logger.warn(
     '[mini-drive] UPLOADTHING_TOKEN chýba — upload a signed URL nebudú fungovať.',
   )
 }

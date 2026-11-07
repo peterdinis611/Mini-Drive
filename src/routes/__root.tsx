@@ -1,5 +1,7 @@
 import { silenceClerkDevKeySpam } from '#/lib/clerk-dev-silence'
+import { muteConsoleInProduction } from '#/lib/mute-console'
 
+muteConsoleInProduction()
 silenceClerkDevKeySpam()
 
 import type { QueryClient } from '@tanstack/react-query'

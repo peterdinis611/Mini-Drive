@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { logger } from '#/lib/logger'
+
 export const Route = createFileRoute('/api/health')({
   server: {
     handlers: {
@@ -13,7 +15,7 @@ export const Route = createFileRoute('/api/health')({
           const result = await pool.query<{ ok: number }>('SELECT 1 AS ok')
           dbOk = result.rows[0]?.ok === 1
         } catch (error) {
-          console.error('[mini-drive] health database check failed', error)
+          logger.error('[mini-drive] health database check failed', error)
           dbOk = false
         }
 

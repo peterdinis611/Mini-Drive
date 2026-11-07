@@ -10,7 +10,9 @@ import { silenceClerkDevKeySpam } from '#/lib/clerk-dev-silence'
 import { buildContentSecurityPolicy } from '#/lib/csp'
 import { assertProductionEnv, warnOptionalProductionEnv } from '#/lib/env'
 import { cacheControlForPath } from '#/lib/http-cache'
+import { muteConsoleInProduction } from '#/lib/mute-console'
 
+muteConsoleInProduction()
 silenceClerkDevKeySpam()
 assertProductionEnv()
 warnOptionalProductionEnv()
@@ -64,9 +66,7 @@ const authorizedParties = process.env.APP_URL?.trim()
   ? [process.env.APP_URL.trim().replace(/\/$/, '')]
   : undefined
 
-const clerk = clerkMiddleware(
-  authorizedParties ? { authorizedParties } : {},
-)
+const clerk = clerkMiddleware(authorizedParties ? { authorizedParties } : {})
 
 /** Skip Clerk on liveness probes so orchestrators don't need auth secrets. */
 const clerkUnlessHealth = createMiddleware().server(async (ctx) => {

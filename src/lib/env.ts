@@ -3,6 +3,8 @@
  * Dev stays permissive so local setup can grow gradually.
  */
 
+import { stderrLine } from '#/lib/logger'
+
 const PROD_REQUIRED = [
   'APP_URL',
   'CLERK_SECRET_KEY',
@@ -63,13 +65,13 @@ export function warnOptionalProductionEnv(): void {
   if (!isProduction()) return
 
   if (!process.env.BACKUP_ENCRYPTION_KEY?.trim()) {
-    console.warn(
+    stderrLine(
       '[mini-drive] BACKUP_ENCRYPTION_KEY unset — `pnpm db:backup` will fail until set.',
     )
   }
 
   if (!process.env.REDIS_URL?.trim()) {
-    console.warn(
+    stderrLine(
       '[mini-drive] REDIS_URL unset — rate limits are in-memory (not shared across instances).',
     )
   }

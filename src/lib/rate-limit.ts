@@ -3,6 +3,8 @@
  * Uses Redis when `REDIS_URL` is set; otherwise in-memory (single process).
  */
 
+import { logger } from '#/lib/logger'
+
 type Bucket = {
   timestamps: number[]
 }
@@ -56,13 +58,16 @@ async function getRedis(): Promise<RedisClient | null> {
         on: (event: string, cb: (err: Error) => void) => void
       }
       client.on('error', (error) => {
-        console.error('[mini-drive] redis rate-limit error', error)
+        logger.error('[mini-drive] redis rate-limit error', error)
       })
       if (!client.isOpen) await client.connect()
       redisClient = client
       return client
     } catch (error) {
-      console.error('[mini-drive] redis unavailable — using memory rate-limit', error)
+      logger.error(
+        '[mini-drive] redis unavailable — using memory rate-limit',
+        error,
+      )
       redisClient = null
       return null
     }
@@ -71,7 +76,10 @@ async function getRedis(): Promise<RedisClient | null> {
   return redisInit
 }
 
-function memoryCheck(key: string, { limit, windowMs }: LimitOpts): RateLimitResult {
+function memoryCheck(
+  key: string,
+  { limit, windowMs }: LimitOpts,
+): RateLimitResult {
   const now = Date.now()
   const bucket = memoryBuckets.get(key) ?? { timestamps: [] }
   bucket.timestamps = bucket.timestamps.filter((ts) => now - ts < windowMs)
@@ -134,7 +142,9 @@ async function redisCheck(
       retryAfterMs: Math.max(0, windowMs - (now - oldest)),
     }
   }
-  await client.zAdd(redisKey, [{ score: now, value: `${now}:${Math.random()}` }])
+  await client.zAdd(redisKey, [
+    { score: now, value: `${now}:${Math.random()}` },
+  ])
   await client.expire(redisKey, Math.ceil(windowMs / 1000) + 1)
   return { ok: true, remaining: limit - count - 1 }
 }
@@ -167,7 +177,9 @@ async function redisRecordHit(
   const now = Date.now()
   const redisKey = `rl:${key}`
   await client.zRemRangeByScore(redisKey, 0, now - windowMs)
-  await client.zAdd(redisKey, [{ score: now, value: `${now}:${Math.random()}` }])
+  await client.zAdd(redisKey, [
+    { score: now, value: `${now}:${Math.random()}` },
+  ])
   await client.expire(redisKey, Math.ceil(windowMs / 1000) + 1)
   const count = await client.zCard(redisKey)
   if (count > limit) {

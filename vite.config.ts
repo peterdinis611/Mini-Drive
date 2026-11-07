@@ -75,6 +75,13 @@ const config = defineConfig({
     reportCompressedSize: false,
     minify: isProd ? 'esbuild' : false,
   },
+  // Strip leftover console/debugger from app + dependency graphs in production.
+  esbuild: isProd
+    ? {
+        drop: ['console', 'debugger'],
+        legalComments: 'none',
+      }
+    : undefined,
   plugins: [
     // Devtools Vite plugin is heavy; in-app panels still load via import.meta.env.DEV.
     // devtools(),

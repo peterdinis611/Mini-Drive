@@ -1,5 +1,7 @@
 import { ZodError } from 'zod'
 
+import { logger } from '#/lib/logger'
+
 /** Domain error with a stable, user-facing Slovak message. */
 export class AppError extends Error {
   readonly code: string
@@ -101,7 +103,7 @@ export function getErrorMessage(
   return fallback
 }
 
-/** Lightweight reporting hook — console in DEV; ready for a future sink. */
+/** Lightweight reporting hook — DEV logger only; ready for a future sink. */
 export function reportError(
   error: unknown,
   context?: string,
@@ -111,9 +113,9 @@ export function reportError(
 
   const normalized = toError(error)
   const prefix = context ? `[Mini Drive · ${context}]` : '[Mini Drive]'
-  console.error(prefix, normalized)
+  logger.error(prefix, normalized)
   if (info?.componentStack) {
-    console.error(info.componentStack)
+    logger.error(info.componentStack)
   }
 }
 

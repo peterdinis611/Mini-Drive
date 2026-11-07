@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react'
 
+import { logger } from '#/lib/logger'
 import { cn } from '#/lib/utils'
 
 type ObjectFit = NonNullable<CSSProperties['objectFit']>
@@ -83,19 +84,19 @@ export function Image({
   const w = toNumber(width)
   const h = toNumber(height)
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (import.meta.env.DEV) {
     if (!fill && (w == null || h == null)) {
-      console.warn(
+      logger.warn(
         '[Image] Provide both `width` and `height`, or set `fill`. Missing dimensions cause layout shift.',
       )
     }
     if (fill && (w != null || h != null)) {
-      console.warn(
+      logger.warn(
         '[Image] `fill` images should not set `width` / `height` — size comes from the parent.',
       )
     }
     if (placeholder === 'blur' && !blurDataURL) {
-      console.warn(
+      logger.warn(
         '[Image] `placeholder="blur"` needs a `blurDataURL` (tiny base64 preview).',
       )
     }

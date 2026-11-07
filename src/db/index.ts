@@ -2,6 +2,8 @@ import { config } from 'dotenv'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 
+import { logger } from '#/lib/logger'
+
 import { ensurePgSchema } from './ensure-schema'
 import * as schema from './schema'
 
@@ -37,7 +39,7 @@ export const pool = new Pool({
 })
 
 pool.on('error', (error) => {
-  console.error('[mini-drive] unexpected Postgres pool error', error)
+  logger.error('[mini-drive] unexpected Postgres pool error', error)
 })
 
 /** Boot-time additive schema patches (dev / single-node). */
@@ -49,7 +51,7 @@ const schemaReady =
     : ensurePgSchema(pool).catch((error) => {
         // Keep the process alive — health / waitForDb surface the failure.
         // Rethrowing here caused unhandledRejection crashes under Node 22+.
-        console.error('[mini-drive] ensurePgSchema failed', error)
+        logger.error('[mini-drive] ensurePgSchema failed', error)
         schemaBootError = error
       })
 

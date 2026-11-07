@@ -67,7 +67,8 @@
         "noControlCharactersInRegex": "off",
         "noAssignInExpressions": "off",
         "noImplicitAnyLet": "warn",
-        "noDoubleEquals": "warn"
+        "noDoubleEquals": "warn",
+        "noConsole": "error"
       },
       "complexity": {
         "noImportantStyles": "off"
@@ -144,11 +145,28 @@
       }
     },
     {
-      "includes": ["**/*.{test,spec}.{ts,tsx}", "**/__tests__/**"],
+      "includes": ["**/*.{test,spec}.{ts,tsx}", "**/__tests__/**", "e2e/**"],
       "linter": {
         "rules": {
           "suspicious": {
-            "noExplicitAny": "off"
+            "noExplicitAny": "off",
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "scripts/**",
+        "k6/**",
+        "src/lib/logger.ts",
+        "src/lib/mute-console.ts",
+        "src/lib/clerk-dev-silence.ts"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
           }
         }
       }

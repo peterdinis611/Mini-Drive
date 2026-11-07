@@ -1,7 +1,11 @@
 /**
  * Vite RSC/SSR forwards console.* between client and server.
  * Clerk development/telemetry noise then nests infinitely and OOMs the process.
+ *
+ * In production we mute the entire console API instead.
  */
+import { muteConsoleInProduction } from '#/lib/mute-console'
+
 const MARKERS = [
   'Clerk has been loaded with development keys',
   'Clerk collects telemetry data',
@@ -18,6 +22,11 @@ function isClerkSpam(args: unknown[]) {
 }
 
 export function silenceClerkDevKeySpam() {
+  if (import.meta.env.PROD === true || process.env.NODE_ENV === 'production') {
+    muteConsoleInProduction()
+    return
+  }
+
   if (patched) return
   patched = true
 

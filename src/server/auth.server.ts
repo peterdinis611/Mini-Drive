@@ -2,6 +2,7 @@ import { auth, clerkClient } from '@clerk/tanstack-react-start/server'
 import { eq } from 'drizzle-orm'
 
 import { user } from '#/db/schema'
+import { logger } from '#/lib/logger'
 
 /** Lazy DB import — keeps guest SSR from eagerly booting the Postgres pool graph. */
 async function dbMod() {
@@ -146,7 +147,7 @@ export async function getSessionFromRequest(): Promise<AppSession | null> {
     }
   } catch (error) {
     // Bad DATABASE_URL / down Postgres used to blow up every SSR reload.
-    console.error('[mini-drive] local user sync failed', error)
+    logger.error('[mini-drive] local user sync failed', error)
     return null
   }
 }
