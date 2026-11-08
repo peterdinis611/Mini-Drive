@@ -13,8 +13,16 @@ import type { Probe } from './lib/paths.ts'
 const AUTH_PROBES: Probe[] = [
   { path: '/sign-in', name: 'sign_in', allowed: [200] },
   { path: '/sign-up', name: 'sign_up', allowed: [200] },
-  { path: '/login', name: 'login_redirect', allowed: [200, 301, 302, 303, 307, 308] },
-  { path: '/register', name: 'register_redirect', allowed: [200, 301, 302, 303, 307, 308] },
+  {
+    path: '/login',
+    name: 'login_redirect',
+    allowed: [200, 301, 302, 303, 307, 308],
+  },
+  {
+    path: '/register',
+    name: 'register_redirect',
+    allowed: [200, 301, 302, 303, 307, 308],
+  },
 ]
 
 export const options: Options = {

@@ -12,7 +12,7 @@ import type { Options } from 'k6/options'
 import { okStatus } from './lib/checks.ts'
 import { url } from './lib/env.ts'
 import { hitProbe } from './lib/hit.ts'
-import { pickWeighted, PUBLIC_PROBES } from './lib/paths.ts'
+import { PUBLIC_PROBES, pickWeighted } from './lib/paths.ts'
 import { randomToken } from './lib/random.ts'
 
 export const options: Options = {

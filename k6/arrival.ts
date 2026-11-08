@@ -10,7 +10,7 @@ import type { Options } from 'k6/options'
 
 import { envDuration, envInt } from './lib/env.ts'
 import { hitProbe } from './lib/hit.ts'
-import { pickWeighted, PUBLIC_PROBES } from './lib/paths.ts'
+import { PUBLIC_PROBES, pickWeighted } from './lib/paths.ts'
 
 const rate = envInt('ARRIVAL_RATE', 40)
 const duration = envDuration('ARRIVAL_DURATION', '90s')

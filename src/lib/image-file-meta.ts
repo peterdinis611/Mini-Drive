@@ -77,13 +77,13 @@ export function normalizeImageFileMeta(
 
   const make = asNonEmptyString(raw.Make)
   const model = asNonEmptyString(raw.Model)
-  const lens =
-    asNonEmptyString(raw.LensModel) ?? asNonEmptyString(raw.LensMake)
+  const lens = asNonEmptyString(raw.LensModel) ?? asNonEmptyString(raw.LensMake)
   const takenAt =
     formatTakenAt(raw.DateTimeOriginal) ??
     formatTakenAt(raw.CreateDate) ??
     formatTakenAt(raw.ModifyDate)
-  const fNumber = asFiniteNumber(raw.FNumber) ?? asFiniteNumber(raw.ApertureValue)
+  const fNumber =
+    asFiniteNumber(raw.FNumber) ?? asFiniteNumber(raw.ApertureValue)
   const exposureTime = formatExposureTime(raw.ExposureTime)
   const iso =
     asFiniteNumber(raw.ISO) ??

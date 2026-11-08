@@ -87,9 +87,13 @@ describe('stress: rate-limit', () => {
 
     const key = 'ip:window'
     for (let i = 0; i < SHARE_PASSWORD_RATE_LIMIT.limit; i += 1) {
-      expect((await checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT)).ok).toBe(true)
+      expect((await checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT)).ok).toBe(
+        true,
+      )
     }
-    expect((await checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT)).ok).toBe(false)
+    expect((await checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT)).ok).toBe(
+      false,
+    )
 
     vi.advanceTimersByTime(SHARE_PASSWORD_RATE_LIMIT.windowMs + 1)
     expect((await checkRateLimit(key, SHARE_PASSWORD_RATE_LIMIT)).ok).toBe(true)

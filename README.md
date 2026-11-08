@@ -58,16 +58,16 @@ Otvor [http://localhost:3000](http://localhost:3000).
 
 ### Premenné
 
-| Premenná                   | Účel                                                                 |
-| -------------------------- | -------------------------------------------------------------------- |
-| `NODE_ENV=production`      | Prod režim (CSP, HSTS, env guards)                                   |
-| `APP_URL`                  | Canonical URL, CSRF, Clerk `authorizedParties` (`https://…`)         |
-| `DATABASE_URL`             | `postgresql://…` connection string                                   |
-| `CLERK_*` / `VITE_CLERK_*` | Live Clerk kľúče + dashboard origins                                 |
-| `UPLOADTHING_TOKEN`        | Upload + signed URL (ACL **private** v dashboarde)                   |
+| Premenná                   | Účel                                                                  |
+| -------------------------- | --------------------------------------------------------------------- |
+| `NODE_ENV=production`      | Prod režim (CSP, HSTS, env guards)                                    |
+| `APP_URL`                  | Canonical URL, CSRF, Clerk `authorizedParties` (`https://…`)          |
+| `DATABASE_URL`             | `postgresql://…` connection string                                    |
+| `CLERK_*` / `VITE_CLERK_*` | Live Clerk kľúče + dashboard origins                                  |
+| `UPLOADTHING_TOKEN`        | Upload + signed URL (ACL **private** v dashboarde)                    |
 | `AUDIT_IP_PEPPER`          | **Povinné** — HMAC pepper pre share audit IP (nie `CLERK_SECRET_KEY`) |
-| `REDIS_URL`                | Zdieľané rate limity (Redis / Upstash); inak in-memory + warning     |
-| `BACKUP_ENCRYPTION_KEY`    | Šifrované `pnpm db:backup` / `db:restore`                            |
+| `REDIS_URL`                | Zdieľané rate limity (Redis / Upstash); inak in-memory + warning      |
+| `BACKUP_ENCRYPTION_KEY`    | Šifrované `pnpm db:backup` / `db:restore`                             |
 
 Pri štarte procesu (`pnpm start`) chýbajúce povinné premenné spôsobia hard fail.
 
@@ -106,29 +106,29 @@ Security headers + CSRF + Clerk `authorizedParties` sú v `src/start.ts`.
 
 ## Skripty
 
-| Skript               | Popis                      |
-| -------------------- | -------------------------- |
-| `pnpm dev`           | Vývojový server            |
-| `pnpm build`         | Produkčný build            |
-| `pnpm start`         | Produkčný server (srvx)    |
-| `pnpm typecheck`     | TypeScript                 |
-| `pnpm lint`          | Biome lint                 |
-| `pnpm format`        | Biome format               |
-| `pnpm check`         | Biome check (lint+format)  |
-| `pnpm test`          | Vitest raz                 |
-| `pnpm test:watch`    | Vitest watch               |
-| `pnpm test:coverage` | Coverage report            |
-| `pnpm test:e2e`          | Playwright e2e                 |
-| `pnpm test:k6`           | k6 load (bežiaci server)       |
-| `pnpm test:k6:smoke`     | k6 smoke                       |
-| `pnpm test:k6:soak`      | k6 soak (sustained)            |
-| `pnpm test:k6:stress`    | k6 stress                      |
-| `pnpm test:k6:typecheck` | TypeScript check k6 skriptov   |
-| `pnpm screenshots`       | README JPEG z bežiacej app     |
-| `pnpm db:push`       | Aplikuj schému do Postgres |
-| `pnpm db:backup`     | Šifrovaný `pg_dump` backup |
-| `pnpm db:restore`    | Obnova cez `pg_restore`    |
-| `pnpm db:studio`     | Drizzle Studio             |
+| Skript                   | Popis                        |
+| ------------------------ | ---------------------------- |
+| `pnpm dev`               | Vývojový server              |
+| `pnpm build`             | Produkčný build              |
+| `pnpm start`             | Produkčný server (srvx)      |
+| `pnpm typecheck`         | TypeScript                   |
+| `pnpm lint`              | Biome lint                   |
+| `pnpm format`            | Biome format                 |
+| `pnpm check`             | Biome check (lint+format)    |
+| `pnpm test`              | Vitest raz                   |
+| `pnpm test:watch`        | Vitest watch                 |
+| `pnpm test:coverage`     | Coverage report              |
+| `pnpm test:e2e`          | Playwright e2e               |
+| `pnpm test:k6`           | k6 load (bežiaci server)     |
+| `pnpm test:k6:smoke`     | k6 smoke                     |
+| `pnpm test:k6:soak`      | k6 soak (sustained)          |
+| `pnpm test:k6:stress`    | k6 stress                    |
+| `pnpm test:k6:typecheck` | TypeScript check k6 skriptov |
+| `pnpm screenshots`       | README JPEG z bežiacej app   |
+| `pnpm db:push`           | Aplikuj schému do Postgres   |
+| `pnpm db:backup`         | Šifrovaný `pg_dump` backup   |
+| `pnpm db:restore`        | Obnova cez `pg_restore`      |
+| `pnpm db:studio`         | Drizzle Studio               |
 
 ## Load testy (k6)
 

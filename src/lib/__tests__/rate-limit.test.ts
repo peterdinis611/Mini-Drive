@@ -42,7 +42,10 @@ describe('checkRateLimit', () => {
     expect(third.ok).toBe(true)
     if (third.ok) expect(third.remaining).toBe(0)
 
-    const blocked = await checkRateLimit('user:a', { limit: 3, windowMs: 60_000 })
+    const blocked = await checkRateLimit('user:a', {
+      limit: 3,
+      windowMs: 60_000,
+    })
     expect(blocked.ok).toBe(false)
   })
 })

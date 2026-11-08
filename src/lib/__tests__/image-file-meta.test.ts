@@ -61,12 +61,12 @@ describe('image-file-meta', () => {
 
   it('formats exposure >= 1s without reciprocal', async () => {
     const { normalizeImageFileMeta } = await import('#/lib/image-file-meta')
-    expect(
-      normalizeImageFileMeta({ ExposureTime: 2 })?.exposureTime,
-    ).toBe('2 s')
-    expect(
-      normalizeImageFileMeta({ ExposureTime: 1.5 })?.exposureTime,
-    ).toBe('1.5 s')
+    expect(normalizeImageFileMeta({ ExposureTime: 2 })?.exposureTime).toBe(
+      '2 s',
+    )
+    expect(normalizeImageFileMeta({ ExposureTime: 1.5 })?.exposureTime).toBe(
+      '1.5 s',
+    )
   })
 
   it('formatImageFileMetaRows builds Slovak UI rows', async () => {
@@ -89,7 +89,9 @@ describe('image-file-meta', () => {
     expect(rows.map((r) => r.label)).toEqual(
       expect.arrayContaining(['Aparát', 'Nasnímané', 'Expozícia', 'GPS']),
     )
-    expect(rows.find((r) => r.label === 'Aparát')?.value).toBe('Apple iPhone 15')
+    expect(rows.find((r) => r.label === 'Aparát')?.value).toBe(
+      'Apple iPhone 15',
+    )
     expect(rows.find((r) => r.label === 'Expozícia')?.value).toContain('f/1.8')
     expect(rows.find((r) => r.label === 'Expozícia')?.value).toContain('ISO 64')
   })
@@ -101,14 +103,18 @@ describe('image-file-meta', () => {
       ExposureTime: 1 / 250,
     })
     const { readImageFileMeta } = await import('#/lib/image-file-meta')
-    await expect(readImageFileMeta('https://cdn.example/a.jpg')).resolves.toMatchObject({
+    await expect(
+      readImageFileMeta('https://cdn.example/a.jpg'),
+    ).resolves.toMatchObject({
       make: 'Canon',
       model: 'EOS R6',
       exposureTime: '1/250 s',
     })
 
     parseMock.mockRejectedValueOnce(new Error('boom'))
-    await expect(readImageFileMeta('https://cdn.example/b.jpg')).resolves.toBeNull()
+    await expect(
+      readImageFileMeta('https://cdn.example/b.jpg'),
+    ).resolves.toBeNull()
   })
 
   it('builds an OpenStreetMap deep link', async () => {
@@ -116,6 +122,8 @@ describe('image-file-meta', () => {
     expect(imageFileMetaMapsUrl({ lat: 48.1, lng: 17.2 })).toContain(
       'openstreetmap.org',
     )
-    expect(imageFileMetaMapsUrl({ lat: 48.1, lng: 17.2 })).toContain('mlat=48.1')
+    expect(imageFileMetaMapsUrl({ lat: 48.1, lng: 17.2 })).toContain(
+      'mlat=48.1',
+    )
   })
 })

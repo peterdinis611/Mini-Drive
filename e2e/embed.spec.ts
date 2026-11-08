@@ -19,9 +19,9 @@ test.describe('public embed surface', () => {
       ),
     ).toBeVisible({ timeout: 15_000 })
     // Embed should not mount the full Drive shell sidebar.
-    await expect(page.getByRole('navigation', { name: /Drive|súbory/i })).toHaveCount(
-      0,
-    )
+    await expect(
+      page.getByRole('navigation', { name: /Drive|súbory/i }),
+    ).toHaveCount(0)
   })
 
   test('embed HTTP status stays below 500', async ({ request }) => {

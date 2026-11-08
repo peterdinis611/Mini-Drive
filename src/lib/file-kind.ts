@@ -1,5 +1,4 @@
 import {
-  type LucideIcon,
   FileArchive,
   FileAudio,
   FileCode2,
@@ -8,6 +7,7 @@ import {
   FileSpreadsheet,
   FileText,
   FileVideo,
+  type LucideIcon,
 } from 'lucide-react'
 
 export type FileKind =

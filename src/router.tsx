@@ -11,7 +11,7 @@ export function getRouter() {
   const router = createTanStackRouter({
     routeTree,
     context,
-    notFoundMode: "fuzzy",
+    notFoundMode: 'fuzzy',
     scrollRestoration: true,
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 60_000,

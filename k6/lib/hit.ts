@@ -1,5 +1,5 @@
-import http from 'k6/http'
 import type { RefinedResponse, ResponseType } from 'k6/http'
+import http from 'k6/http'
 
 import { jsonHealthOk, probeOk } from './checks.ts'
 import { url } from './env.ts'
