@@ -1,16 +1,16 @@
 import { createServerFn } from '@tanstack/react-start'
 import {
   getRequestHeaders,
-  getRequestIP,
   setResponseHeader,
   setResponseStatus,
 } from '@tanstack/react-start/server'
-import { and, count, desc, eq, gt, inArray, isNull } from 'drizzle-orm'
+import { and, count, desc, eq, gt, inArray, isNull, sql } from 'drizzle-orm'
 
 import {
   CREATE_SHARE_RATE_LIMIT,
   MAX_ACTIVE_SHARES_PER_USER,
   SHARE_ACCESS_LOG_LIMIT,
+  SHARE_DEFAULT_MAX_DOWNLOADS,
   SHARE_PASSWORD_RATE_LIMIT,
   SHARE_PASSWORD_TOKEN_LOCK,
   SHARE_RATE_LIMIT,
@@ -29,6 +29,7 @@ import {
   buildEmbedPath,
   buildSharePath,
   generateShareToken,
+  hashShareToken,
   resolveShareStatus,
 } from '#/lib/share-token'
 import {
@@ -39,6 +40,7 @@ import {
   unlockPublicShareSchema,
 } from '#/lib/validation'
 import { firstOrNull, firstOrThrow } from '#/server/db-helpers.server'
+import { resolveClientIp } from '#/server/request-ip'
 
 function resolveAuditIpPepper(): string {
   const pepper = process.env.AUDIT_IP_PEPPER?.trim()
@@ -46,7 +48,6 @@ function resolveAuditIpPepper(): string {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('AUDIT_IP_PEPPER is required in production')
   }
-  // Dev-only fallback so local share audit still works without secrets.
   return 'dev-insecure-audit-pepper'
 }
 
@@ -55,15 +56,19 @@ type ShareFileRow = {
   expiresAt: Date
   revokedAt: Date | null
   passwordHash: string | null
+  downloadCount: number
+  maxDownloads: number | null
   fileName: string
   fileSize: number
   mimeType: string
   uploadthingKey: string
+  fileDeletedAt: Date | null
 }
 
 async function loadShareByToken(token: string): Promise<ShareFileRow | null> {
   const { db } = await import('#/db')
   const { files, shareLinks } = await import('#/db/schema')
+  const tokenHash = hashShareToken(token)
 
   return firstOrNull(
     await db
@@ -72,22 +77,40 @@ async function loadShareByToken(token: string): Promise<ShareFileRow | null> {
         expiresAt: shareLinks.expiresAt,
         revokedAt: shareLinks.revokedAt,
         passwordHash: shareLinks.passwordHash,
+        downloadCount: shareLinks.downloadCount,
+        maxDownloads: shareLinks.maxDownloads,
         fileName: files.name,
         fileSize: files.size,
         mimeType: files.mimeType,
         uploadthingKey: files.uploadthingKey,
+        fileDeletedAt: files.deletedAt,
       })
       .from(shareLinks)
       .innerJoin(files, eq(files.id, shareLinks.fileId))
-      .where(eq(shareLinks.token, token))
+      .where(eq(shareLinks.token, tokenHash))
       .limit(1),
   )
 }
 
+function downloadsExhausted(row: ShareFileRow): boolean {
+  if (row.maxDownloads == null) return false
+  return row.downloadCount >= row.maxDownloads
+}
+
 async function deliverPublicShare(row: ShareFileRow) {
   const { db } = await import('#/db')
-  const { shareAccessLogs } = await import('#/db/schema')
+  const { shareAccessLogs, shareLinks } = await import('#/db/schema')
   const { utapi } = await import('#/server/utapi.server')
+
+  if (row.fileDeletedAt != null) {
+    setResponseStatus(410)
+    return { status: 'gone' as const, reason: 'not_found' as const }
+  }
+
+  if (downloadsExhausted(row)) {
+    setResponseStatus(410)
+    return { status: 'gone' as const, reason: 'exhausted' as const }
+  }
 
   if (!process.env.UPLOADTHING_TOKEN) {
     throw new Error('Úložisko nie je nakonfigurované (chýba token).')
@@ -97,7 +120,7 @@ async function deliverPublicShare(row: ShareFileRow) {
     expiresIn: SHARE_SIGNED_URL_TTL_SECONDS,
   })
 
-  const ip = getRequestIP() ?? 'unknown'
+  const ip = resolveClientIp()
   const headers = getRequestHeaders()
   const userAgent = truncateUserAgent(headers.get('user-agent'))
 
@@ -111,6 +134,11 @@ async function deliverPublicShare(row: ShareFileRow) {
   } catch {
     // Audit must not break delivery of a valid share.
   }
+
+  await db
+    .update(shareLinks)
+    .set({ downloadCount: sql`${shareLinks.downloadCount} + 1` })
+    .where(eq(shareLinks.id, row.shareLinkId))
 
   return {
     status: 'ok' as const,
@@ -196,40 +224,46 @@ export const createShareLink = createServerFn({ method: 'POST' })
     }
 
     const token = generateShareToken()
+    const tokenHash = hashShareToken(token)
     const expiresAt = new Date(Date.now() + data.expiresIn * 1000)
     const passwordHash = hashSharePassword(data.password)
+    const maxDownloads = data.maxDownloads ?? SHARE_DEFAULT_MAX_DOWNLOADS
 
     const created = firstOrThrow(
       await db
         .insert(shareLinks)
         .values({
           fileId: data.fileId,
-          token,
+          token: tokenHash,
           expiresAt,
           createdBy: userId,
           passwordHash,
+          maxDownloads,
+          downloadCount: 0,
         })
         .returning({
           id: shareLinks.id,
-          token: shareLinks.token,
           expiresAt: shareLinks.expiresAt,
           createdAt: shareLinks.createdAt,
           fileId: shareLinks.fileId,
           passwordHash: shareLinks.passwordHash,
+          maxDownloads: shareLinks.maxDownloads,
         }),
       'Nepodarilo sa vytvoriť odkaz',
     )
 
     return {
       id: created.id,
-      token: created.token,
+      token,
       expiresAt: created.expiresAt,
       createdAt: created.createdAt,
       fileId: created.fileId,
-      path: buildSharePath(created.token),
-      embedPath: buildEmbedPath(created.token),
+      path: buildSharePath(token),
+      embedPath: buildEmbedPath(token),
       status: 'active' as const,
       accessCount: 0,
+      downloadCount: 0,
+      maxDownloads: created.maxDownloads,
       passwordProtected: Boolean(created.passwordHash),
     }
   })
@@ -246,7 +280,6 @@ export const listShareLinks = createServerFn({ method: 'GET' }).handler(
     const rows = await db
       .select({
         id: shareLinks.id,
-        token: shareLinks.token,
         expiresAt: shareLinks.expiresAt,
         revokedAt: shareLinks.revokedAt,
         createdAt: shareLinks.createdAt,
@@ -255,6 +288,8 @@ export const listShareLinks = createServerFn({ method: 'GET' }).handler(
         fileSize: files.size,
         mimeType: files.mimeType,
         passwordHash: shareLinks.passwordHash,
+        downloadCount: shareLinks.downloadCount,
+        maxDownloads: shareLinks.maxDownloads,
       })
       .from(shareLinks)
       .innerJoin(files, eq(files.id, shareLinks.fileId))
@@ -281,8 +316,8 @@ export const listShareLinks = createServerFn({ method: 'GET' }).handler(
 
     return rows.map((row) => ({
       id: row.id,
-      token: row.token,
-      path: buildSharePath(row.token),
+      /** Plaintext token is never stored — path only available at create time. */
+      path: null as string | null,
       expiresAt: row.expiresAt,
       revokedAt: row.revokedAt,
       createdAt: row.createdAt,
@@ -292,6 +327,8 @@ export const listShareLinks = createServerFn({ method: 'GET' }).handler(
       mimeType: row.mimeType,
       status: resolveShareStatus(row),
       accessCount: counts.get(row.id) ?? 0,
+      downloadCount: row.downloadCount,
+      maxDownloads: row.maxDownloads,
       passwordProtected: Boolean(row.passwordHash),
     }))
   },
@@ -384,14 +421,13 @@ export const revokeShareLink = createServerFn({ method: 'POST' })
 /**
  * Public resolver used by /s/$token and /e/$token.
  * Never returns uploadthingKey — only a short-lived signed URL after unlock.
- * Password-protected links return `password_required` until unlockPublicShare.
  */
 export const resolvePublicShare = createServerFn({ method: 'GET' })
   .validator(resolveShareTokenSchema)
   .handler(async ({ data }) => {
     setResponseHeader('Cache-Control', 'no-store')
 
-    const ip = getRequestIP() ?? 'unknown'
+    const ip = resolveClientIp()
     const rate = await checkRateLimit(`share:${ip}`, SHARE_RATE_LIMIT)
     if (!rate.ok) {
       setResponseStatus(429)
@@ -407,7 +443,7 @@ export const resolvePublicShare = createServerFn({ method: 'GET' })
 
     const row = await loadShareByToken(data.token)
 
-    if (!row) {
+    if (!row || row.fileDeletedAt != null) {
       setResponseStatus(410)
       return { status: 'gone' as const, reason: 'not_found' as const }
     }
@@ -418,8 +454,12 @@ export const resolvePublicShare = createServerFn({ method: 'GET' })
       return {
         status: 'gone' as const,
         reason: linkStatus,
-        fileName: row.fileName,
       }
+    }
+
+    if (downloadsExhausted(row)) {
+      setResponseStatus(410)
+      return { status: 'gone' as const, reason: 'exhausted' as const }
     }
 
     if (row.passwordHash) {
@@ -439,8 +479,8 @@ export const unlockPublicShare = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     setResponseHeader('Cache-Control', 'no-store')
 
-    const ip = getRequestIP() ?? 'unknown'
-    const tokenLockKey = `share-pw-fail:${data.token}`
+    const ip = resolveClientIp()
+    const tokenLockKey = `share-pw-fail:${hashShareToken(data.token)}:${ip}`
 
     const tokenLock = await peekRateLimit(
       tokenLockKey,
@@ -476,7 +516,7 @@ export const unlockPublicShare = createServerFn({ method: 'POST' })
 
     const row = await loadShareByToken(data.token)
 
-    if (!row) {
+    if (!row || row.fileDeletedAt != null) {
       setResponseStatus(410)
       return { status: 'gone' as const, reason: 'not_found' as const }
     }
@@ -487,35 +527,39 @@ export const unlockPublicShare = createServerFn({ method: 'POST' })
       return {
         status: 'gone' as const,
         reason: linkStatus,
-        fileName: row.fileName,
       }
+    }
+
+    if (downloadsExhausted(row)) {
+      setResponseStatus(410)
+      return { status: 'gone' as const, reason: 'exhausted' as const }
     }
 
     if (!row.passwordHash) {
-      // Open link — just deliver (idempotent unlock).
       return deliverPublicShare(row)
     }
 
-    if (!verifySharePassword(data.password, row.passwordHash)) {
-      const fail = await recordRateLimitHit(
-        tokenLockKey,
-        SHARE_PASSWORD_TOKEN_LOCK,
+    // Reserve a failure slot before verify to shrink the concurrent-guess race.
+    const reserved = await recordRateLimitHit(
+      tokenLockKey,
+      SHARE_PASSWORD_TOKEN_LOCK,
+    )
+    if (!reserved.ok) {
+      setResponseStatus(429)
+      setResponseHeader(
+        'Retry-After',
+        String(Math.max(1, Math.ceil(reserved.retryAfterMs / 1000))),
       )
-      if (!fail.ok) {
-        setResponseStatus(429)
-        setResponseHeader(
-          'Retry-After',
-          String(Math.max(1, Math.ceil(fail.retryAfterMs / 1000))),
-        )
-        return {
-          status: 'rate_limited' as const,
-          retryAfterMs: fail.retryAfterMs,
-        }
+      return {
+        status: 'rate_limited' as const,
+        retryAfterMs: reserved.retryAfterMs,
       }
+    }
+
+    if (!verifySharePassword(data.password, row.passwordHash)) {
       setResponseStatus(401)
       return {
         status: 'password_invalid' as const,
-        fileName: row.fileName,
       }
     }
 

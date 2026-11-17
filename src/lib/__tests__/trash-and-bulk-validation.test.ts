@@ -46,9 +46,9 @@ describe('bulkShareFilesSchema', () => {
       bulkShareFilesSchema.parse({
         fileIds: [uuid],
         expiresIn: SHARE_EXPIRY_PRESETS[0].value,
-        password: 'secret1',
+        password: 'secret1abc',
       }),
-    ).toMatchObject({ fileIds: [uuid], password: 'secret1' })
+    ).toMatchObject({ fileIds: [uuid], password: 'secret1abc' })
 
     expect(() =>
       bulkShareFilesSchema.parse({
@@ -61,7 +61,7 @@ describe('bulkShareFilesSchema', () => {
       bulkShareFilesSchema.parse({
         fileIds: [uuid],
         expiresIn: 999,
-        password: 'secret1',
+        password: 'secret1abc',
       }),
     ).toThrow()
 
@@ -69,7 +69,7 @@ describe('bulkShareFilesSchema', () => {
       bulkShareFilesSchema.parse({
         fileIds: Array.from({ length: 21 }, () => uuid),
         expiresIn: SHARE_EXPIRY_PRESETS[0].value,
-        password: 'secret1',
+        password: 'secret1abc',
       }),
     ).toThrow()
   })

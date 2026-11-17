@@ -314,6 +314,11 @@ export const deleteFile = createServerFn({ method: 'POST' })
       .set({ deletedAt: new Date() })
       .where(and(eq(files.id, data.fileId), eq(files.userId, userId)))
 
+    const { revokeSharesForFileId } = await import(
+      '#/server/share-revoke.server'
+    )
+    await revokeSharesForFileId(data.fileId)
+
     return { ok: true as const }
   })
 
@@ -337,6 +342,11 @@ export const bulkDeleteFiles = createServerFn({ method: 'POST' })
           inArray(files.id, data.fileIds),
         ),
       )
+
+    const { revokeSharesForFileIds } = await import(
+      '#/server/share-revoke.server'
+    )
+    await revokeSharesForFileIds(data.fileIds)
 
     return { ok: true as const, count: data.fileIds.length }
   })
@@ -495,6 +505,11 @@ export const restoreFileVersion = createServerFn({ method: 'POST' })
       .where(and(eq(files.id, data.fileId), eq(files.userId, userId)))
 
     await db.delete(fileVersions).where(eq(fileVersions.id, data.versionId))
+
+    const { revokeSharesForFileId } = await import(
+      '#/server/share-revoke.server'
+    )
+    await revokeSharesForFileId(data.fileId)
 
     return { ok: true as const }
   })

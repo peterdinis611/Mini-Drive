@@ -29,6 +29,14 @@ describe('buildContentSecurityPolicy', () => {
     expect(csp).not.toContain("'unsafe-eval'")
     expect(csp).not.toContain('ws://localhost:*')
   })
+
+  it('allows third-party iframes for embed routes', () => {
+    const csp = buildContentSecurityPolicy('production', {
+      allowEmbedAncestors: true,
+    })
+    expect(csp).toContain('frame-ancestors *')
+    expect(csp).toContain('https://view.officeapps.live.com')
+  })
 })
 
 describe('AUTH_LIMITS password floor', () => {

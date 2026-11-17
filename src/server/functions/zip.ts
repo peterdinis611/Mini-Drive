@@ -1,12 +1,11 @@
 import { createServerFn } from '@tanstack/react-start'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import JSZip from 'jszip'
+import { ZIP_MAX_BYTES, ZIP_MAX_FILES, ZIP_RATE_LIMIT } from '#/lib/constants'
 import { collectDescendantIds } from '#/lib/folder-ops'
+import { checkRateLimit } from '#/lib/rate-limit'
 import { bulkDownloadUrlsSchema, zipFolderSchema } from '#/lib/validation'
 import { firstOrThrow } from '#/server/db-helpers.server'
-
-const MAX_ZIP_BYTES = 80 * 1024 * 1024
-const MAX_ZIP_FILES = 200
 
 /** Signed download URLs for multi-select / drag-out. */
 export const getBulkDownloadUrls = createServerFn({ method: 'POST' })
@@ -80,6 +79,13 @@ export const downloadFolderZip = createServerFn({ method: 'POST' })
     const session = await requireSession()
     const userId = session.user.id
 
+    const rate = await checkRateLimit(`zip:${userId}`, ZIP_RATE_LIMIT)
+    if (!rate.ok) {
+      throw new Error(
+        `Príliš veľa zip exportov. Skús o ${Math.max(1, Math.ceil(rate.retryAfterMs / 1000))} s.`,
+      )
+    }
+
     if (!process.env.UPLOADTHING_TOKEN) {
       throw new Error('Úložisko nie je nakonfigurované (chýba token).')
     }
@@ -134,13 +140,15 @@ export const downloadFolderZip = createServerFn({ method: 'POST' })
     if (fileRows.length === 0) {
       throw new Error('Priečinok je prázdny')
     }
-    if (fileRows.length > MAX_ZIP_FILES) {
-      throw new Error(`Príliš veľa súborov (max ${MAX_ZIP_FILES})`)
+    if (fileRows.length > ZIP_MAX_FILES) {
+      throw new Error(`Príliš veľa súborov (max ${ZIP_MAX_FILES})`)
     }
 
     const totalBytes = fileRows.reduce((sum, row) => sum + row.size, 0)
-    if (totalBytes > MAX_ZIP_BYTES) {
-      throw new Error('Priečinok je príliš veľký na zip (max 80 MB)')
+    if (totalBytes > ZIP_MAX_BYTES) {
+      throw new Error(
+        `Priečinok je príliš veľký na zip (max ${Math.floor(ZIP_MAX_BYTES / (1024 * 1024))} MB)`,
+      )
     }
 
     const foldersById = new Map(allFolders.map((folder) => [folder.id, folder]))

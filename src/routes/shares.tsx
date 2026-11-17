@@ -148,8 +148,14 @@ function SharesPage() {
                   size="icon"
                   variant="ghost"
                   aria-label="Kopírovať"
-                  disabled={share.status !== 'active'}
+                  disabled={share.status !== 'active' || !share.path}
                   onClick={async () => {
+                    if (!share.path) {
+                      toast.error(
+                        'Token sa po vytvorení neukladá — skopíruj odkaz hneď pri zdieľaní.',
+                      )
+                      return
+                    }
                     try {
                       await navigator.clipboard.writeText(
                         `${window.location.origin}${share.path}`,

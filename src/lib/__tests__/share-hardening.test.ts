@@ -50,9 +50,19 @@ describe('createShareLinkSchema password requirement', () => {
       createShareLinkSchema.parse({
         fileId,
         expiresIn: SHARE_DEFAULT_EXPIRES_IN,
-        password: 'tajne12',
+        password: 'tajne12abc',
       }),
-    ).toMatchObject({ password: 'tajne12' })
+    ).toMatchObject({ password: 'tajne12abc' })
+  })
+
+  it('rejects short share passwords', () => {
+    expect(() =>
+      createShareLinkSchema.parse({
+        fileId,
+        expiresIn: SHARE_DEFAULT_EXPIRES_IN,
+        password: 'short',
+      }),
+    ).toThrow()
   })
 })
 

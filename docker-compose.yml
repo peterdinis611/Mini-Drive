@@ -3,10 +3,12 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      # Set POSTGRES_PASSWORD in .env — no weak production default.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:-mini_drive}
+    # Bind to loopback only — do not publish to the public network.
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - mini-drive-pg:/var/lib/postgresql/data
     healthcheck:
@@ -22,12 +24,20 @@ services:
 
   redis:
     image: redis:7-alpine
+    command:
+      [
+        "redis-server",
+        "--requirepass",
+        "${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}",
+        "--appendonly",
+        "yes",
+      ]
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     volumes:
       - mini-drive-redis:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -43,8 +53,9 @@ services:
     environment:
       NODE_ENV: production
       APP_URL: ${APP_URL}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-mini_drive}
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-mini_drive}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      TRUST_PROXY: ${TRUST_PROXY:-1}
       CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
       VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY}
@@ -52,7 +63,11 @@ services:
       VITE_CLERK_SIGN_UP_URL: ${VITE_CLERK_SIGN_UP_URL:-/sign-up}
       UPLOADTHING_TOKEN: ${UPLOADTHING_TOKEN}
       AUDIT_IP_PEPPER: ${AUDIT_IP_PEPPER}
+      SHARE_PASSWORD_PEPPER: ${SHARE_PASSWORD_PEPPER:-}
       BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+      VIRUS_SCAN_REQUIRE_CLAMAV: ${VIRUS_SCAN_REQUIRE_CLAMAV:-0}
+      CLAMAV_HOST: ${CLAMAV_HOST:-}
+      CLAMAV_PORT: ${CLAMAV_PORT:-3310}
     depends_on:
       db:
         condition: service_healthy
@@ -71,6 +86,26 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+
+  # Optional: nightly encrypted dump to ./backups (DB only — UploadThing blobs are separate).
+  backup:
+    profiles: [ "backup" ]
+    image: postgres:16-alpine
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-mini_drive}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:?Set BACKUP_ENCRYPTION_KEY for backup profile}
+    volumes:
+      - ./backups:/backups
+      - ./scripts:/scripts:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint:
+      [
+        "sh",
+        "-c",
+        "apk add --no-cache nodejs npm >/dev/null && echo 'Use host: BACKUP_ENCRYPTION_KEY=… pnpm db:backup (needs Node + pg_dump). Compose profile only mounts ./backups.'",
+      ]
 
 volumes:
   mini-drive-pg:

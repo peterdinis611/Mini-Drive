@@ -5,6 +5,10 @@ const KEYS = [
   'npm_lifecycle_event',
   'BACKUP_ENCRYPTION_KEY',
   'REDIS_URL',
+  'SHARE_PASSWORD_PEPPER',
+  'VIRUS_SCAN_REQUIRE_CLAMAV',
+  'AUDIT_IP_PEPPER',
+  'CLERK_PUBLISHABLE_KEY',
 ] as const
 
 describe('warnOptionalProductionEnv', () => {
@@ -53,6 +57,10 @@ describe('warnOptionalProductionEnv', () => {
     process.env.NODE_ENV = 'production'
     process.env.BACKUP_ENCRYPTION_KEY = 'at-least-16-chars'
     process.env.REDIS_URL = 'redis://127.0.0.1:6379'
+    process.env.SHARE_PASSWORD_PEPPER = 'share-pepper-at-least-32-characters!!'
+    process.env.VIRUS_SCAN_REQUIRE_CLAMAV = '1'
+    process.env.AUDIT_IP_PEPPER = 'audit-pepper-at-least-32-characters-xx'
+    process.env.CLERK_PUBLISHABLE_KEY = 'pk_live_example'
     const write = vi
       .spyOn(process.stderr, 'write')
       .mockImplementation(() => true)

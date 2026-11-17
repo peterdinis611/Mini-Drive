@@ -15,19 +15,47 @@ export async function getUsedStorageBytes(userId: string): Promise<number> {
   return Number(rows.at(0)?.total ?? 0)
 }
 
+/**
+ * Quota check under a transaction-scoped advisory lock so parallel uploads
+ * cannot all pass a stale SUM.
+ */
 export async function assertStorageQuota(
   userId: string,
   additionalBytes: number,
   options?: { releasingBytes?: number },
 ): Promise<void> {
-  const used = await getUsedStorageBytes(userId)
-  const result = checkStorageQuota({
-    usedBytes: used,
-    additionalBytes,
-    releasingBytes: options?.releasingBytes,
-  })
-  if (!result.ok) {
-    throw new Error(result.message)
+  const { pool } = await import('#/db')
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [userId])
+
+    const usedResult = await client.query<{ total: string | null }>(
+      `SELECT COALESCE(SUM(size), 0)::text AS total
+       FROM files
+       WHERE user_id = $1 AND deleted_at IS NULL`,
+      [userId],
+    )
+    const used = Number(usedResult.rows[0]?.total ?? 0)
+    const result = checkStorageQuota({
+      usedBytes: used,
+      additionalBytes,
+      releasingBytes: options?.releasingBytes,
+    })
+    if (!result.ok) {
+      await client.query('ROLLBACK')
+      throw new Error(result.message)
+    }
+    await client.query('COMMIT')
+  } catch (error) {
+    try {
+      await client.query('ROLLBACK')
+    } catch {
+      // ignore
+    }
+    throw error
+  } finally {
+    client.release()
   }
 }
 
@@ -90,7 +118,7 @@ export async function archiveAndReplaceFile(args: {
     uploadthingKey: current.uploadthingKey,
   })
 
-  return firstOrThrow(
+  const replaced = firstOrThrow(
     await db
       .update(files)
       .set({
@@ -112,4 +140,9 @@ export async function archiveAndReplaceFile(args: {
       }),
     'Nepodarilo sa nahradiť súbor',
   )
+
+  const { revokeSharesForFileId } = await import('#/server/share-revoke.server')
+  await revokeSharesForFileId(args.fileId)
+
+  return replaced
 }

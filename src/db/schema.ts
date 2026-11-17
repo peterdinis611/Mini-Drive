@@ -359,6 +359,7 @@ export const shareLinks = pgTable(
     fileId: text('file_id')
       .notNull()
       .references(() => files.id, { onDelete: 'cascade' }),
+    /** SHA-256 hex of the URL token — never store the plaintext token. */
     token: text('token').notNull().unique(),
     expiresAt: ts('expires_at').notNull(),
     createdBy: text('created_by')
@@ -367,6 +368,9 @@ export const shareLinks = pgTable(
     revokedAt: ts('revoked_at'),
     /** scrypt hash — never return plaintext; null = open link. */
     passwordHash: text('password_hash'),
+    /** Successful deliveries; null maxDownloads = unlimited. */
+    downloadCount: integer('download_count').notNull().default(0),
+    maxDownloads: integer('max_downloads'),
     createdAt: ts('created_at').notNull().defaultNow(),
   },
   (table) => [

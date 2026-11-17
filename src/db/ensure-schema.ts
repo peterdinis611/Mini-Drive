@@ -146,6 +146,38 @@ export async function ensurePgSchema(pool: Pool): Promise<void> {
       'password_hash',
       `"password_hash" text`,
     )
+    await addColumn(
+      pool,
+      'share_links',
+      shareCols,
+      'download_count',
+      `"download_count" integer NOT NULL DEFAULT 0`,
+    )
+    await addColumn(
+      pool,
+      'share_links',
+      shareCols,
+      'max_downloads',
+      `"max_downloads" integer`,
+    )
+
+    // One-time: hash any leftover plaintext tokens (base64url ≠ 64-char hex).
+    const plaintext = await pool.query<{ id: string; token: string }>(
+      `SELECT id, token FROM share_links
+       WHERE token !~ '^[a-f0-9]{64}$'`,
+    )
+    if (plaintext.rows.length > 0) {
+      const { createHash } = await import('node:crypto')
+      for (const row of plaintext.rows) {
+        const hashed = createHash('sha256')
+          .update(row.token, 'utf8')
+          .digest('hex')
+        await pool.query(`UPDATE share_links SET token = $1 WHERE id = $2`, [
+          hashed,
+          row.id,
+        ])
+      }
+    }
   }
 
   await pool.query(`

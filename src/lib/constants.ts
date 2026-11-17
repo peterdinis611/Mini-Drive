@@ -66,6 +66,17 @@ export const SHARE_PASSWORD_TOKEN_LOCK = {
 /** Max stored audit rows returned per share in the UI. */
 export const SHARE_ACCESS_LOG_LIMIT = 50
 
+/** Default cap on successful public deliveries per share link. */
+export const SHARE_DEFAULT_MAX_DOWNLOADS = 100
+
+/** Soft ceiling for in-memory zip responses. */
+export const ZIP_MAX_BYTES = 40 * 1024 * 1024
+export const ZIP_MAX_FILES = 100
+export const ZIP_RATE_LIMIT = {
+  limit: 5,
+  windowMs: 60_000,
+} as const
+
 export const NAME_MAX_LENGTH = 255
 // Control chars (U+0000–U+001F) are rejected in folder/file names
 /** Reject path separators, wildcards, and C0 control characters in names. */

@@ -21,6 +21,11 @@ describe('compileDriveRegex', () => {
     expect(compileDriveRegex('(')).toBeNull()
     expect(compileDriveRegex('//')).toBeNull()
   })
+
+  it('rejects oversized and nested-quantifier patterns', () => {
+    expect(compileDriveRegex('a'.repeat(300))).toBeNull()
+    expect(compileDriveRegex('(a+)+')).toBeNull()
+  })
 })
 
 describe('fieldsMatchRegex', () => {

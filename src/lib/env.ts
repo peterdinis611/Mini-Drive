@@ -75,4 +75,30 @@ export function warnOptionalProductionEnv(): void {
       '[mini-drive] REDIS_URL unset — rate limits are in-memory (not shared across instances).',
     )
   }
+
+  if (!process.env.SHARE_PASSWORD_PEPPER?.trim()) {
+    stderrLine(
+      '[mini-drive] SHARE_PASSWORD_PEPPER unset — falling back to AUDIT_IP_PEPPER for share passwords.',
+    )
+  }
+
+  const clerkPub = process.env.CLERK_PUBLISHABLE_KEY ?? ''
+  if (clerkPub.startsWith('pk_test_')) {
+    stderrLine(
+      '[mini-drive] CLERK_PUBLISHABLE_KEY looks like a test key in production.',
+    )
+  }
+
+  if (process.env.VIRUS_SCAN_REQUIRE_CLAMAV !== '1') {
+    stderrLine(
+      '[mini-drive] VIRUS_SCAN_REQUIRE_CLAMAV is not 1 — share scans may fail open without ClamAV.',
+    )
+  }
+
+  const pepper = process.env.AUDIT_IP_PEPPER?.trim() ?? ''
+  if (pepper.length > 0 && pepper.length < 32) {
+    stderrLine(
+      '[mini-drive] AUDIT_IP_PEPPER is short — use at least 32 random bytes (openssl rand -hex 32).',
+    )
+  }
 }

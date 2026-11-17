@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
-import { and, desc, eq, isNotNull, isNull, lte } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNotNull, isNull, lte } from 'drizzle-orm'
 
 import { TRASH_RETENTION_DAYS } from '#/lib/constants'
 import {
@@ -153,7 +153,10 @@ async function permanentlyDeleteFile(
     ...versions.map((v) => v.uploadthingKey),
   ]
 
-  if (process.env.UPLOADTHING_TOKEN && keys.length > 0) {
+  if (keys.length > 0) {
+    if (!process.env.UPLOADTHING_TOKEN) {
+      throw new Error('Úložisko nie je nakonfigurované (chýba token).')
+    }
     try {
       await utapi.deleteFiles(keys)
     } catch {
@@ -180,7 +183,8 @@ export const purgeFolder = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const { requireSession } = await import('#/server/auth.server')
     const { db } = await import('#/db')
-    const { folders } = await import('#/db/schema')
+    const { files, fileVersions, folders } = await import('#/db/schema')
+    const { utapi } = await import('#/server/utapi.server')
 
     const session = await requireSession()
     const userId = session.user.id
@@ -199,6 +203,42 @@ export const purgeFolder = createServerFn({ method: 'POST' })
         .limit(1),
       'Priečinok v koši neexistuje',
     )
+
+    const folderFiles = await db
+      .select({
+        id: files.id,
+        uploadthingKey: files.uploadthingKey,
+      })
+      .from(files)
+      .where(and(eq(files.folderId, data.folderId), eq(files.userId, userId)))
+
+    const fileIds = folderFiles.map((row) => row.id)
+    const versionKeys =
+      fileIds.length === 0
+        ? []
+        : (
+            await db
+              .select({ uploadthingKey: fileVersions.uploadthingKey })
+              .from(fileVersions)
+              .where(inArray(fileVersions.fileId, fileIds))
+          ).map((row) => row.uploadthingKey)
+
+    const keys = [
+      ...folderFiles.map((row) => row.uploadthingKey),
+      ...versionKeys,
+    ]
+
+    if (process.env.UPLOADTHING_TOKEN && keys.length > 0) {
+      try {
+        await utapi.deleteFiles(keys)
+      } catch {
+        throw new Error(
+          'Nepodarilo sa zmazať súbory z úložiska. Skús to znova.',
+        )
+      }
+    } else if (keys.length > 0 && !process.env.UPLOADTHING_TOKEN) {
+      throw new Error('Úložisko nie je nakonfigurované (chýba token).')
+    }
 
     await db
       .delete(folders)
@@ -231,6 +271,11 @@ export const deleteAllDriveContent = createServerFn({ method: 'POST' })
         .where(and(eq(folders.userId, userId), isNull(folders.deletedAt)))
         .returning({ id: folders.id }),
     ])
+
+    const { revokeSharesForFileIds } = await import(
+      '#/server/share-revoke.server'
+    )
+    await revokeSharesForFileIds(fileResult.map((row) => row.id))
 
     return {
       ok: true as const,

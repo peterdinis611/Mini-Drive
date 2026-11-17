@@ -1,8 +1,13 @@
-import { randomBytes } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 
 /** URL-safe opaque token for public share links (never the UploadThing key). */
 export function generateShareToken(bytes = 24): string {
   return randomBytes(bytes).toString('base64url')
+}
+
+/** SHA-256 hex — only this is stored in Postgres; plaintext lives in the URL. */
+export function hashShareToken(token: string): string {
+  return createHash('sha256').update(token, 'utf8').digest('hex')
 }
 
 export function buildSharePath(token: string): string {

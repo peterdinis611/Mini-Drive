@@ -1,9 +1,11 @@
 /**
  * Content-Security-Policy tuned for TanStack Start + Vite + Clerk + UploadThing + Google Fonts.
  * Dev relaxes script/connect for HMR; production stays stricter.
+ * Note: production still needs `'unsafe-inline'` for framework hydration until nonces land.
  */
 export function buildContentSecurityPolicy(
   env: 'development' | 'production' | 'test' = 'production',
+  options?: { allowEmbedAncestors?: boolean },
 ): string {
   const isDev = env === 'development'
 
@@ -45,7 +47,7 @@ export function buildContentSecurityPolicy(
     ['default-src', ["'self'"]],
     ['base-uri', ["'self'"]],
     ['form-action', ["'self'", ...clerkHosts, 'https://accounts.google.com']],
-    ['frame-ancestors', ["'none'"]],
+    ['frame-ancestors', options?.allowEmbedAncestors ? ['*'] : ["'none'"]],
     ['object-src', ["'none'"]],
     ['script-src', scriptSrc],
     [
@@ -82,7 +84,13 @@ export function buildContentSecurityPolicy(
     ['worker-src', ["'self'", 'blob:']],
     [
       'frame-src',
-      ["'self'", 'blob:', ...clerkHosts, 'https://challenges.cloudflare.com'],
+      [
+        "'self'",
+        'blob:',
+        ...clerkHosts,
+        'https://challenges.cloudflare.com',
+        'https://view.officeapps.live.com',
+      ],
     ],
     ['upgrade-insecure-requests', []],
   ]

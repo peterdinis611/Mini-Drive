@@ -306,6 +306,11 @@ export const deleteFolder = createServerFn({ method: 'POST' })
         ),
       )
 
+    const { revokeSharesForFileIds } = await import(
+      '#/server/share-revoke.server'
+    )
+    await revokeSharesForFileIds(fileRows.map((row) => row.id))
+
     return {
       deletedFolders: ids.length,
       deletedFiles: fileRows.length,

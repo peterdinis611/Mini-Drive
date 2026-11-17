@@ -27,9 +27,21 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     env:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/mini_drive
       TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/mini_drive
+      REDIS_URL: redis://127.0.0.1:6379
+      AUDIT_IP_PEPPER: ci-audit-pepper-not-for-production-use-32b
+      SHARE_PASSWORD_PEPPER: ci-share-pepper-not-for-production-use-32
     steps:
       - uses: actions/checkout@v4
 
@@ -51,7 +63,8 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Push schema
+      - name: Sync schema
+        # Source of truth is src/db/schema.ts; additive SQL lives in drizzle/ for hosts that prefer migrate.
         run: pnpm exec drizzle-kit push --force
 
       - name: Unit tests

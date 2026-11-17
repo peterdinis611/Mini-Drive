@@ -29,8 +29,13 @@ const securityHeadersMiddleware = createMiddleware().server(
     const result = await next()
     const pathname = new URL(request.url).pathname
 
+    const isEmbed = pathname.startsWith('/e/')
+
     setResponseHeader('X-Content-Type-Options', 'nosniff')
-    setResponseHeader('X-Frame-Options', 'DENY')
+    // Embeds omit X-Frame-Options so CSP frame-ancestors controls who can iframe.
+    if (!isEmbed) {
+      setResponseHeader('X-Frame-Options', 'DENY')
+    }
     setResponseHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
     setResponseHeader(
       'Permissions-Policy',
@@ -41,6 +46,7 @@ const securityHeadersMiddleware = createMiddleware().server(
       'Content-Security-Policy',
       buildContentSecurityPolicy(
         process.env.NODE_ENV === 'production' ? 'production' : 'development',
+        { allowEmbedAncestors: isEmbed },
       ),
     )
 

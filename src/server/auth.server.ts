@@ -84,22 +84,34 @@ async function ensureLocalUser(clerkUserId: string): Promise<AppUser> {
   const { db, pool } = await dbMod()
   const { rekeyUserId } = await import('#/db/rekey-user')
 
-  // Legacy better-auth row with same email but different id → re-key to Clerk.
+  /**
+   * Legacy better-auth merge: only when Clerk email is verified and the
+   * existing row is not already another Clerk user id (user_…).
+   * Unverified emails must never take over another drive.
+   */
   const byEmail = await findUserByEmail(primaryEmail)
   if (byEmail && byEmail.id !== clerkUserId) {
-    await rekeyUserId(pool, byEmail.id, clerkUserId)
-    await db
-      .update(user)
-      .set({
-        name,
-        emailVerified,
-        image,
-        updatedAt: new Date(),
-      })
-      .where(eq(user.id, clerkUserId))
+    const legacyRow = !byEmail.id.startsWith('user_')
+    if (emailVerified && legacyRow) {
+      await rekeyUserId(pool, byEmail.id, clerkUserId)
+      await db
+        .update(user)
+        .set({
+          name,
+          emailVerified,
+          image,
+          updatedAt: new Date(),
+        })
+        .where(eq(user.id, clerkUserId))
 
-    const linked = await findUserById(clerkUserId)
-    if (linked) return linked
+      const linked = await findUserById(clerkUserId)
+      if (linked) return linked
+    } else {
+      logger.warn(
+        '[mini-drive] refused email merge — unverified email or non-legacy row',
+        { clerkUserId, existingId: byEmail.id, emailVerified },
+      )
+    }
   }
 
   try {
@@ -114,12 +126,19 @@ async function ensureLocalUser(clerkUserId: string): Promise<AppUser> {
     const raced =
       (await findUserById(clerkUserId)) ?? (await findUserByEmail(primaryEmail))
     if (raced) {
-      if (raced.id !== clerkUserId) {
+      if (
+        raced.id !== clerkUserId &&
+        emailVerified &&
+        !raced.id.startsWith('user_')
+      ) {
         await rekeyUserId(pool, raced.id, clerkUserId)
         const linked = await findUserById(clerkUserId)
         if (linked) return linked
       }
-      return raced
+      if (raced.id === clerkUserId) return raced
+      throw new Error(
+        'Email už patrí inému účtu. Over email v Clerk alebo použij iný.',
+      )
     }
     throw new Error('Nepodarilo sa vytvoriť lokálneho používateľa')
   }

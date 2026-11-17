@@ -4,6 +4,7 @@ import {
   buildEmbedPath,
   buildSharePath,
   generateShareToken,
+  hashShareToken,
   resolveShareStatus,
 } from '../share-token'
 
@@ -14,6 +15,17 @@ describe('generateShareToken', () => {
     expect(a).not.toBe(b)
     expect(a).toMatch(/^[A-Za-z0-9_-]+$/)
     expect(a.length).toBeGreaterThanOrEqual(32)
+  })
+})
+
+describe('hashShareToken', () => {
+  it('returns stable 64-char hex digests', () => {
+    const token = generateShareToken()
+    const a = hashShareToken(token)
+    const b = hashShareToken(token)
+    expect(a).toBe(b)
+    expect(a).toMatch(/^[a-f0-9]{64}$/)
+    expect(a).not.toBe(token)
   })
 })
 

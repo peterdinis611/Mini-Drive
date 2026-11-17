@@ -228,7 +228,7 @@ export function ShareDialog({
                 autoComplete="new-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="aspoň 6 znakov"
+                placeholder="aspoň 10 znakov"
               />
               <FieldDescription>
                 Povinné. Príjemca uvidí súbor až po zadaní hesla.

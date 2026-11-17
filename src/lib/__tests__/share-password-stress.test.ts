@@ -35,7 +35,7 @@ describe('stress: share password unlock (mocked crypto)', () => {
     )
 
     const encoded = hashSharePassword('tajne-heslo')
-    expect(encoded.startsWith('v1$')).toBe(true)
+    expect(encoded.startsWith('v2$')).toBe(true)
 
     const key = 'unlock:tok_stress:ip:9.9.9.9'
     let allowed = 0

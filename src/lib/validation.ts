@@ -160,7 +160,7 @@ export const changePasswordSchema = z
 /** Share-link password (required — not account password rules). */
 export const shareLinkPasswordSchema = z
   .string()
-  .min(6, 'Heslo musí mať aspoň 6 znakov')
+  .min(10, 'Heslo musí mať aspoň 10 znakov')
   .max(128, 'Heslo môže mať najviac 128 znakov')
 
 export const createShareLinkSchema = z.object({
@@ -168,6 +168,7 @@ export const createShareLinkSchema = z.object({
   expiresIn: expiresInSchema,
   /** Required — public open always needs a password. */
   password: shareLinkPasswordSchema,
+  maxDownloads: z.number().int().min(1).max(10_000).optional(),
 })
 
 export const revokeShareLinkSchema = z.object({
